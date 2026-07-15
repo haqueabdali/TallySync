@@ -76,6 +76,7 @@ export class SalesOrderEntity {
   @Column({
     type: 'enum',
     enum: SalesOrderStatus,
+    enumName: 'sales_order_status_enum',
     default: SalesOrderStatus.DRAFT,
   })
   status: SalesOrderStatus;
@@ -170,9 +171,11 @@ export class SalesOrderEntity {
     name: 'sync_status',
     type: 'enum',
     enum: SalesOrderSyncStatus,
+    enumName: 'sales_order_sync_status_enum',
     default: SalesOrderSyncStatus.PENDING,
   })
   syncStatus: SalesOrderSyncStatus;
+
 
   @Column({
     name: 'last_synced_at',

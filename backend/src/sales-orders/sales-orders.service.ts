@@ -36,6 +36,7 @@ import {
   PaginatedCustomersResponseDto,
   PaginatedSalesOrdersResponseDto,
   SalesOrderResponseDto,
+  SalesOrderSummaryResponseDto,
 } from './dto/sales-order-response.dto';
 
 import type { SalesRequestContext } from './interfaces/sales-request-context.interface';
@@ -767,193 +768,149 @@ export class SalesOrdersService {
     return this.toSalesOrderResponse(submittedOrder);
   }
   async approveSalesOrder(
-  orderId: string,
-  context: SalesRequestContext,
-): Promise<SalesOrderResponseDto> {
-  const companyId = this.requireCompanyId(context);
-  const actorId = this.requireActorId(context);
+    orderId: string,
+    context: SalesRequestContext,
+  ): Promise<SalesOrderResponseDto> {
+    const companyId = this.requireCompanyId(context);
+    const actorId = this.requireActorId(context);
 
-  const order = await this.findSalesOrderEntity(
-    orderId,
-    companyId,
-  );
+    const order = await this.findSalesOrderEntity(orderId, companyId);
 
-  if (order.status !== SalesOrderStatus.SUBMITTED) {
-    throw new BadRequestException(
-      'Only submitted sales orders can be approved',
-    );
+    if (order.status !== SalesOrderStatus.SUBMITTED) {
+      throw new BadRequestException(
+        'Only submitted sales orders can be approved',
+      );
+    }
+
+    await this.validateCurrentStockForOrder(order.items, companyId);
+
+    order.status = SalesOrderStatus.APPROVED;
+    order.approvedBy = actorId;
+    order.approvedAt = new Date();
+    order.rejectionReason = null;
+    order.syncStatus = SalesOrderSyncStatus.PENDING;
+    order.lastSyncedAt = null;
+
+    await this.salesOrderRepository.save(order);
+
+    const approvedOrder = await this.findSalesOrderEntity(order.id, companyId);
+
+    this.logger.log(`Sales order ${order.orderNumber} approved by ${actorId}`);
+
+    return this.toSalesOrderResponse(approvedOrder);
   }
+  async rejectSalesOrder(
+    orderId: string,
+    reason: string,
+    context: SalesRequestContext,
+  ): Promise<SalesOrderResponseDto> {
+    const companyId = this.requireCompanyId(context);
+    const actorId = this.requireActorId(context);
 
-  await this.validateCurrentStockForOrder(
-    order.items,
-    companyId,
-  );
+    const order = await this.findSalesOrderEntity(orderId, companyId);
 
-  order.status = SalesOrderStatus.APPROVED;
-  order.approvedBy = actorId;
-  order.approvedAt = new Date();
-  order.rejectionReason = null;
-  order.syncStatus = SalesOrderSyncStatus.PENDING;
-  order.lastSyncedAt = null;
+    if (order.status !== SalesOrderStatus.SUBMITTED) {
+      throw new BadRequestException(
+        'Only submitted sales orders can be rejected',
+      );
+    }
 
-  await this.salesOrderRepository.save(order);
-
-  const approvedOrder =
-    await this.findSalesOrderEntity(
-      order.id,
-      companyId,
-    );
-
-  this.logger.log(
-    `Sales order ${order.orderNumber} approved by ${actorId}`,
-  );
-
-  return this.toSalesOrderResponse(approvedOrder);
-}
-async rejectSalesOrder(
-  orderId: string,
-  reason: string,
-  context: SalesRequestContext,
-): Promise<SalesOrderResponseDto> {
-  const companyId = this.requireCompanyId(context);
-  const actorId = this.requireActorId(context);
-
-  const order = await this.findSalesOrderEntity(
-    orderId,
-    companyId,
-  );
-
-  if (order.status !== SalesOrderStatus.SUBMITTED) {
-    throw new BadRequestException(
-      'Only submitted sales orders can be rejected',
-    );
-  }
-
-  const rejectionReason =
-    this.normalizeRequiredText(
+    const rejectionReason = this.normalizeRequiredText(
       reason,
       'Rejection reason',
     );
 
-  order.status = SalesOrderStatus.REJECTED;
-  order.approvedBy = null;
-  order.approvedAt = null;
-  order.rejectionReason = rejectionReason;
-  order.syncStatus = SalesOrderSyncStatus.PENDING;
-  order.lastSyncedAt = null;
+    order.status = SalesOrderStatus.REJECTED;
+    order.approvedBy = null;
+    order.approvedAt = null;
+    order.rejectionReason = rejectionReason;
+    order.syncStatus = SalesOrderSyncStatus.PENDING;
+    order.lastSyncedAt = null;
 
-  await this.salesOrderRepository.save(order);
+    await this.salesOrderRepository.save(order);
 
-  const rejectedOrder =
-    await this.findSalesOrderEntity(
-      order.id,
-      companyId,
-    );
+    const rejectedOrder = await this.findSalesOrderEntity(order.id, companyId);
 
-  this.logger.log(
-    `Sales order ${order.orderNumber} rejected by ${actorId}`,
-  );
+    this.logger.log(`Sales order ${order.orderNumber} rejected by ${actorId}`);
 
-  return this.toSalesOrderResponse(rejectedOrder);
-}
-async cancelSalesOrder(
-  orderId: string,
-  context: SalesRequestContext,
-): Promise<SalesOrderResponseDto> {
-  const companyId = this.requireCompanyId(context);
-  const actorId = this.requireActorId(context);
-
-  const order = await this.findSalesOrderEntity(
-    orderId,
-    companyId,
-  );
-
-  const cancellableStatuses = [
-    SalesOrderStatus.DRAFT,
-    SalesOrderStatus.SUBMITTED,
-    SalesOrderStatus.APPROVED,
-    SalesOrderStatus.REJECTED,
-  ];
-
-  if (!cancellableStatuses.includes(order.status)) {
-    throw new BadRequestException(
-      'This sales order cannot be cancelled',
-    );
+    return this.toSalesOrderResponse(rejectedOrder);
   }
+  async cancelSalesOrder(
+    orderId: string,
+    context: SalesRequestContext,
+  ): Promise<SalesOrderResponseDto> {
+    const companyId = this.requireCompanyId(context);
+    const actorId = this.requireActorId(context);
 
-  order.status = SalesOrderStatus.CANCELLED;
-  order.syncStatus = SalesOrderSyncStatus.PENDING;
-  order.lastSyncedAt = null;
+    const order = await this.findSalesOrderEntity(orderId, companyId);
 
-  await this.salesOrderRepository.save(order);
+    const cancellableStatuses = [
+      SalesOrderStatus.DRAFT,
+      SalesOrderStatus.SUBMITTED,
+      SalesOrderStatus.APPROVED,
+      SalesOrderStatus.REJECTED,
+    ];
 
-  const cancelledOrder =
-    await this.findSalesOrderEntity(
-      order.id,
-      companyId,
-    );
+    if (!cancellableStatuses.includes(order.status)) {
+      throw new BadRequestException('This sales order cannot be cancelled');
+    }
 
-  this.logger.log(
-    `Sales order ${order.orderNumber} cancelled by ${actorId}`,
-  );
+    order.status = SalesOrderStatus.CANCELLED;
+    order.syncStatus = SalesOrderSyncStatus.PENDING;
+    order.lastSyncedAt = null;
 
-  return this.toSalesOrderResponse(cancelledOrder);
-}
-async fulfilSalesOrder(
-  orderId: string,
-  context: SalesRequestContext,
-): Promise<SalesOrderResponseDto> {
-  const companyId = this.requireCompanyId(context);
-  const actorId = this.requireActorId(context);
+    await this.salesOrderRepository.save(order);
 
-  return this.dataSource.transaction(
-    async (
-      entityManager: EntityManager,
-    ): Promise<SalesOrderResponseDto> => {
-      const orderRepository =
-        entityManager.getRepository(
-          SalesOrderEntity,
-        );
+    const cancelledOrder = await this.findSalesOrderEntity(order.id, companyId);
 
-      const itemRepository =
-        entityManager.getRepository(ItemEntity);
+    this.logger.log(`Sales order ${order.orderNumber} cancelled by ${actorId}`);
 
-      const order = await orderRepository.findOne({
-        where: {
-          id: orderId,
-          companyId,
-          deletedAt: IsNull(),
-        },
-        relations: {
-          customer: true,
-          items: true,
-        },
-        lock: {
-          mode: 'pessimistic_write',
-        },
-      });
+    return this.toSalesOrderResponse(cancelledOrder);
+  }
+  async fulfilSalesOrder(
+    orderId: string,
+    context: SalesRequestContext,
+  ): Promise<SalesOrderResponseDto> {
+    const companyId = this.requireCompanyId(context);
+    const actorId = this.requireActorId(context);
 
-      if (!order) {
-        throw new NotFoundException(
-          'Sales order not found',
-        );
-      }
+    return this.dataSource.transaction(
+      async (entityManager: EntityManager): Promise<SalesOrderResponseDto> => {
+        const orderRepository = entityManager.getRepository(SalesOrderEntity);
 
-      if (order.status !== SalesOrderStatus.APPROVED) {
-        throw new BadRequestException(
-          'Only approved sales orders can be fulfilled',
-        );
-      }
+        const itemRepository = entityManager.getRepository(ItemEntity);
 
-      if (!order.items || order.items.length === 0) {
-        throw new BadRequestException(
-          'Sales order has no items',
-        );
-      }
+        const order = await orderRepository.findOne({
+          where: {
+            id: orderId,
+            companyId,
+            deletedAt: IsNull(),
+          },
+          relations: {
+            customer: true,
+            items: true,
+          },
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
 
-      for (const orderItem of order.items) {
-        const inventoryItem =
-          await itemRepository.findOne({
+        if (!order) {
+          throw new NotFoundException('Sales order not found');
+        }
+
+        if (order.status !== SalesOrderStatus.APPROVED) {
+          throw new BadRequestException(
+            'Only approved sales orders can be fulfilled',
+          );
+        }
+
+        if (!order.items || order.items.length === 0) {
+          throw new BadRequestException('Sales order has no items');
+        }
+
+        for (const orderItem of order.items) {
+          const inventoryItem = await itemRepository.findOne({
             where: {
               id: orderItem.itemId,
               companyId,
@@ -964,46 +921,38 @@ async fulfilSalesOrder(
             },
           });
 
-        if (!inventoryItem) {
-          throw new BadRequestException(
-            `Inventory item ${orderItem.itemName} no longer exists`,
-          );
+          if (!inventoryItem) {
+            throw new BadRequestException(
+              `Inventory item ${orderItem.itemName} no longer exists`,
+            );
+          }
+
+          const requestedQuantity = Number(orderItem.quantity);
+
+          const availableQuantity = Number(inventoryItem.stockQty);
+
+          if (requestedQuantity > availableQuantity) {
+            throw new BadRequestException(
+              `Insufficient stock for ${orderItem.itemName}. Available: ${availableQuantity}, required: ${requestedQuantity}`,
+            );
+          }
+
+          inventoryItem.stockQty = availableQuantity - requestedQuantity;
+
+          inventoryItem.syncStatus = InventorySyncStatus.PENDING;
+
+          inventoryItem.lastSyncedAt = null;
+
+          await itemRepository.save(inventoryItem);
         }
 
-        const requestedQuantity = Number(
-          orderItem.quantity,
-        );
+        order.status = SalesOrderStatus.FULFILLED;
+        order.syncStatus = SalesOrderSyncStatus.PENDING;
+        order.lastSyncedAt = null;
 
-        const availableQuantity = Number(
-          inventoryItem.stockQty,
-        );
+        await orderRepository.save(order);
 
-        if (requestedQuantity > availableQuantity) {
-          throw new BadRequestException(
-            `Insufficient stock for ${orderItem.itemName}. Available: ${availableQuantity}, required: ${requestedQuantity}`,
-          );
-        }
-
-        inventoryItem.stockQty =
-          availableQuantity - requestedQuantity;
-
-        inventoryItem.syncStatus =
-        InventorySyncStatus.PENDING;
-
-        inventoryItem.lastSyncedAt = null;
-
-        await itemRepository.save(inventoryItem);
-      }
-
-      order.status = SalesOrderStatus.FULFILLED;
-      order.syncStatus =
-        SalesOrderSyncStatus.PENDING;
-      order.lastSyncedAt = null;
-
-      await orderRepository.save(order);
-
-      const fulfilledOrder =
-        await orderRepository.findOne({
+        const fulfilledOrder = await orderRepository.findOne({
           where: {
             id: order.id,
             companyId,
@@ -1014,22 +963,132 @@ async fulfilSalesOrder(
           },
         });
 
-      if (!fulfilledOrder) {
-        throw new NotFoundException(
-          'Fulfilled order could not be loaded',
+        if (!fulfilledOrder) {
+          throw new NotFoundException('Fulfilled order could not be loaded');
+        }
+
+        this.logger.log(
+          `Sales order ${order.orderNumber} fulfilled by ${actorId}`,
         );
-      }
 
-      this.logger.log(
-        `Sales order ${order.orderNumber} fulfilled by ${actorId}`,
-      );
+        return this.toSalesOrderResponse(fulfilledOrder);
+      },
+    );
+  }
+  async getSalesOrderSummary(
+    context: SalesRequestContext,
+  ): Promise<SalesOrderSummaryResponseDto> {
+    const companyId = this.requireCompanyId(context);
 
-      return this.toSalesOrderResponse(
-        fulfilledOrder,
-      );
-    },
-  );
-}
+    const result = await this.salesOrderRepository
+      .createQueryBuilder('order')
+      .select('COUNT(order.id)', 'totalOrders')
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :draftStatus
+      )`,
+        'draftOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :submittedStatus
+      )`,
+        'submittedOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :approvedStatus
+      )`,
+        'approvedOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :rejectedStatus
+      )`,
+        'rejectedOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :fulfilledStatus
+      )`,
+        'fulfilledOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.status = :cancelledStatus
+      )`,
+        'cancelledOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.syncStatus = :pendingSyncStatus
+      )`,
+        'pendingSyncOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.syncStatus = :syncedSyncStatus
+      )`,
+        'syncedOrders',
+      )
+      .addSelect(
+        `COUNT(order.id) FILTER (
+        WHERE order.syncStatus = :failedSyncStatus
+      )`,
+        'failedSyncOrders',
+      )
+      .addSelect(
+        `COALESCE(
+        SUM(order.grandTotal) FILTER (
+          WHERE order.status = :fulfilledStatus
+        ),
+        0
+      )`,
+        'totalSalesValue',
+      )
+      .where('order.companyId = :companyId', {
+        companyId,
+      })
+      .andWhere('order.deletedAt IS NULL')
+      .setParameters({
+        draftStatus: SalesOrderStatus.DRAFT,
+        submittedStatus: SalesOrderStatus.SUBMITTED,
+        approvedStatus: SalesOrderStatus.APPROVED,
+        rejectedStatus: SalesOrderStatus.REJECTED,
+        fulfilledStatus: SalesOrderStatus.FULFILLED,
+        cancelledStatus: SalesOrderStatus.CANCELLED,
+        pendingSyncStatus: SalesOrderSyncStatus.PENDING,
+        syncedSyncStatus: SalesOrderSyncStatus.SYNCED,
+        failedSyncStatus: SalesOrderSyncStatus.FAILED,
+      })
+      .getRawOne<{
+        totalOrders: string;
+        draftOrders: string;
+        submittedOrders: string;
+        approvedOrders: string;
+        rejectedOrders: string;
+        fulfilledOrders: string;
+        cancelledOrders: string;
+        pendingSyncOrders: string;
+        syncedOrders: string;
+        failedSyncOrders: string;
+        totalSalesValue: string;
+      }>();
+
+    return {
+      totalOrders: Number(result?.totalOrders ?? 0),
+      draftOrders: Number(result?.draftOrders ?? 0),
+      submittedOrders: Number(result?.submittedOrders ?? 0),
+      approvedOrders: Number(result?.approvedOrders ?? 0),
+      rejectedOrders: Number(result?.rejectedOrders ?? 0),
+      fulfilledOrders: Number(result?.fulfilledOrders ?? 0),
+      cancelledOrders: Number(result?.cancelledOrders ?? 0),
+      pendingSyncOrders: Number(result?.pendingSyncOrders ?? 0),
+      syncedOrders: Number(result?.syncedOrders ?? 0),
+      failedSyncOrders: Number(result?.failedSyncOrders ?? 0),
+      totalSalesValue: Number(result?.totalSalesValue ?? 0),
+    };
+  }
 
   // ==========================================================================
   // PRIVATE CUSTOMER HELPERS

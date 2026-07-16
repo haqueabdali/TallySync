@@ -28,6 +28,7 @@ import {
   PaginatedCustomersResponseDto,
   PaginatedSalesOrdersResponseDto,
   SalesOrderResponseDto,
+  SalesOrderSummaryResponseDto,
 } from './dto/sales-order-response.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -68,7 +69,15 @@ export class SalesOrdersController {
       this.toSalesContext(audit),
     );
   }
-
+  @Get('summary')
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
+  getSalesOrderSummary(
+    @AuditCtx() audit: AuditContext,
+  ): Promise<SalesOrderSummaryResponseDto> {
+    return this.salesOrdersService.getSalesOrderSummary(
+      this.toSalesContext(audit),
+    );
+  }
   @Get(':id')
   @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   getSalesOrderById(
@@ -160,62 +169,58 @@ export class SalesOrdersController {
   }
 
   @Post(':id/approve')
-@Roles('admin', 'company_owner')
-@HttpCode(HttpStatus.OK)
-approveSalesOrder(
-  @Param('id', ParseUUIDPipe) id: string,
-  @AuditCtx() audit: AuditContext,
-): Promise<SalesOrderResponseDto> {
-  return this.salesOrdersService.approveSalesOrder(
-    id,
-    this.toSalesContext(audit),
-  );
-}
+  @Roles('admin', 'company_owner')
+  @HttpCode(HttpStatus.OK)
+  approveSalesOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<SalesOrderResponseDto> {
+    return this.salesOrdersService.approveSalesOrder(
+      id,
+      this.toSalesContext(audit),
+    );
+  }
 
-@Post(':id/reject')
-@Roles('admin', 'company_owner')
-@HttpCode(HttpStatus.OK)
-rejectSalesOrder(
-  @Param('id', ParseUUIDPipe) id: string,
-  @Body() dto: RejectSalesOrderDto,
-  @AuditCtx() audit: AuditContext,
-): Promise<SalesOrderResponseDto> {
-  return this.salesOrdersService.rejectSalesOrder(
-    id,
-    dto.reason,
-    this.toSalesContext(audit),
-  );
-}
+  @Post(':id/reject')
+  @Roles('admin', 'company_owner')
+  @HttpCode(HttpStatus.OK)
+  rejectSalesOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RejectSalesOrderDto,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<SalesOrderResponseDto> {
+    return this.salesOrdersService.rejectSalesOrder(
+      id,
+      dto.reason,
+      this.toSalesContext(audit),
+    );
+  }
 
-@Post(':id/cancel')
-@Roles(
-  'admin',
-  'company_owner',
-  'sales_rep',
-)
-@HttpCode(HttpStatus.OK)
-cancelSalesOrder(
-  @Param('id', ParseUUIDPipe) id: string,
-  @AuditCtx() audit: AuditContext,
-): Promise<SalesOrderResponseDto> {
-  return this.salesOrdersService.cancelSalesOrder(
-    id,
-    this.toSalesContext(audit),
-  );
-}
+  @Post(':id/cancel')
+  @Roles('admin', 'company_owner', 'sales_rep')
+  @HttpCode(HttpStatus.OK)
+  cancelSalesOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<SalesOrderResponseDto> {
+    return this.salesOrdersService.cancelSalesOrder(
+      id,
+      this.toSalesContext(audit),
+    );
+  }
 
-@Post(':id/fulfil')
-@Roles('admin', 'company_owner')
-@HttpCode(HttpStatus.OK)
-fulfilSalesOrder(
-  @Param('id', ParseUUIDPipe) id: string,
-  @AuditCtx() audit: AuditContext,
-): Promise<SalesOrderResponseDto> {
-  return this.salesOrdersService.fulfilSalesOrder(
-    id,
-    this.toSalesContext(audit),
-  );
-}
+  @Post(':id/fulfil')
+  @Roles('admin', 'company_owner')
+  @HttpCode(HttpStatus.OK)
+  fulfilSalesOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<SalesOrderResponseDto> {
+    return this.salesOrdersService.fulfilSalesOrder(
+      id,
+      this.toSalesContext(audit),
+    );
+  }
 
   private toSalesContext(audit: AuditContext): SalesRequestContext {
     return {

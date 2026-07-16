@@ -2,7 +2,7 @@
 export class AuthResponseDto {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;       // seconds until accessToken expires
+  expiresIn: number; // seconds until accessToken expires
   tokenType: 'Bearer';
   user: {
     id: string;

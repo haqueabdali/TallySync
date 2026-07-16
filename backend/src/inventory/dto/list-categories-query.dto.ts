@@ -1,18 +1,8 @@
 import { Type } from 'class-transformer';
-import {
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export type CategorySortField =
-  | 'createdAt'
-  | 'updatedAt'
-  | 'name'
-  | 'tallyGroup';
+  'createdAt' | 'updatedAt' | 'name' | 'tallyGroup';
 
 export class ListCategoriesQueryDto {
   @IsOptional()
@@ -33,12 +23,7 @@ export class ListCategoriesQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsIn([
-    'createdAt',
-    'updatedAt',
-    'name',
-    'tallyGroup',
-  ])
+  @IsIn(['createdAt', 'updatedAt', 'name', 'tallyGroup'])
   sortBy: CategorySortField = 'name';
 
   @IsOptional()

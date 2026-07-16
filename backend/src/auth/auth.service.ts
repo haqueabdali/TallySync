@@ -43,10 +43,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    this.bcryptRounds = this.readPositiveInteger(
-      'BCRYPT_ROUNDS',
-      12,
-    );
+    this.bcryptRounds = this.readPositiveInteger('BCRYPT_ROUNDS', 12);
 
     this.resetTokenExpiryMinutes = this.readPositiveInteger(
       'RESET_TOKEN_EXPIRES_MINUTES',
@@ -87,10 +84,7 @@ export class AuthService {
 
     const passwordHash = user?.passwordHash ?? dummyPasswordHash;
 
-    const passwordMatches = await bcrypt.compare(
-      dto.password,
-      passwordHash,
-    );
+    const passwordMatches = await bcrypt.compare(dto.password, passwordHash);
 
     if (!user || !passwordMatches) {
       this.logger.warn(
@@ -136,9 +130,7 @@ export class AuthService {
     });
 
     if (!storedToken) {
-      this.logger.warn(
-        `Unknown refresh token supplied for user ${dto.userId}`,
-      );
+      this.logger.warn(`Unknown refresh token supplied for user ${dto.userId}`);
 
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -185,10 +177,7 @@ export class AuthService {
   /**
    * Logs the current device out by revoking the supplied refresh token.
    */
-  async logout(
-    dto: LogoutDto,
-    userId: string,
-  ): Promise<MessageResponseDto> {
+  async logout(dto: LogoutDto, userId: string): Promise<MessageResponseDto> {
     const refreshTokenHash = this.hashToken(dto.refreshToken);
 
     await this.refreshTokenRepository.update(
@@ -215,9 +204,7 @@ export class AuthService {
    * The same response is returned whether or not the email exists,
    * preventing account-enumeration attacks.
    */
-  async forgotPassword(
-    dto: ForgotPasswordDto,
-  ): Promise<MessageResponseDto> {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<MessageResponseDto> {
     const email = dto.email.trim().toLowerCase();
 
     const user = await this.userRepository.findOne({
@@ -229,11 +216,7 @@ export class AuthService {
         'If that email is registered, a password reset link has been sent',
     };
 
-    if (
-      !user ||
-      user.deletedAt ||
-      user.status !== UserStatus.ACTIVE
-    ) {
+    if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE) {
       this.logger.warn(
         `Password reset requested for unavailable account ${email}`,
       );
@@ -265,9 +248,7 @@ export class AuthService {
      * });
      */
 
-    this.logger.log(
-      `Password reset token generated for user ${user.id}`,
-    );
+    this.logger.log(`Password reset token generated for user ${user.id}`);
 
     return standardResponse;
   }
@@ -275,48 +256,28 @@ export class AuthService {
   /**
    * Replaces a password after validating a password-reset token.
    */
-  async resetPassword(
-    dto: ResetPasswordDto,
-  ): Promise<MessageResponseDto> {
+  async resetPassword(dto: ResetPasswordDto): Promise<MessageResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: dto.userId },
     });
 
-    if (
-      !user ||
-      !user.resetTokenHash ||
-      !user.resetTokenExpiresAt
-    ) {
-      throw new BadRequestException(
-        'Invalid or expired password reset token',
-      );
+    if (!user || !user.resetTokenHash || !user.resetTokenExpiresAt) {
+      throw new BadRequestException('Invalid or expired password reset token');
     }
 
     if (user.resetTokenExpiresAt.getTime() <= Date.now()) {
       await this.clearResetToken(user.id);
 
-      throw new BadRequestException(
-        'Password reset token has expired',
-      );
+      throw new BadRequestException('Password reset token has expired');
     }
 
     const suppliedTokenHash = this.hashToken(dto.token);
 
-    if (
-      !this.constantTimeHashesEqual(
-        user.resetTokenHash,
-        suppliedTokenHash,
-      )
-    ) {
-      throw new BadRequestException(
-        'Invalid or expired password reset token',
-      );
+    if (!this.constantTimeHashesEqual(user.resetTokenHash, suppliedTokenHash)) {
+      throw new BadRequestException('Invalid or expired password reset token');
     }
 
-    const passwordHash = await bcrypt.hash(
-      dto.newPassword,
-      this.bcryptRounds,
-    );
+    const passwordHash = await bcrypt.hash(dto.newPassword, this.bcryptRounds);
 
     await this.userRepository.update(user.id, {
       passwordHash,
@@ -354,9 +315,7 @@ export class AuthService {
     );
 
     if (!currentPasswordMatches) {
-      throw new BadRequestException(
-        'Current password is incorrect',
-      );
+      throw new BadRequestException('Current password is incorrect');
     }
 
     const newPasswordMatchesCurrent = await bcrypt.compare(
@@ -370,10 +329,7 @@ export class AuthService {
       );
     }
 
-    const passwordHash = await bcrypt.hash(
-      dto.newPassword,
-      this.bcryptRounds,
-    );
+    const passwordHash = await bcrypt.hash(dto.newPassword, this.bcryptRounds);
 
     await this.userRepository.update(user.id, {
       passwordHash,
@@ -401,9 +357,7 @@ export class AuthService {
     userAgent?: string,
   ): Promise<AuthResponseDto> {
     if (!user.role) {
-      throw new UnauthorizedException(
-        'No role is assigned to this account',
-      );
+      throw new UnauthorizedException('No role is assigned to this account');
     }
 
     const jwtPayload: JwtPayload = {
@@ -419,12 +373,10 @@ export class AuthService {
      */
     const accessToken = await this.jwtService.signAsync(jwtPayload);
 
-    const decodedToken = this.jwtService.decode(accessToken) as
-      | {
-          exp?: number;
-          iat?: number;
-        }
-      | null;
+    const decodedToken = this.jwtService.decode(accessToken) as {
+      exp?: number;
+      iat?: number;
+    } | null;
 
     if (
       !decodedToken ||
@@ -436,29 +388,24 @@ export class AuthService {
       );
     }
 
-    const accessTokenExpiresIn =
-      decodedToken.exp - decodedToken.iat;
+    const accessTokenExpiresIn = decodedToken.exp - decodedToken.iat;
 
-    const rawRefreshToken = crypto
-      .randomBytes(64)
-      .toString('hex');
+    const rawRefreshToken = crypto.randomBytes(64).toString('hex');
 
     const refreshTokenHash = this.hashToken(rawRefreshToken);
 
     const refreshTokenExpiresAt = new Date(
-      Date.now() +
-        this.refreshTokenExpiryDays * 24 * 60 * 60 * 1000,
+      Date.now() + this.refreshTokenExpiryDays * 24 * 60 * 60 * 1000,
     );
 
-    const refreshTokenEntity =
-      this.refreshTokenRepository.create({
-        userId: user.id,
-        tokenHash: refreshTokenHash,
-        expiresAt: refreshTokenExpiresAt,
-        isRevoked: false,
-        ipAddress: ipAddress ?? null,
-        userAgent: userAgent ?? null,
-      });
+    const refreshTokenEntity = this.refreshTokenRepository.create({
+      userId: user.id,
+      tokenHash: refreshTokenHash,
+      expiresAt: refreshTokenExpiresAt,
+      isRevoked: false,
+      ipAddress: ipAddress ?? null,
+      userAgent: userAgent ?? null,
+    });
 
     await this.refreshTokenRepository.save(refreshTokenEntity);
 
@@ -486,9 +433,7 @@ export class AuthService {
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException(
-        'Your account is suspended or inactive',
-      );
+      throw new UnauthorizedException('Your account is suspended or inactive');
     }
   }
 
@@ -496,10 +441,7 @@ export class AuthService {
    * Stores fixed-length SHA-256 hashes for reset and refresh tokens.
    */
   private hashToken(rawToken: string): string {
-    return crypto
-      .createHash('sha256')
-      .update(rawToken, 'utf8')
-      .digest('hex');
+    return crypto.createHash('sha256').update(rawToken, 'utf8').digest('hex');
   }
 
   /**
@@ -519,18 +461,13 @@ export class AuthService {
     const storedBuffer = Buffer.from(storedHash, 'hex');
     const suppliedBuffer = Buffer.from(suppliedHash, 'hex');
 
-    return crypto.timingSafeEqual(
-      storedBuffer,
-      suppliedBuffer,
-    );
+    return crypto.timingSafeEqual(storedBuffer, suppliedBuffer);
   }
 
   /**
    * Revokes all currently active refresh tokens for a user.
    */
-  private async revokeAllUserTokens(
-    userId: string,
-  ): Promise<void> {
+  private async revokeAllUserTokens(userId: string): Promise<void> {
     await this.refreshTokenRepository.update(
       {
         userId,
@@ -559,8 +496,7 @@ export class AuthService {
     configurationKey: string,
     fallback: number,
   ): number {
-    const rawValue =
-      this.configService.get<string>(configurationKey);
+    const rawValue = this.configService.get<string>(configurationKey);
 
     if (!rawValue) {
       return fallback;

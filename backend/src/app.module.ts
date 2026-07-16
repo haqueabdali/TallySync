@@ -22,37 +22,21 @@ import { SalesOrdersModule } from './sales-orders/sales-orders.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres' as const,
 
-        host: configService.get<string>(
-          'DATABASE_HOST',
-          'localhost',
-        ),
+        host: configService.get<string>('DATABASE_HOST', 'localhost'),
 
-        port: configService.get<number>(
-          'DATABASE_PORT',
-          5432,
-        ),
+        port: configService.get<number>('DATABASE_PORT', 5432),
 
-        username: configService.get<string>(
-          'DATABASE_USER',
-          'postgres',
-        ),
+        username: configService.get<string>('DATABASE_USER', 'postgres'),
 
-        password: configService.getOrThrow<string>(
-          'DATABASE_PASSWORD',
-        ),
+        password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
 
-        database: configService.get<string>(
-          'DATABASE_NAME',
-          'tallysync_db',
-        ),
+        database: configService.get<string>('DATABASE_NAME', 'tallysync_db'),
 
         autoLoadEntities: true,
 
-        synchronize:
-          configService.get<string>('NODE_ENV') !== 'production',
+        synchronize: configService.get<string>('NODE_ENV') !== 'production',
 
-        logging:
-          configService.get<string>('NODE_ENV') === 'development',
+        logging: configService.get<string>('NODE_ENV') === 'development',
 
         ssl:
           configService.get<string>('DATABASE_SSL') === 'true'

@@ -12,9 +12,9 @@ import { AuditContext } from '../interfaces/audit-context.interface';
  */
 export const AuditCtx = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): AuditContext => {
-    const req = ctx.switchToHttp().getRequest<
-      Request & { user?: { id: string; companyId: string } }
-    >();
+    const req = ctx
+      .switchToHttp()
+      .getRequest<Request & { user?: { id: string; companyId: string } }>();
 
     const forwardedFor = req.headers['x-forwarded-for'] as string | undefined;
     const ipAddress = forwardedFor
@@ -22,7 +22,7 @@ export const AuditCtx = createParamDecorator(
       : req.socket?.remoteAddress;
 
     return {
-      actorId:   req.user?.id       ?? 'system',
+      actorId: req.user?.id ?? 'system',
       companyId: req.user?.companyId ?? '',
       ipAddress,
       userAgent: req.headers['user-agent'],

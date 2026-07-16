@@ -33,10 +33,6 @@ export class CompanyEntity {
   deletedAt: Date | null;
 
   // ── Relations ──────────────────────────────────────────────────────────────
-  @OneToMany(
-    () => UserEntity,
-    (user: UserEntity) => user.company,
-  )
+  @OneToMany(() => UserEntity, (user: UserEntity) => user.company)
   users: UserEntity[];
-  
 }

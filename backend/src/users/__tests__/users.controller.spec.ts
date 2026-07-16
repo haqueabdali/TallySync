@@ -36,7 +36,7 @@ const mockRequest = (ip = '127.0.0.1') =>
   ({
     headers: { 'user-agent': 'jest' },
     socket: { remoteAddress: ip },
-  } as any);
+  }) as any;
 
 const stubUser = () => ({
   id: 'user-uuid-1',
@@ -79,10 +79,16 @@ describe('UsersController', () => {
 
   describe('listUsers()', () => {
     it('delegates to UsersService.listUsers() and returns result', async () => {
-      const paginated = { data: [stubUser()], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } };
+      const paginated = {
+        data: [stubUser()],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      };
       service.listUsers.mockResolvedValue(paginated);
 
-      const result = await controller.listUsers({} as ListUsersDto, ADMIN_ACTOR);
+      const result = await controller.listUsers(
+        {} as ListUsersDto,
+        ADMIN_ACTOR,
+      );
 
       expect(service.listUsers).toHaveBeenCalledWith({}, ADMIN_ACTOR);
       expect(result.meta.total).toBe(1);
@@ -123,18 +129,31 @@ describe('UsersController', () => {
         password: 'ValidPass1!',
       };
 
-      const result = await controller.createUser(dto, ADMIN_ACTOR, mockRequest());
+      const result = await controller.createUser(
+        dto,
+        ADMIN_ACTOR,
+        mockRequest(),
+      );
 
-      expect(service.createUser).toHaveBeenCalledWith(dto, ADMIN_ACTOR, '127.0.0.1');
+      expect(service.createUser).toHaveBeenCalledWith(
+        dto,
+        ADMIN_ACTOR,
+        '127.0.0.1',
+      );
       expect(result).toBeDefined();
     });
 
     it('extracts the first IP from x-forwarded-for header', async () => {
       service.createUser.mockResolvedValue(stubUser());
-      const req = { headers: { 'x-forwarded-for': '10.0.0.1, 192.168.0.1' }, socket: {} } as any;
+      const req = {
+        headers: { 'x-forwarded-for': '10.0.0.1, 192.168.0.1' },
+        socket: {},
+      } as any;
       await controller.createUser({} as any, ADMIN_ACTOR, req);
       expect(service.createUser).toHaveBeenCalledWith(
-        expect.anything(), expect.anything(), '10.0.0.1',
+        expect.anything(),
+        expect.anything(),
+        '10.0.0.1',
       );
     });
   });
@@ -147,10 +166,18 @@ describe('UsersController', () => {
       service.updateUser.mockResolvedValue(updated);
       const dto: UpdateUserDto = { fullName: 'Updated' };
 
-      const result = await controller.updateUser('user-uuid-1', dto, ADMIN_ACTOR, mockRequest());
+      const result = await controller.updateUser(
+        'user-uuid-1',
+        dto,
+        ADMIN_ACTOR,
+        mockRequest(),
+      );
 
       expect(service.updateUser).toHaveBeenCalledWith(
-        'user-uuid-1', dto, ADMIN_ACTOR, '127.0.0.1',
+        'user-uuid-1',
+        dto,
+        ADMIN_ACTOR,
+        '127.0.0.1',
       );
       expect(result.fullName).toBe('Updated');
     });
@@ -160,9 +187,19 @@ describe('UsersController', () => {
 
   describe('deleteUser()', () => {
     it('calls UsersService.deleteUser() and returns message', async () => {
-      service.deleteUser.mockResolvedValue({ message: 'User deleted successfully' });
-      const result = await controller.deleteUser('user-uuid-1', ADMIN_ACTOR, mockRequest());
-      expect(service.deleteUser).toHaveBeenCalledWith('user-uuid-1', ADMIN_ACTOR, '127.0.0.1');
+      service.deleteUser.mockResolvedValue({
+        message: 'User deleted successfully',
+      });
+      const result = await controller.deleteUser(
+        'user-uuid-1',
+        ADMIN_ACTOR,
+        mockRequest(),
+      );
+      expect(service.deleteUser).toHaveBeenCalledWith(
+        'user-uuid-1',
+        ADMIN_ACTOR,
+        '127.0.0.1',
+      );
       expect(result.message).toMatch(/deleted/i);
     });
   });
@@ -171,14 +208,25 @@ describe('UsersController', () => {
 
   describe('assignRole()', () => {
     it('calls UsersService.assignRole() and returns updated user', async () => {
-      const updated = { ...stubUser(), role: { id: 'r2', name: 'company_owner', description: null } };
+      const updated = {
+        ...stubUser(),
+        role: { id: 'r2', name: 'company_owner', description: null },
+      };
       service.assignRole.mockResolvedValue(updated);
       const dto: AssignRoleDto = { roleId: 'role-owner-uuid' };
 
-      const result = await controller.assignRole('user-uuid-1', dto, ADMIN_ACTOR, mockRequest());
+      const result = await controller.assignRole(
+        'user-uuid-1',
+        dto,
+        ADMIN_ACTOR,
+        mockRequest(),
+      );
 
       expect(service.assignRole).toHaveBeenCalledWith(
-        'user-uuid-1', dto, ADMIN_ACTOR, '127.0.0.1',
+        'user-uuid-1',
+        dto,
+        ADMIN_ACTOR,
+        '127.0.0.1',
       );
       expect(result.role.name).toBe('company_owner');
     });

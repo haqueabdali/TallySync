@@ -21,51 +21,53 @@ import { AuditContext } from './interfaces/audit-context.interface';
 // ── Factories ─────────────────────────────────────────────────────────────────
 
 const makeRole = (overrides: Partial<RoleEntity> = {}): RoleEntity => ({
-  id:          'role-uuid-1',
-  name:        'sales_rep',
+  id: 'role-uuid-1',
+  name: 'sales_rep',
   description: null,
-  isSystem:    false,
-  createdAt:   new Date(),
-  updatedAt:   new Date(),
-  users:       [],
+  isSystem: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  users: [],
   ...overrides,
 });
 
 const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
-  id:               'user-uuid-1',
-  companyId:        'company-uuid-1',
-  roleId:           'role-uuid-1',
-  fullName:         'Test User',
-  email:            'test@example.com',
-  passwordHash:     bcrypt.hashSync('ValidPass1!', 12),
-  phone:            null,
-  status:           UserStatus.ACTIVE,
-  lastLoginAt:      null,
-  createdAt:        new Date(),
-  updatedAt:        new Date(),
-  deletedAt:        null,
-  role:             makeRole(),
+  id: 'user-uuid-1',
+  companyId: 'company-uuid-1',
+  roleId: 'role-uuid-1',
+  fullName: 'Test User',
+  email: 'test@example.com',
+  passwordHash: bcrypt.hashSync('ValidPass1!', 12),
+  phone: null,
+  status: UserStatus.ACTIVE,
+  lastLoginAt: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+  role: makeRole(),
   ...overrides,
 });
 
-const makeAuditLog = (overrides: Partial<AuditLogEntity> = {}): AuditLogEntity => ({
-  id:          'audit-uuid-1',
-  companyId:   'company-uuid-1',
-  userId:      'actor-uuid-1',
-  action:      AuditAction.CREATE,
-  entityType:  'user',
-  entityId:    'user-uuid-1',
-  oldValues:   null,
-  newValues:   null,
-  ipAddress:   null,
-  userAgent:   null,
-  createdAt:   new Date(),
-  actor:       null,
+const makeAuditLog = (
+  overrides: Partial<AuditLogEntity> = {},
+): AuditLogEntity => ({
+  id: 'audit-uuid-1',
+  companyId: 'company-uuid-1',
+  userId: 'actor-uuid-1',
+  action: AuditAction.CREATE,
+  entityType: 'user',
+  entityId: 'user-uuid-1',
+  oldValues: null,
+  newValues: null,
+  ipAddress: null,
+  userAgent: null,
+  createdAt: new Date(),
+  actor: null,
   ...overrides,
 });
 
 const mockAuditCtx: AuditContext = {
-  actorId:   'actor-uuid-1',
+  actorId: 'actor-uuid-1',
   companyId: 'company-uuid-1',
   ipAddress: '127.0.0.1',
   userAgent: 'jest',
@@ -74,12 +76,12 @@ const mockAuditCtx: AuditContext = {
 // ── Repository Mocks ──────────────────────────────────────────────────────────
 
 const mockUserRepo = () => ({
-  findOne:       jest.fn(),
-  findAndCount:  jest.fn(),
-  count:         jest.fn(),
-  create:        jest.fn((dto) => ({ ...dto })),
-  save:          jest.fn(),
-  softDelete:    jest.fn(),
+  findOne: jest.fn(),
+  findAndCount: jest.fn(),
+  count: jest.fn(),
+  create: jest.fn((dto) => ({ ...dto })),
+  save: jest.fn(),
+  softDelete: jest.fn(),
 });
 
 const mockRoleRepo = () => ({
@@ -88,8 +90,8 @@ const mockRoleRepo = () => ({
 
 const mockAuditRepo = () => ({
   findAndCount: jest.fn(),
-  create:       jest.fn((dto) => ({ ...dto })),
-  save:         jest.fn(),
+  create: jest.fn((dto) => ({ ...dto })),
+  save: jest.fn(),
 });
 
 // ── Test Suite ────────────────────────────────────────────────────────────────
@@ -104,13 +106,16 @@ describe('UsersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        { provide: getRepositoryToken(UserEntity),    useFactory: mockUserRepo  },
-        { provide: getRepositoryToken(RoleEntity),    useFactory: mockRoleRepo  },
-        { provide: getRepositoryToken(AuditLogEntity), useFactory: mockAuditRepo },
+        { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
+        { provide: getRepositoryToken(RoleEntity), useFactory: mockRoleRepo },
+        {
+          provide: getRepositoryToken(AuditLogEntity),
+          useFactory: mockAuditRepo,
+        },
       ],
     }).compile();
 
-    service  = module.get<UsersService>(UsersService);
+    service = module.get<UsersService>(UsersService);
     userRepo = module.get(getRepositoryToken(UserEntity));
     roleRepo = module.get(getRepositoryToken(RoleEntity));
     auditRepo = module.get(getRepositoryToken(AuditLogEntity));
@@ -123,18 +128,20 @@ describe('UsersService', () => {
   describe('createUser()', () => {
     const dto: CreateUserDto = {
       companyId: 'company-uuid-1',
-      roleId:    'role-uuid-1',
-      fullName:  'New User',
-      email:     'new@example.com',
-      password:  'ValidPass1!',
+      roleId: 'role-uuid-1',
+      fullName: 'New User',
+      email: 'new@example.com',
+      password: 'ValidPass1!',
     };
 
     beforeEach(() => {
-      userRepo.findOne.mockResolvedValueOnce(null);       // email unique check
+      userRepo.findOne.mockResolvedValueOnce(null); // email unique check
       roleRepo.findOne.mockResolvedValue(makeRole());
       userRepo.create.mockReturnValue(makeUser({ email: 'new@example.com' }));
       userRepo.save.mockResolvedValue(makeUser({ email: 'new@example.com' }));
-      userRepo.findOne.mockResolvedValue(makeUser({ email: 'new@example.com' })); // reload
+      userRepo.findOne.mockResolvedValue(
+        makeUser({ email: 'new@example.com' }),
+      ); // reload
       auditRepo.create.mockReturnValue(makeAuditLog());
       auditRepo.save.mockResolvedValue(makeAuditLog());
     });
@@ -151,15 +158,25 @@ describe('UsersService', () => {
       userRepo.findOne.mockResolvedValueOnce(null);
       roleRepo.findOne.mockResolvedValue(makeRole());
       let capturedEntity: Partial<UserEntity> = {};
-      userRepo.create.mockImplementation((e) => { capturedEntity = e; return e; });
-      userRepo.save.mockResolvedValue({ ...capturedEntity, id: 'new-id', role: makeRole() });
+      userRepo.create.mockImplementation((e) => {
+        capturedEntity = e;
+        return e;
+      });
+      userRepo.save.mockResolvedValue({
+        ...capturedEntity,
+        id: 'new-id',
+        role: makeRole(),
+      });
       userRepo.findOne.mockResolvedValue(makeUser());
 
       await service.createUser(dto, mockAuditCtx);
 
       expect(capturedEntity.passwordHash).toBeDefined();
       expect(capturedEntity.passwordHash).not.toBe(dto.password);
-      const isHashed = await bcrypt.compare(dto.password, capturedEntity.passwordHash!);
+      const isHashed = await bcrypt.compare(
+        dto.password,
+        capturedEntity.passwordHash!,
+      );
       expect(isHashed).toBe(true);
     });
 
@@ -172,7 +189,7 @@ describe('UsersService', () => {
 
     it('throws NotFoundException when roleId does not exist', async () => {
       userRepo.findOne.mockResolvedValueOnce(null); // email unique
-      roleRepo.findOne.mockResolvedValue(null);     // role not found
+      roleRepo.findOne.mockResolvedValue(null); // role not found
       await expect(service.createUser(dto, mockAuditCtx)).rejects.toThrow(
         NotFoundException,
       );
@@ -208,9 +225,9 @@ describe('UsersService', () => {
 
       await service.listUsers({
         companyId: 'company-uuid-1',
-        status:    UserStatus.ACTIVE,
-        page:      1,
-        limit:     10,
+        status: UserStatus.ACTIVE,
+        page: 1,
+        limit: 10,
       });
 
       const [callArgs] = userRepo.findAndCount.mock.calls[0];
@@ -286,7 +303,10 @@ describe('UsersService', () => {
     it('throws ForbiddenException when actor tries to delete themselves', async () => {
       userRepo.findOne.mockResolvedValue(makeUser({ id: 'actor-uuid-1' }));
       await expect(
-        service.deleteUser('actor-uuid-1', { ...mockAuditCtx, actorId: 'actor-uuid-1' }),
+        service.deleteUser('actor-uuid-1', {
+          ...mockAuditCtx,
+          actorId: 'actor-uuid-1',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -318,7 +338,11 @@ describe('UsersService', () => {
     it('assigns the new role and writes an audit log', async () => {
       userRepo.findOne.mockResolvedValue(makeUser());
       roleRepo.findOne.mockResolvedValue(newRole);
-      userRepo.save.mockResolvedValue({ ...makeUser(), roleId: 'role-uuid-2', role: newRole });
+      userRepo.save.mockResolvedValue({
+        ...makeUser(),
+        roleId: 'role-uuid-2',
+        role: newRole,
+      });
       auditRepo.create.mockReturnValue(makeAuditLog());
       auditRepo.save.mockResolvedValue(makeAuditLog());
 
@@ -354,7 +378,10 @@ describe('UsersService', () => {
 
     it('assigns the company and writes an audit log', async () => {
       userRepo.findOne.mockResolvedValue(makeUser());
-      userRepo.save.mockResolvedValue({ ...makeUser(), companyId: 'company-uuid-2' });
+      userRepo.save.mockResolvedValue({
+        ...makeUser(),
+        companyId: 'company-uuid-2',
+      });
       auditRepo.create.mockReturnValue(makeAuditLog());
       auditRepo.save.mockResolvedValue(makeAuditLog());
 
@@ -389,9 +416,9 @@ describe('UsersService', () => {
 
     it('throws NotFoundException when the user does not exist', async () => {
       userRepo.findOne.mockResolvedValue(null);
-      await expect(
-        service.getUserActivity('non-existent'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getUserActivity('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

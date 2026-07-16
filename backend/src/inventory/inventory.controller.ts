@@ -42,9 +42,7 @@ import type { AuditContext } from '../users/interfaces/audit-context.interface';
 @Controller('api/v1/inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {
-  constructor(
-    private readonly inventoryService: InventoryService,
-  ) {}
+  constructor(private readonly inventoryService: InventoryService) {}
 
   // ---------------------------------------------------------------------------
   // Categories
@@ -64,12 +62,7 @@ export class InventoryController {
   }
 
   @Get('categories')
-  @Roles(
-    'admin',
-    'company_owner',
-    'vendor',
-    'sales_rep',
-  )
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   listCategories(
     @Query() query: ListCategoriesQueryDto,
     @AuditCtx() audit: AuditContext,
@@ -81,12 +74,7 @@ export class InventoryController {
   }
 
   @Get('categories/:id')
-  @Roles(
-    'admin',
-    'company_owner',
-    'vendor',
-    'sales_rep',
-  )
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   getCategoryById(
     @Param('id', ParseUUIDPipe) id: string,
     @AuditCtx() audit: AuditContext,
@@ -142,12 +130,7 @@ export class InventoryController {
   }
 
   @Get('items')
-  @Roles(
-    'admin',
-    'company_owner',
-    'vendor',
-    'sales_rep',
-  )
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   listItems(
     @Query() query: ListItemsQueryDto,
     @AuditCtx() audit: AuditContext,
@@ -159,12 +142,7 @@ export class InventoryController {
   }
 
   @Get('items/:id')
-  @Roles(
-    'admin',
-    'company_owner',
-    'vendor',
-    'sales_rep',
-  )
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   getItemById(
     @Param('id', ParseUUIDPipe) id: string,
     @AuditCtx() audit: AuditContext,
@@ -196,10 +174,7 @@ export class InventoryController {
     @Param('id', ParseUUIDPipe) id: string,
     @AuditCtx() audit: AuditContext,
   ): Promise<void> {
-    await this.inventoryService.deleteItem(
-      id,
-      this.toInventoryContext(audit),
-    );
+    await this.inventoryService.deleteItem(id, this.toInventoryContext(audit));
   }
 
   @Post('items/:id/adjust-stock')
@@ -222,33 +197,24 @@ export class InventoryController {
   // ---------------------------------------------------------------------------
 
   @Get('summary')
-  @Roles(
-    'admin',
-    'company_owner',
-    'vendor',
-    'sales_rep',
-  )
+  @Roles('admin', 'company_owner', 'vendor', 'sales_rep')
   getSummary(
     @AuditCtx() audit: AuditContext,
   ): Promise<InventorySummaryResponseDto> {
-    return this.inventoryService.getSummary(
-      this.toInventoryContext(audit),
-    );
+    return this.inventoryService.getSummary(this.toInventoryContext(audit));
   }
 
-  private toInventoryContext(
-  audit: AuditContext,
-): {
-  actorId: string | null;
-  companyId: string | null;
-  ipAddress: string | null;
-  userAgent: string | null;
-} {
-  return {
-    actorId: audit.actorId ?? null,
-    companyId: audit.companyId ?? null,
-    ipAddress: audit.ipAddress ?? null,
-    userAgent: audit.userAgent ?? null,
-  };
-}
+  private toInventoryContext(audit: AuditContext): {
+    actorId: string | null;
+    companyId: string | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+  } {
+    return {
+      actorId: audit.actorId ?? null,
+      companyId: audit.companyId ?? null,
+      ipAddress: audit.ipAddress ?? null,
+      userAgent: audit.userAgent ?? null,
+    };
+  }
 }

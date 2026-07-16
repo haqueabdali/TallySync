@@ -13,7 +13,9 @@ export class JwtRefreshGuard extends AuthGuard('jwt-refresh') {
 
   handleRequest<TUser>(err: Error, user: TUser): TUser {
     if (err || !user) {
-      throw err ?? new UnauthorizedException('Refresh token is missing or invalid');
+      throw (
+        err ?? new UnauthorizedException('Refresh token is missing or invalid')
+      );
     }
     return user;
   }

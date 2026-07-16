@@ -96,7 +96,10 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
-        { provide: getRepositoryToken(RefreshTokenEntity), useFactory: mockRefreshTokenRepo },
+        {
+          provide: getRepositoryToken(RefreshTokenEntity),
+          useFactory: mockRefreshTokenRepo,
+        },
         { provide: JwtService, useFactory: mockJwtService },
         { provide: ConfigService, useFactory: mockConfigService },
       ],
@@ -113,7 +116,10 @@ describe('AuthService', () => {
   // ── login() ────────────────────────────────────────────────────────────────
 
   describe('login()', () => {
-    const dto: LoginDto = { email: 'test@example.com', password: 'ValidPass1!' };
+    const dto: LoginDto = {
+      email: 'test@example.com',
+      password: 'ValidPass1!',
+    };
 
     it('returns an auth response on valid credentials', async () => {
       userRepo.findOne.mockResolvedValue(makeUser());
@@ -154,9 +160,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException when account is soft-deleted', async () => {
-      userRepo.findOne.mockResolvedValue(
-        makeUser({ deletedAt: new Date() }),
-      );
+      userRepo.findOne.mockResolvedValue(makeUser({ deletedAt: new Date() }));
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -178,15 +182,16 @@ describe('AuthService', () => {
       const result = await service.refreshToken(dto);
 
       expect(result.accessToken).toBe('mock.access.token');
-      expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-        'token-uuid-1',
-        { isRevoked: true },
-      );
+      expect(refreshTokenRepo.update).toHaveBeenCalledWith('token-uuid-1', {
+        isRevoked: true,
+      });
     });
 
     it('throws UnauthorizedException when token not found', async () => {
       refreshTokenRepo.findOne.mockResolvedValue(null);
-      await expect(service.refreshToken(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('revokes all tokens and throws on reuse of revoked token', async () => {
@@ -195,7 +200,9 @@ describe('AuthService', () => {
       );
       refreshTokenRepo.update.mockResolvedValue({});
 
-      await expect(service.refreshToken(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
       // Should have called revokeAllUserTokens
       expect(refreshTokenRepo.update).toHaveBeenCalledWith(
         { userId: 'user-uuid-1', isRevoked: false },
@@ -207,7 +214,9 @@ describe('AuthService', () => {
       refreshTokenRepo.findOne.mockResolvedValue(
         makeRefreshToken({ expiresAt: new Date(Date.now() - 1000) }),
       );
-      await expect(service.refreshToken(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -223,10 +232,9 @@ describe('AuthService', () => {
       const result = await service.logout(dto, 'user-uuid-1');
 
       expect(result.message).toContain('Logged out');
-      expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-        'token-uuid-1',
-        { isRevoked: true },
-      );
+      expect(refreshTokenRepo.update).toHaveBeenCalledWith('token-uuid-1', {
+        isRevoked: true,
+      });
     });
 
     it('succeeds gracefully even if the token is not found', async () => {
@@ -333,7 +341,9 @@ describe('AuthService', () => {
           resetTokenExpiresAt: new Date(Date.now() + 60_000),
         }),
       );
-      await expect(service.resetPassword(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when token is expired', async () => {
@@ -343,12 +353,16 @@ describe('AuthService', () => {
           resetTokenExpiresAt: new Date(Date.now() - 1000),
         }),
       );
-      await expect(service.resetPassword(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException when no reset token exists on user', async () => {
       userRepo.findOne.mockResolvedValue(makeUser());
-      await expect(service.resetPassword(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -381,7 +395,10 @@ describe('AuthService', () => {
     it('throws BadRequestException on wrong current password', async () => {
       userRepo.findOne.mockResolvedValue(makeUser());
       await expect(
-        service.changePassword({ ...dto, currentPassword: 'WrongPass1!' }, 'user-uuid-1'),
+        service.changePassword(
+          { ...dto, currentPassword: 'WrongPass1!' },
+          'user-uuid-1',
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 

@@ -7,7 +7,9 @@ import { RolesGuard } from '../guards/roles.guard';
 
 const makeCtx = (role: string, requiredRoles: string[] | undefined) => {
   const reflector = new Reflector();
-  jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(requiredRoles as any);
+  jest
+    .spyOn(reflector, 'getAllAndOverride')
+    .mockReturnValue(requiredRoles as any);
 
   const ctx = {
     getHandler: jest.fn(),

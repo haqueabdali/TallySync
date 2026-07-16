@@ -30,10 +30,7 @@ export enum SalesOrderSyncStatus {
 }
 
 @Entity('sales_orders')
-@Index('uq_sales_orders_company_order_number', [
-  'companyId',
-  'orderNumber',
-], {
+@Index('uq_sales_orders_company_order_number', ['companyId', 'orderNumber'], {
   unique: true,
   where: '"deleted_at" IS NULL',
 })
@@ -175,7 +172,6 @@ export class SalesOrderEntity {
     default: SalesOrderSyncStatus.PENDING,
   })
   syncStatus: SalesOrderSyncStatus;
-
 
   @Column({
     name: 'last_synced_at',

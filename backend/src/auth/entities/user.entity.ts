@@ -122,26 +122,18 @@ export class UserEntity {
   })
   deletedAt: Date | null;
 
-  @ManyToOne(
-    () => RoleEntity,
-    (role: RoleEntity) => role.users,
-    {
-      eager: true,
-      nullable: false,
-      onDelete: 'RESTRICT',
-    },
-  )
+  @ManyToOne(() => RoleEntity, (role: RoleEntity) => role.users, {
+    eager: true,
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'role_id' })
   role: RoleEntity;
 
-  @ManyToOne(
-    () => CompanyEntity,
-    (company: CompanyEntity) => company.users,
-    {
-      nullable: true,
-      onDelete: 'SET NULL',
-    },
-  )
+  @ManyToOne(() => CompanyEntity, (company: CompanyEntity) => company.users, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'company_id' })
   company: CompanyEntity | null;
 

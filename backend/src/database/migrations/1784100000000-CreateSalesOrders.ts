@@ -1,16 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateSalesOrders1784100000000
-  implements MigrationInterface
-{
+export class CreateSalesOrders1784100000000 implements MigrationInterface {
   name = 'CreateSalesOrders1784100000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TYPE "public"."sales_order_status_enum"
       AS ENUM (
@@ -376,9 +369,7 @@ export class CreateSalesOrders1784100000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "sales_order_items"
       DROP CONSTRAINT IF EXISTS

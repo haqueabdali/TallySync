@@ -10,31 +10,31 @@ import { AuditContext } from './interfaces/audit-context.interface';
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 const mockUsersService = () => ({
-  createUser:       jest.fn(),
-  listUsers:        jest.fn(),
-  getUserById:      jest.fn(),
-  updateUser:       jest.fn(),
-  deleteUser:       jest.fn(),
-  assignRole:       jest.fn(),
-  assignCompany:    jest.fn(),
-  getUserActivity:  jest.fn(),
+  createUser: jest.fn(),
+  listUsers: jest.fn(),
+  getUserById: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+  assignRole: jest.fn(),
+  assignCompany: jest.fn(),
+  getUserActivity: jest.fn(),
 });
 
 const mockAuditCtx: AuditContext = {
-  actorId:   'actor-uuid-1',
+  actorId: 'actor-uuid-1',
   companyId: 'company-uuid-1',
   ipAddress: '127.0.0.1',
   userAgent: 'jest',
 };
 
 const userResponse = () => ({
-  id:        'user-uuid-1',
+  id: 'user-uuid-1',
   companyId: 'company-uuid-1',
-  fullName:  'Test User',
-  email:     'test@example.com',
-  phone:     null,
-  status:    UserStatus.ACTIVE,
-  role:      { id: 'role-uuid-1', name: 'sales_rep', description: null },
+  fullName: 'Test User',
+  email: 'test@example.com',
+  phone: null,
+  status: UserStatus.ACTIVE,
+  role: { id: 'role-uuid-1', name: 'sales_rep', description: null },
   lastLoginAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -49,15 +49,15 @@ describe('UsersController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [
-        { provide: UsersService, useFactory: mockUsersService },
-      ],
+      providers: [{ provide: UsersService, useFactory: mockUsersService }],
     })
-      .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
-      .overrideGuard(RolesGuard).useValue({ canActivate: () => true })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
-    controller  = module.get<UsersController>(UsersController);
+    controller = module.get<UsersController>(UsersController);
     usersService = module.get(UsersService);
   });
 
@@ -71,10 +71,10 @@ describe('UsersController', () => {
 
       const dto = {
         companyId: 'company-uuid-1',
-        roleId:    'role-uuid-1',
-        fullName:  'New User',
-        email:     'new@example.com',
-        password:  'ValidPass1!',
+        roleId: 'role-uuid-1',
+        fullName: 'New User',
+        email: 'new@example.com',
+        password: 'ValidPass1!',
       };
 
       const result = await controller.createUser(dto, mockAuditCtx);
@@ -124,9 +124,17 @@ describe('UsersController', () => {
       usersService.updateUser.mockResolvedValue(updated);
 
       const dto = { fullName: 'Updated Name' };
-      const result = await controller.updateUser('user-uuid-1', dto, mockAuditCtx);
+      const result = await controller.updateUser(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
 
-      expect(usersService.updateUser).toHaveBeenCalledWith('user-uuid-1', dto, mockAuditCtx);
+      expect(usersService.updateUser).toHaveBeenCalledWith(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
       expect(result.fullName).toBe('Updated Name');
     });
   });
@@ -139,7 +147,10 @@ describe('UsersController', () => {
 
       await controller.deleteUser('user-uuid-1', mockAuditCtx);
 
-      expect(usersService.deleteUser).toHaveBeenCalledWith('user-uuid-1', mockAuditCtx);
+      expect(usersService.deleteUser).toHaveBeenCalledWith(
+        'user-uuid-1',
+        mockAuditCtx,
+      );
     });
   });
 
@@ -154,9 +165,17 @@ describe('UsersController', () => {
       usersService.assignRole.mockResolvedValue(updated);
 
       const dto = { roleId: 'role-uuid-2' };
-      const result = await controller.assignRole('user-uuid-1', dto, mockAuditCtx);
+      const result = await controller.assignRole(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
 
-      expect(usersService.assignRole).toHaveBeenCalledWith('user-uuid-1', dto, mockAuditCtx);
+      expect(usersService.assignRole).toHaveBeenCalledWith(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
       expect(result.role.name).toBe('company_owner');
     });
   });
@@ -169,9 +188,17 @@ describe('UsersController', () => {
       usersService.assignCompany.mockResolvedValue(updated);
 
       const dto = { companyId: 'company-uuid-2' };
-      const result = await controller.assignCompany('user-uuid-1', dto, mockAuditCtx);
+      const result = await controller.assignCompany(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
 
-      expect(usersService.assignCompany).toHaveBeenCalledWith('user-uuid-1', dto, mockAuditCtx);
+      expect(usersService.assignCompany).toHaveBeenCalledWith(
+        'user-uuid-1',
+        dto,
+        mockAuditCtx,
+      );
       expect(result.companyId).toBe('company-uuid-2');
     });
   });
@@ -181,23 +208,29 @@ describe('UsersController', () => {
   describe('getUserActivity()', () => {
     it('calls UsersService.getUserActivity with id, page, and limit', async () => {
       const paginatedLogs = {
-        data: [{
-          id: 'audit-uuid-1',
-          action: AuditAction.CREATE,
-          entityType: 'user',
-          entityId: 'user-uuid-1',
-          oldValues: null,
-          newValues: null,
-          ipAddress: '127.0.0.1',
-          createdAt: new Date(),
-        }],
+        data: [
+          {
+            id: 'audit-uuid-1',
+            action: AuditAction.CREATE,
+            entityType: 'user',
+            entityId: 'user-uuid-1',
+            oldValues: null,
+            newValues: null,
+            ipAddress: '127.0.0.1',
+            createdAt: new Date(),
+          },
+        ],
         meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
       };
       usersService.getUserActivity.mockResolvedValue(paginatedLogs);
 
       const result = await controller.getUserActivity('user-uuid-1', 1, 20);
 
-      expect(usersService.getUserActivity).toHaveBeenCalledWith('user-uuid-1', 1, 20);
+      expect(usersService.getUserActivity).toHaveBeenCalledWith(
+        'user-uuid-1',
+        1,
+        20,
+      );
       expect(result.data).toHaveLength(1);
       expect(result.data[0].action).toBe(AuditAction.CREATE);
     });

@@ -10,7 +10,10 @@ import { RefreshTokenEntity } from '../entities/refresh-token.entity';
 import { JwtPayload } from '../interfaces/auth.interfaces';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     @InjectRepository(RefreshTokenEntity)
     private readonly RefreshTokenEntityRepository: Repository<RefreshTokenEntity>,
@@ -24,9 +27,16 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     });
   }
 
-  async validate(req: Request, payload: JwtPayload): Promise<JwtPayload & { rawToken: string }> {
-    const rawToken: string = (req.body as { RefreshTokenEntity: string }).RefreshTokenEntity;
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  async validate(
+    req: Request,
+    payload: JwtPayload,
+  ): Promise<JwtPayload & { rawToken: string }> {
+    const rawToken: string = (req.body as { RefreshTokenEntity: string })
+      .RefreshTokenEntity;
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
 
     const storedToken = await this.RefreshTokenEntityRepository.findOne({
       where: { tokenHash, userId: payload.sub },

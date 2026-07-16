@@ -78,21 +78,33 @@ describe('JwtStrategy', () => {
 
   it('throws UnauthorizedException when user does not exist', async () => {
     userRepo.findOne.mockResolvedValue(null);
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('throws UnauthorizedException when user status is suspended', async () => {
-    userRepo.findOne.mockResolvedValue(makeUser({ status: UserStatus.SUSPENDED }));
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    userRepo.findOne.mockResolvedValue(
+      makeUser({ status: UserStatus.SUSPENDED }),
+    );
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('throws UnauthorizedException when user is soft-deleted', async () => {
     userRepo.findOne.mockResolvedValue(makeUser({ deletedAt: new Date() }));
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('throws UnauthorizedException when user status is inactive', async () => {
-    userRepo.findOne.mockResolvedValue(makeUser({ status: UserStatus.INACTIVE }));
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    userRepo.findOne.mockResolvedValue(
+      makeUser({ status: UserStatus.INACTIVE }),
+    );
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 });

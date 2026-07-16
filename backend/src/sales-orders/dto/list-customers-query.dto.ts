@@ -10,11 +10,7 @@ import {
 } from 'class-validator';
 
 export type CustomerSortField =
-  | 'createdAt'
-  | 'updatedAt'
-  | 'name'
-  | 'email'
-  | 'creditLimit';
+  'createdAt' | 'updatedAt' | 'name' | 'email' | 'creditLimit';
 
 export class ListCustomersQueryDto {
   @IsOptional()
@@ -40,13 +36,7 @@ export class ListCustomersQueryDto {
   isActive?: boolean;
 
   @IsOptional()
-  @IsIn([
-    'createdAt',
-    'updatedAt',
-    'name',
-    'email',
-    'creditLimit',
-  ])
+  @IsIn(['createdAt', 'updatedAt', 'name', 'email', 'creditLimit'])
   sortBy: CustomerSortField = 'name';
 
   @IsOptional()

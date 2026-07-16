@@ -151,24 +151,17 @@ export class SalesOrderItemEntity {
   })
   lineTotal: number;
 
-  @ManyToOne(
-    () => SalesOrderEntity,
-    (order: SalesOrderEntity) => order.items,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => SalesOrderEntity, (order: SalesOrderEntity) => order.items, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sales_order_id' })
   salesOrder: SalesOrderEntity;
 
-  @ManyToOne(
-    () => ItemEntity,
-    {
-      nullable: false,
-      onDelete: 'RESTRICT',
-    },
-  )
+  @ManyToOne(() => ItemEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'item_id' })
   item: ItemEntity;
 

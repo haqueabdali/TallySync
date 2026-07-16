@@ -4,7 +4,9 @@ import { RolesGuard } from './roles.guard';
 
 const makeContext = (role: string, requiredRoles: string[] | undefined) => {
   const reflector = new Reflector();
-  jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(requiredRoles as any);
+  jest
+    .spyOn(reflector, 'getAllAndOverride')
+    .mockReturnValue(requiredRoles as any);
 
   const ctx = {
     getHandler: jest.fn(),
@@ -29,7 +31,10 @@ describe('RolesGuard', () => {
   });
 
   it('allows access when user role is one of multiple required roles', () => {
-    const { guard, ctx } = makeContext('company_owner', ['admin', 'company_owner']);
+    const { guard, ctx } = makeContext('company_owner', [
+      'admin',
+      'company_owner',
+    ]);
     expect(guard.canActivate(ctx)).toBe(true);
   });
 
@@ -39,7 +44,7 @@ describe('RolesGuard', () => {
   });
 
   it('throws ForbiddenException when required roles array is empty', () => {
-    // empty array — treat as no restriction  
+    // empty array — treat as no restriction
     const { guard, ctx } = makeContext('sales_rep', []);
     expect(guard.canActivate(ctx)).toBe(true);
   });

@@ -22,17 +22,13 @@ export default new DataSource({
 
   host: process.env.DATABASE_HOST ?? 'localhost',
 
-  port: Number(
-    process.env.DATABASE_PORT ?? 5432,
-  ),
+  port: Number(process.env.DATABASE_PORT ?? 5432),
 
-  username:
-    process.env.DATABASE_USER ?? 'postgres',
+  username: process.env.DATABASE_USER ?? 'postgres',
 
   password: process.env.DATABASE_PASSWORD,
 
-  database:
-    process.env.DATABASE_NAME ?? 'tallysync_db',
+  database: process.env.DATABASE_NAME ?? 'tallysync_db',
 
   ssl:
     process.env.DATABASE_SSL === 'true'
@@ -43,8 +39,7 @@ export default new DataSource({
 
   synchronize: false,
 
-  logging:
-    process.env.NODE_ENV === 'development',
+  logging: process.env.NODE_ENV === 'development',
 
   entities: [
     RoleEntity,
@@ -59,9 +54,7 @@ export default new DataSource({
     SalesOrderItemEntity,
   ],
 
-  migrations: [
-    `${__dirname}/migrations/*{.ts,.js}`,
-  ],
+  migrations: [`${__dirname}/migrations/*{.ts,.js}`],
 
   migrationsTableName: 'typeorm_migrations',
 });

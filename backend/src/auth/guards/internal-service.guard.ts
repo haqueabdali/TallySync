@@ -26,11 +26,15 @@ export class InternalServiceGuard implements CanActivate {
     const expectedKey = this.configService.get<string>('INTERNAL_SERVICE_KEY');
 
     if (!expectedKey) {
-      throw new UnauthorizedException('Internal service authentication is not configured');
+      throw new UnauthorizedException(
+        'Internal service authentication is not configured',
+      );
     }
 
     if (!providedKey || providedKey !== expectedKey) {
-      throw new UnauthorizedException('Invalid or missing internal service credentials');
+      throw new UnauthorizedException(
+        'Invalid or missing internal service credentials',
+      );
     }
 
     return true;

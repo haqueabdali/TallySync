@@ -56,7 +56,13 @@ describe('AuthController', () => {
 
   describe('login()', () => {
     it('delegates to AuthService.login() and returns the result', async () => {
-      const expected = { accessToken: 'tok', refreshToken: 'ref', tokenType: 'Bearer', expiresIn: 900, user: mockUser() };
+      const expected = {
+        accessToken: 'tok',
+        refreshToken: 'ref',
+        tokenType: 'Bearer',
+        expiresIn: 900,
+        user: mockUser(),
+      };
       authService.login.mockResolvedValue(expected);
 
       const req = mockRequest() as any;
@@ -76,7 +82,10 @@ describe('AuthController', () => {
     it('extracts the first IP from x-forwarded-for', async () => {
       authService.login.mockResolvedValue({});
       const req = mockRequest({
-        headers: { 'x-forwarded-for': '10.0.0.1, 192.168.1.1', 'user-agent': 'ua' },
+        headers: {
+          'x-forwarded-for': '10.0.0.1, 192.168.1.1',
+          'user-agent': 'ua',
+        },
       }) as any;
       await controller.login({ email: 'e@e.com', password: 'P1!' }, req);
       expect(authService.login).toHaveBeenCalledWith(
@@ -108,7 +117,9 @@ describe('AuthController', () => {
 
   describe('logout()', () => {
     it('calls AuthService.logout() with user id from JWT', async () => {
-      authService.logout.mockResolvedValue({ message: 'Logged out successfully' });
+      authService.logout.mockResolvedValue({
+        message: 'Logged out successfully',
+      });
 
       const result = await controller.logout(
         { refreshToken: 'raw' },
@@ -131,9 +142,13 @@ describe('AuthController', () => {
         message: 'If that email is registered, a reset link has been sent',
       });
 
-      const result = await controller.forgotPassword({ email: 'test@example.com' });
+      const result = await controller.forgotPassword({
+        email: 'test@example.com',
+      });
 
-      expect(authService.forgotPassword).toHaveBeenCalledWith({ email: 'test@example.com' });
+      expect(authService.forgotPassword).toHaveBeenCalledWith({
+        email: 'test@example.com',
+      });
       expect(result.message).toMatch(/reset link has been sent/i);
     });
   });
@@ -142,9 +157,15 @@ describe('AuthController', () => {
 
   describe('resetPassword()', () => {
     it('delegates to AuthService.resetPassword()', async () => {
-      authService.resetPassword.mockResolvedValue({ message: 'Password reset successfully.' });
+      authService.resetPassword.mockResolvedValue({
+        message: 'Password reset successfully.',
+      });
 
-      const dto = { userId: 'user-uuid-1', token: 'raw-token', newPassword: 'NewPass1!' };
+      const dto = {
+        userId: 'user-uuid-1',
+        token: 'raw-token',
+        newPassword: 'NewPass1!',
+      };
       const result = await controller.resetPassword(dto as any);
 
       expect(authService.resetPassword).toHaveBeenCalledWith(dto);
@@ -156,12 +177,20 @@ describe('AuthController', () => {
 
   describe('changePassword()', () => {
     it('calls AuthService.changePassword() with authenticated user id', async () => {
-      authService.changePassword.mockResolvedValue({ message: 'Password changed successfully.' });
+      authService.changePassword.mockResolvedValue({
+        message: 'Password changed successfully.',
+      });
 
       const dto = { currentPassword: 'Old1!', newPassword: 'New1!' };
-      const result = await controller.changePassword(dto as any, mockUser() as any);
+      const result = await controller.changePassword(
+        dto as any,
+        mockUser() as any,
+      );
 
-      expect(authService.changePassword).toHaveBeenCalledWith(dto, 'user-uuid-1');
+      expect(authService.changePassword).toHaveBeenCalledWith(
+        dto,
+        'user-uuid-1',
+      );
       expect(result.message).toMatch(/changed successfully/i);
     });
   });

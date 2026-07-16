@@ -19,7 +19,7 @@ const PASSWORD_MESSAGE =
 // ── Login ───────────────────────────────────────────────────────────────────
 
 export class LoginDto {
-  @ApiProperty({ example: 'user@example.com' })
+  @ApiProperty({ example: '' })
   @IsEmail({}, { message: 'A valid email address is required' })
   @Transform(({ value }) => (value as string).toLowerCase().trim())
   email: string;
@@ -122,7 +122,7 @@ export class ChangePasswordResponseDto {
 // ── JWT Payload ───────────────────────────────────────────────────────────────
 
 export class JwtPayloadDto {
-  sub: string;        // user UUID
+  sub: string; // user UUID
   email: string;
   role: string;
   companyId: string;

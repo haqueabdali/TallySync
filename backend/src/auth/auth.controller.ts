@@ -37,8 +37,9 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim()
-      ?? req.socket.remoteAddress;
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ??
+      req.socket.remoteAddress;
     const ua = req.headers['user-agent'];
     return this.authService.login(dto, ip, ua);
   }
@@ -52,8 +53,9 @@ export class AuthController {
     @Body() dto: RefreshTokenDto,
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim()
-      ?? req.socket.remoteAddress;
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ??
+      req.socket.remoteAddress;
     const ua = req.headers['user-agent'];
     return this.authService.refreshToken(dto, ip, ua);
   }

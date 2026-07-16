@@ -118,7 +118,10 @@ describe('UsersService', () => {
         UsersService,
         { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
         { provide: getRepositoryToken(RoleEntity), useFactory: mockRoleRepo },
-        { provide: getRepositoryToken(AuditLogEntity), useFactory: mockAuditRepo },
+        {
+          provide: getRepositoryToken(AuditLogEntity),
+          useFactory: mockAuditRepo,
+        },
       ],
     }).compile();
 
@@ -144,7 +147,7 @@ describe('UsersService', () => {
     it('creates and returns a user when all inputs are valid', async () => {
       roleRepo.findOne.mockResolvedValue(makeRole());
       userRepo.findOne
-        .mockResolvedValueOnce(null)        // email uniqueness check
+        .mockResolvedValueOnce(null) // email uniqueness check
         .mockResolvedValueOnce(makeUser()); // reload after save
       userRepo.create.mockReturnValue(makeUser());
       userRepo.save.mockResolvedValue(makeUser());
@@ -159,13 +162,17 @@ describe('UsersService', () => {
 
     it('throws NotFoundException when roleId does not exist', async () => {
       roleRepo.findOne.mockResolvedValue(null);
-      await expect(service.createUser(dto, ADMIN_ACTOR)).rejects.toThrow(NotFoundException);
+      await expect(service.createUser(dto, ADMIN_ACTOR)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws ConflictException when email is already registered', async () => {
       roleRepo.findOne.mockResolvedValue(makeRole());
       userRepo.findOne.mockResolvedValue(makeUser()); // email already exists
-      await expect(service.createUser(dto, ADMIN_ACTOR)).rejects.toThrow(ConflictException);
+      await expect(service.createUser(dto, ADMIN_ACTOR)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('throws BadRequestException when non-admin creates user in another company', async () => {
@@ -179,7 +186,9 @@ describe('UsersService', () => {
     it('throws BadRequestException when non-admin tries to assign admin role', async () => {
       roleRepo.findOne.mockResolvedValue(makeRole({ name: 'admin' }));
       userRepo.findOne.mockResolvedValue(null);
-      await expect(service.createUser(dto, OWNER_ACTOR)).rejects.toThrow(BadRequestException);
+      await expect(service.createUser(dto, OWNER_ACTOR)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -205,10 +214,9 @@ describe('UsersService', () => {
 
       await service.listUsers(query, OWNER_ACTOR);
 
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'user.company_id = :companyId',
-        { companyId: OWNER_ACTOR.companyId },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('user.company_id = :companyId', {
+        companyId: OWNER_ACTOR.companyId,
+      });
     });
 
     it('returns empty data when no users found', async () => {
@@ -230,18 +238,18 @@ describe('UsersService', () => {
 
     it('throws NotFoundException when user does not exist', async () => {
       userRepo.findOne.mockResolvedValue(null);
-      await expect(service.getUser('non-existent', ADMIN_ACTOR)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getUser('non-existent', ADMIN_ACTOR),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when non-admin accesses user in another company', async () => {
       userRepo.findOne.mockResolvedValue(
         makeUser({ companyId: 'other-company-uuid' }),
       );
-      await expect(
-        service.getUser('user-uuid-1', OWNER_ACTOR),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getUser('user-uuid-1', OWNER_ACTOR)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -287,7 +295,11 @@ describe('UsersService', () => {
       auditRepo.save.mockResolvedValue({});
 
       await expect(
-        service.updateUser('user-uuid-1', { fullName: 'New Name' }, OWNER_ACTOR),
+        service.updateUser(
+          'user-uuid-1',
+          { fullName: 'New Name' },
+          OWNER_ACTOR,
+        ),
       ).resolves.not.toThrow();
     });
   });
@@ -301,7 +313,11 @@ describe('UsersService', () => {
       userRepo.update.mockResolvedValue({});
       auditRepo.save.mockResolvedValue({});
 
-      const result = await service.deleteUser('user-uuid-1', ADMIN_ACTOR, '127.0.0.1');
+      const result = await service.deleteUser(
+        'user-uuid-1',
+        ADMIN_ACTOR,
+        '127.0.0.1',
+      );
 
       expect(result.message).toMatch(/deleted successfully/i);
       expect(userRepo.softDelete).toHaveBeenCalledWith('user-uuid-1');
@@ -338,11 +354,15 @@ describe('UsersService', () => {
 
     it('assigns a new role and returns updated user', async () => {
       const user = makeUser();
-      const newRole = makeRole({ id: 'role-owner-uuid', name: 'company_owner' });
+      const newRole = makeRole({
+        id: 'role-owner-uuid',
+        name: 'company_owner',
+      });
 
       userRepo.findOne
-        .mockResolvedValueOnce(user)   // findOrFail
-        .mockResolvedValueOnce(        // reload after save
+        .mockResolvedValueOnce(user) // findOrFail
+        .mockResolvedValueOnce(
+          // reload after save
           makeUser({ roleId: 'role-owner-uuid', role: newRole }),
         );
       roleRepo.findOne.mockResolvedValue(newRole);

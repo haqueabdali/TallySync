@@ -6,19 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  FindOptionsWhere,
-  ILike,
-  IsNull,
-  Not,
-  Repository,
-} from 'typeorm';
+import { FindOptionsWhere, ILike, IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
-import {
-  UserEntity,
-  UserStatus,
-} from '../auth/entities/user.entity';
+import { UserEntity, UserStatus } from '../auth/entities/user.entity';
 
 import { RoleEntity } from '../auth/entities/role.entity';
 
@@ -73,12 +64,12 @@ export class UsersService {
 
     const user = this.userRepository.create({
       companyId: dto.companyId,
-      roleId:    dto.roleId,
-      fullName:  dto.fullName,
-      email:     dto.email.toLowerCase(),
+      roleId: dto.roleId,
+      fullName: dto.fullName,
+      email: dto.email.toLowerCase(),
       passwordHash,
-      phone:     dto.phone   ?? null,
-      status:    dto.status  ?? UserStatus.ACTIVE,
+      phone: dto.phone ?? null,
+      status: dto.status ?? UserStatus.ACTIVE,
     });
 
     const saved = await this.userRepository.save(user);
@@ -88,16 +79,14 @@ export class UsersService {
 
     await this.writeAudit({
       audit,
-      action:     AuditAction.CREATE,
+      action: AuditAction.CREATE,
       entityType: 'user',
-      entityId:   saved.id,
-      oldValues:  null,
-      newValues:  this.sanitize(withRole),
+      entityId: saved.id,
+      oldValues: null,
+      newValues: this.sanitize(withRole),
     });
 
-    this.logger.log(
-      `User created: ${saved.id} by actor ${audit.actorId}`,
-    );
+    this.logger.log(`User created: ${saved.id} by actor ${audit.actorId}`);
 
     return this.toResponse(withRole);
   }
@@ -112,9 +101,9 @@ export class UsersService {
       companyId,
       roleId,
       status,
-      page  = 1,
+      page = 1,
       limit = 20,
-      sortBy    = 'createdAt',
+      sortBy = 'createdAt',
       sortOrder = 'DESC',
     } = query;
 
@@ -123,14 +112,14 @@ export class UsersService {
     const baseFilter: FindOptionsWhere<UserEntity> = {
       deletedAt: IsNull(),
       ...(companyId && { companyId }),
-      ...(roleId    && { roleId }),
-      ...(status    && { status }),
+      ...(roleId && { roleId }),
+      ...(status && { status }),
     };
 
     if (search) {
       where.push(
         { ...baseFilter, fullName: ILike(`%${search}%`) },
-        { ...baseFilter, email:    ILike(`%${search}%`) },
+        { ...baseFilter, email: ILike(`%${search}%`) },
       );
     } else {
       where.push(baseFilter);
@@ -139,9 +128,9 @@ export class UsersService {
     const [users, total] = await this.userRepository.findAndCount({
       where,
       relations: ['role'],
-      order:     { [sortBy]: sortOrder },
-      skip:      (page - 1) * limit,
-      take:      limit,
+      order: { [sortBy]: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     return {
@@ -174,18 +163,18 @@ export class UsersService {
 
     // Apply only the provided fields
     if (dto.fullName !== undefined) user.fullName = dto.fullName;
-    if (dto.phone    !== undefined) user.phone    = dto.phone;
-    if (dto.status   !== undefined) user.status   = dto.status;
+    if (dto.phone !== undefined) user.phone = dto.phone;
+    if (dto.status !== undefined) user.status = dto.status;
 
     const updated = await this.userRepository.save(user);
 
     await this.writeAudit({
       audit,
-      action:     AuditAction.UPDATE,
+      action: AuditAction.UPDATE,
       entityType: 'user',
-      entityId:   id,
-      oldValues:  oldSnapshot,
-      newValues:  this.sanitize(updated),
+      entityId: id,
+      oldValues: oldSnapshot,
+      newValues: this.sanitize(updated),
     });
 
     this.logger.log(`User updated: ${id} by actor ${audit.actorId}`);
@@ -207,8 +196,8 @@ export class UsersService {
     if (user.role?.isSystem && user.role.name === 'admin') {
       const adminCount = await this.userRepository.count({
         where: {
-          roleId:    user.roleId,
-          status:    UserStatus.ACTIVE,
+          roleId: user.roleId,
+          status: UserStatus.ACTIVE,
           deletedAt: IsNull(),
         },
       });
@@ -224,11 +213,11 @@ export class UsersService {
 
     await this.writeAudit({
       audit,
-      action:     AuditAction.DELETE,
+      action: AuditAction.DELETE,
       entityType: 'user',
-      entityId:   id,
-      oldValues:  this.sanitize(user),
-      newValues:  null,
+      entityId: id,
+      oldValues: this.sanitize(user),
+      newValues: null,
     });
 
     this.logger.log(`User soft-deleted: ${id} by actor ${audit.actorId}`);
@@ -246,17 +235,17 @@ export class UsersService {
 
     const oldRoleId = user.roleId;
     user.roleId = dto.roleId;
-    user.role   = role;
+    user.role = role;
 
     const updated = await this.userRepository.save(user);
 
     await this.writeAudit({
       audit,
-      action:     AuditAction.ASSIGN_ROLE,
+      action: AuditAction.ASSIGN_ROLE,
       entityType: 'user',
-      entityId:   id,
-      oldValues:  { roleId: oldRoleId },
-      newValues:  { roleId: dto.roleId, roleName: role.name },
+      entityId: id,
+      oldValues: { roleId: oldRoleId },
+      newValues: { roleId: dto.roleId, roleName: role.name },
     });
 
     this.logger.log(
@@ -281,11 +270,11 @@ export class UsersService {
 
     await this.writeAudit({
       audit,
-      action:     AuditAction.ASSIGN_COMPANY,
+      action: AuditAction.ASSIGN_COMPANY,
       entityType: 'user',
-      entityId:   id,
-      oldValues:  { companyId: oldCompanyId },
-      newValues:  { companyId: dto.companyId },
+      entityId: id,
+      oldValues: { companyId: oldCompanyId },
+      newValues: { companyId: dto.companyId },
     });
 
     this.logger.log(
@@ -308,19 +297,19 @@ export class UsersService {
     const [logs, total] = await this.auditRepository.findAndCount({
       where: { entityType: 'user', entityId: id },
       order: { createdAt: 'DESC' },
-      skip:  (page - 1) * limit,
-      take:  limit,
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     const data: ActivityLogResponseDto[] = logs.map((log) => ({
-      id:          log.id,
-      action:      log.action,
-      entityType:  log.entityType,
-      entityId:    log.entityId,
-      oldValues:   log.oldValues,
-      newValues:   log.newValues,
-      ipAddress:   log.ipAddress,
-      createdAt:   log.createdAt,
+      id: log.id,
+      action: log.action,
+      entityType: log.entityType,
+      entityId: log.entityId,
+      oldValues: log.oldValues,
+      newValues: log.newValues,
+      ipAddress: log.ipAddress,
+      createdAt: log.createdAt,
     }));
 
     return {
@@ -338,7 +327,7 @@ export class UsersService {
 
   private async findEntityById(id: string): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
-      where:     { id, deletedAt: IsNull() },
+      where: { id, deletedAt: IsNull() },
       relations: ['role'],
     });
 
@@ -355,9 +344,7 @@ export class UsersService {
     });
 
     if (existing) {
-      throw new ConflictException(
-        `Email '${email}' is already registered`,
-      );
+      throw new ConflictException(`Email '${email}' is already registered`);
     }
   }
 
@@ -372,9 +359,7 @@ export class UsersService {
   }
 
   /** Strip sensitive fields before writing to audit logs */
-  private sanitize(
-    user: UserEntity,
-  ): Record<string, unknown> {
+  private sanitize(user: UserEntity): Record<string, unknown> {
     const raw = { ...user } as Record<string, unknown>;
     for (const field of SENSITIVE_FIELDS) {
       delete raw[field];
@@ -389,26 +374,27 @@ export class UsersService {
   }
 
   private async writeAudit(params: {
-    audit:      AuditContext;
-    action:     AuditAction;
+    audit: AuditContext;
+    action: AuditAction;
     entityType: string;
-    entityId:   string;
-    oldValues:  Record<string, unknown> | null;
-    newValues:  Record<string, unknown> | null;
+    entityId: string;
+    oldValues: Record<string, unknown> | null;
+    newValues: Record<string, unknown> | null;
   }): Promise<void> {
-    const { audit, action, entityType, entityId, oldValues, newValues } = params;
+    const { audit, action, entityType, entityId, oldValues, newValues } =
+      params;
 
     await this.auditRepository.save(
       this.auditRepository.create({
-        companyId:  audit.companyId,
-        userId:     audit.actorId,
+        companyId: audit.companyId,
+        userId: audit.actorId,
         action,
         entityType,
         entityId,
         oldValues,
         newValues,
-        ipAddress:  audit.ipAddress  ?? null,
-        userAgent:  audit.userAgent  ?? null,
+        ipAddress: audit.ipAddress ?? null,
+        userAgent: audit.userAgent ?? null,
       }),
     );
   }

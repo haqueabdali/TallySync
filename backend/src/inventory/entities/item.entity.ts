@@ -109,12 +109,12 @@ export class ItemEntity {
   tallyItemName: string | null;
 
   @Column({
-  name: 'sync_status',
-  type: 'enum',
-  enum: InventorySyncStatus,
-  default: InventorySyncStatus.PENDING,
-})
-syncStatus: InventorySyncStatus;
+    name: 'sync_status',
+    type: 'enum',
+    enum: InventorySyncStatus,
+    default: InventorySyncStatus.PENDING,
+  })
+  syncStatus: InventorySyncStatus;
 
   @Column({ name: 'last_synced_at', type: 'timestamptz', nullable: true })
   lastSyncedAt: Date | null;

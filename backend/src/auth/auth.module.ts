@@ -31,8 +31,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
       useFactory: (config: ConfigService): JwtModuleOptions => {
         const secret = config.getOrThrow<string>('JWT_SECRET');
 
-        const expiresIn =
-          (config.get<string>('JWT_EXPIRES_IN') ?? '15m') as StringValue;
+        const expiresIn = (config.get<string>('JWT_EXPIRES_IN') ??
+          '15m') as StringValue;
 
         return {
           secret,
@@ -55,16 +55,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
   controllers: [AuthController],
 
-  providers: [
-    AuthService,
-    JwtStrategy,
-    JwtRefreshStrategy,
-  ],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
 
-  exports: [
-    AuthService,
-    JwtModule,
-    PassportModule,
-  ],
+  exports: [AuthService, JwtModule, PassportModule],
 })
 export class AuthModule {}

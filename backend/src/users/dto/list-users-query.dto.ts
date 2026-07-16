@@ -13,11 +13,7 @@ import {
 import { UserStatus } from '../../auth/entities/user.entity';
 
 export type UserSortField =
-  | 'createdAt'
-  | 'updatedAt'
-  | 'fullName'
-  | 'email'
-  | 'status';
+  'createdAt' | 'updatedAt' | 'fullName' | 'email' | 'status';
 
 export type SortOrder = 'ASC' | 'DESC';
 
@@ -52,13 +48,7 @@ export class ListUsersQueryDto {
   status?: UserStatus;
 
   @IsOptional()
-  @IsIn([
-    'createdAt',
-    'updatedAt',
-    'fullName',
-    'email',
-    'status',
-  ])
+  @IsIn(['createdAt', 'updatedAt', 'fullName', 'email', 'status'])
   sortBy: UserSortField = 'createdAt';
 
   @IsOptional()

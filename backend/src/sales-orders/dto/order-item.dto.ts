@@ -1,11 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsNumber,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class OrderItemDto {
   @IsUUID()

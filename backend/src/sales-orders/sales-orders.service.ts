@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  InternalServerErrorException,
   ConflictException,
   Injectable,
   Logger,
@@ -742,14 +743,9 @@ export class SalesOrdersService {
 
     await this.validateCurrentStockForOrder(order.items, companyId);
 
-    order.status = order.approvalRequired
-      ? SalesOrderStatus.SUBMITTED
-      : SalesOrderStatus.APPROVED;
-
-    if (!order.approvalRequired) {
-      order.approvedBy = context.actorId ?? null;
-      order.approvedAt = new Date();
-    }
+    order.status = SalesOrderStatus.SUBMITTED;
+order.approvedBy = null;
+order.approvedAt = null;
 
     order.rejectionReason = null;
     order.syncStatus = SalesOrderSyncStatus.PENDING;
@@ -867,29 +863,36 @@ export class SalesOrdersService {
 
     return this.toSalesOrderResponse(cancelledOrder);
   }
-  async fulfilSalesOrder(
-    orderId: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-    const actorId = this.requireActorId(context);
+async fulfilSalesOrder(
+  orderId: string,
+  context: SalesRequestContext,
+): Promise<SalesOrderResponseDto> {
+  const companyId = this.requireCompanyId(context);
+  const actorId = this.requireActorId(context);
 
-    return this.dataSource.transaction(
-      async (entityManager: EntityManager): Promise<SalesOrderResponseDto> => {
-        const orderRepository = entityManager.getRepository(SalesOrderEntity);
+  try {
+    return await this.dataSource.transaction(
+      async (
+        entityManager: EntityManager,
+      ): Promise<SalesOrderResponseDto> => {
+        const orderRepository =
+          entityManager.getRepository(SalesOrderEntity);
 
-        const itemRepository = entityManager.getRepository(ItemEntity);
+        const orderItemRepository =
+          entityManager.getRepository(SalesOrderItemEntity);
 
+        const itemRepository =
+          entityManager.getRepository(ItemEntity);
+
+        // Lock only the sales_orders table row.
+        // Eager relations are disabled to prevent LEFT JOIN ... FOR UPDATE.
         const order = await orderRepository.findOne({
           where: {
             id: orderId,
             companyId,
             deletedAt: IsNull(),
           },
-          relations: {
-            customer: true,
-            items: true,
-          },
+          loadEagerRelations: false,
           lock: {
             mode: 'pessimistic_write',
           },
@@ -901,21 +904,39 @@ export class SalesOrdersService {
 
         if (order.status !== SalesOrderStatus.APPROVED) {
           throw new BadRequestException(
-            'Only approved sales orders can be fulfilled',
+            `Only approved sales orders can be fulfilled. Current status: ${order.status}`,
           );
         }
 
-        if (!order.items || order.items.length === 0) {
-          throw new BadRequestException('Sales order has no items');
+        const orderItems = await orderItemRepository.find({
+          where: {
+            salesOrderId: order.id,
+          },
+          loadEagerRelations: false,
+        });
+
+        if (orderItems.length === 0) {
+          throw new BadRequestException(
+            'Sales order must contain at least one item',
+          );
         }
 
-        for (const orderItem of order.items) {
+        for (const orderItem of orderItems) {
+          if (!orderItem.itemId) {
+            throw new BadRequestException(
+              `Order item ${orderItem.id} has no inventory item reference`,
+            );
+          }
+
+          // Lock only the items table row.
+          // Eager relations are disabled here as well.
           const inventoryItem = await itemRepository.findOne({
             where: {
               id: orderItem.itemId,
               companyId,
               deletedAt: IsNull(),
             },
+            loadEagerRelations: false,
             lock: {
               mode: 'pessimistic_write',
             },
@@ -923,24 +944,49 @@ export class SalesOrdersService {
 
           if (!inventoryItem) {
             throw new BadRequestException(
-              `Inventory item ${orderItem.itemName} no longer exists`,
+              `Inventory item ${
+                orderItem.itemName ?? orderItem.itemId
+              } does not exist`,
             );
           }
 
           const requestedQuantity = Number(orderItem.quantity);
-
           const availableQuantity = Number(inventoryItem.stockQty);
 
-          if (requestedQuantity > availableQuantity) {
+          if (
+            !Number.isFinite(requestedQuantity) ||
+            requestedQuantity <= 0
+          ) {
             throw new BadRequestException(
-              `Insufficient stock for ${orderItem.itemName}. Available: ${availableQuantity}, required: ${requestedQuantity}`,
+              `Invalid quantity for ${
+                orderItem.itemName ?? inventoryItem.name
+              }: ${orderItem.quantity}`,
             );
           }
 
-          inventoryItem.stockQty = availableQuantity - requestedQuantity;
+          if (
+            !Number.isFinite(availableQuantity) ||
+            availableQuantity < 0
+          ) {
+            throw new InternalServerErrorException(
+              `Invalid stock quantity for ${inventoryItem.name}: ${inventoryItem.stockQty}`,
+            );
+          }
 
-          inventoryItem.syncStatus = InventorySyncStatus.PENDING;
+          if (requestedQuantity > availableQuantity) {
+            throw new BadRequestException(
+              `Insufficient stock for ${
+                orderItem.itemName ?? inventoryItem.name
+              }. Available: ${availableQuantity}, required: ${requestedQuantity}`,
+            );
+          }
 
+          const remainingStock =
+            availableQuantity - requestedQuantity;
+
+          inventoryItem.stockQty = remainingStock;
+          inventoryItem.syncStatus =
+            InventorySyncStatus.PENDING;
           inventoryItem.lastSyncedAt = null;
 
           await itemRepository.save(inventoryItem);
@@ -952,10 +998,12 @@ export class SalesOrdersService {
 
         await orderRepository.save(order);
 
+        // Relations are safe here because this query has no lock.
         const fulfilledOrder = await orderRepository.findOne({
           where: {
             id: order.id,
             companyId,
+            deletedAt: IsNull(),
           },
           relations: {
             customer: true,
@@ -964,17 +1012,51 @@ export class SalesOrdersService {
         });
 
         if (!fulfilledOrder) {
-          throw new NotFoundException('Fulfilled order could not be loaded');
+          throw new InternalServerErrorException(
+            'Fulfilled sales order could not be reloaded',
+          );
+        }
+
+        if (
+          fulfilledOrder.status !== SalesOrderStatus.FULFILLED
+        ) {
+          throw new InternalServerErrorException(
+            `Unexpected status after fulfilment: ${fulfilledOrder.status}`,
+          );
         }
 
         this.logger.log(
-          `Sales order ${order.orderNumber} fulfilled by ${actorId}`,
+          `Sales order ${fulfilledOrder.orderNumber} fulfilled by ${actorId}`,
         );
 
         return this.toSalesOrderResponse(fulfilledOrder);
       },
     );
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : String(error);
+
+    const stack =
+      error instanceof Error ? error.stack : undefined;
+
+    this.logger.error(
+      `Failed to fulfil sales order ${orderId}: ${message}`,
+      stack,
+    );
+
+    if (
+      error instanceof NotFoundException ||
+      error instanceof BadRequestException ||
+      error instanceof InternalServerErrorException
+    ) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(
+      `Failed to fulfil sales order: ${message}`,
+    );
   }
+}
   async getSalesOrderSummary(
     context: SalesRequestContext,
   ): Promise<SalesOrderSummaryResponseDto> {

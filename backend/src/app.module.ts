@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SalesOrdersModule } from './sales-orders/sales-orders.module';
-
+import { TallySyncModule } from './tally-sync/tally-sync.module';
 
 @Module({
   imports: [
@@ -36,9 +36,11 @@ import { SalesOrdersModule } from './sales-orders/sales-orders.module';
 
         autoLoadEntities: true,
 
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
+        synchronize:
+          configService.get<string>('NODE_ENV') !== 'production',
 
-        logging: configService.get<string>('NODE_ENV') === 'development',
+        logging:
+          configService.get<string>('NODE_ENV') === 'development',
 
         ssl:
           configService.get<string>('DATABASE_SSL') === 'true'
@@ -62,6 +64,7 @@ import { SalesOrdersModule } from './sales-orders/sales-orders.module';
     UsersModule,
     InventoryModule,
     SalesOrdersModule,
+    TallySyncModule,
   ],
 
   controllers: [AppController],

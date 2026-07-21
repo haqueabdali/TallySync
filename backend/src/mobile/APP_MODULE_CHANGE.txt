@@ -1,0 +1,13 @@
+Add this import to src/app.module.ts:
+
+import { MobileModule } from './mobile/mobile.module';
+
+Then add MobileModule inside the AppModule imports array:
+
+@Module({
+  imports: [
+    // existing modules...
+    MobileModule,
+  ],
+})
+export class AppModule {}

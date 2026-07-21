@@ -2,9 +2,11 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TallyHttpService } from './tally-http.service';
+import { TallyParserService } from './tally-parser.service';
+import { TallyCacheService } from './tally-cache.service';
 
 export type TallyBaseImportResult = {
   success: boolean;
@@ -35,10 +37,13 @@ export type TallyStockItemDefinition = {
 
 @Injectable()
 export class TallyMasterService {
-  private readonly ledgerCache = new Set<string>();
-  private readonly stockItemCache = new Set<string>();
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly tallyHttpService: TallyHttpService,
+    private readonly tallyParserService: TallyParserService,
+    private readonly tallyCacheService: TallyCacheService,
+  ) {}
 
   async ensureLedgerMasters(
     ledgers: TallyLedgerDefinition[],
@@ -51,7 +56,7 @@ export class TallyMasterService {
 
       const cacheKey = this.normalizeName(ledger.name);
 
-      if (this.ledgerCache.has(cacheKey)) {
+      if (this.tallyCacheService.hasLedger(cacheKey)) {
         results.push(this.existingMasterResult('Ledger', ledger.name));
         continue;
       }
@@ -59,7 +64,7 @@ export class TallyMasterService {
       const exists = await this.tallyLedgerExists(ledger.name);
 
       if (exists) {
-        this.ledgerCache.add(cacheKey);
+        this.tallyCacheService.rememberLedger(cacheKey);
         results.push(this.existingMasterResult('Ledger', ledger.name));
         continue;
       }
@@ -73,7 +78,7 @@ export class TallyMasterService {
         });
       }
 
-      this.ledgerCache.add(cacheKey);
+      this.tallyCacheService.rememberLedger(cacheKey);
       results.push(result);
     }
 
@@ -91,7 +96,7 @@ export class TallyMasterService {
 
       const cacheKey = this.normalizeName(stockItem.name);
 
-      if (this.stockItemCache.has(cacheKey)) {
+      if (this.tallyCacheService.hasStockItem(cacheKey)) {
         results.push(
           this.existingMasterResult('Stock Item', stockItem.name),
         );
@@ -101,7 +106,7 @@ export class TallyMasterService {
       const exists = await this.tallyStockItemExists(stockItem.name);
 
       if (exists) {
-        this.stockItemCache.add(cacheKey);
+        this.tallyCacheService.rememberStockItem(cacheKey);
         results.push(
           this.existingMasterResult('Stock Item', stockItem.name),
         );
@@ -117,7 +122,7 @@ export class TallyMasterService {
         });
       }
 
-      this.stockItemCache.add(cacheKey);
+      this.tallyCacheService.rememberStockItem(cacheKey);
       results.push(result);
     }
 
@@ -125,8 +130,7 @@ export class TallyMasterService {
   }
 
   clearCache(): void {
-    this.ledgerCache.clear();
-    this.stockItemCache.clear();
+    this.tallyCacheService.clear();
   }
 
   private async tallyLedgerExists(ledgerName: string): Promise<boolean> {
@@ -163,8 +167,12 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.postXmlToTally(requestXml, 10_000);
-    return this.collectionContainsName(responseText, 'LEDGER', ledgerName);
+    const responseText = await this.tallyHttpService.postXml(requestXml, 10_000);
+    return this.tallyParserService.collectionContainsName(
+      responseText,
+      'LEDGER',
+      ledgerName,
+    );
   }
 
   private async tallyStockItemExists(
@@ -203,8 +211,8 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.postXmlToTally(requestXml, 10_000);
-    return this.collectionContainsName(
+    const responseText = await this.tallyHttpService.postXml(requestXml, 10_000);
+    return this.tallyParserService.collectionContainsName(
       responseText,
       'STOCKITEM',
       stockItemName,
@@ -250,8 +258,8 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.postXmlToTally(requestXml, 15_000);
-    const parsed = this.parseTallyMasterImportResponse(responseText);
+    const responseText = await this.tallyHttpService.postXml(requestXml, 15_000);
+    const parsed = this.tallyParserService.parseMasterImportResponse(responseText);
 
     return {
       ...parsed,
@@ -299,110 +307,14 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.postXmlToTally(requestXml, 15_000);
-    const parsed = this.parseTallyMasterImportResponse(responseText);
+    const responseText = await this.tallyHttpService.postXml(requestXml, 15_000);
+    const parsed = this.tallyParserService.parseMasterImportResponse(responseText);
 
     return {
       ...parsed,
       masterType: 'Stock Item',
       masterName: stockItem.name,
     };
-  }
-
-  private parseTallyMasterImportResponse(
-    responseXml: string,
-  ): TallyBaseImportResult {
-    const created = this.extractXmlNumber(responseXml, 'CREATED');
-    const altered = this.extractXmlNumber(responseXml, 'ALTERED');
-    const ignored = this.extractXmlNumber(responseXml, 'IGNORED');
-    const errors = this.extractXmlNumber(responseXml, 'ERRORS');
-    const exceptions = this.extractXmlNumber(responseXml, 'EXCEPTIONS');
-    const lineError =
-      this.extractXmlText(responseXml, 'LINEERROR') ??
-      this.extractXmlText(responseXml, 'ERROR');
-
-    const status = this.extractXmlNumber(responseXml, 'STATUS');
-    const success =
-      errors === 0 &&
-      exceptions === 0 &&
-      !lineError &&
-      (created > 0 || altered > 0 || ignored > 0 || status === 1);
-
-    return {
-      success,
-      created,
-      altered,
-      ignored,
-      errors,
-      exceptions,
-      lineError,
-    };
-  }
-
-  private collectionContainsName(
-    responseXml: string,
-    elementName: 'LEDGER' | 'STOCKITEM',
-    expectedName: string,
-  ): boolean {
-    const decodedXml = this.decodeXml(responseXml);
-    const normalizedExpectedName = this.normalizeName(expectedName);
-
-    const elementExpression = new RegExp(
-      `<${elementName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${elementName}>`,
-      'gi',
-    );
-
-    for (const match of decodedXml.matchAll(elementExpression)) {
-      const elementXml = match[1] ?? '';
-      const name = this.extractXmlText(elementXml, 'NAME');
-
-      if (name && this.normalizeName(name) === normalizedExpectedName) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private async postXmlToTally(
-    xml: string,
-    timeoutMilliseconds: number,
-  ): Promise<string> {
-    const tallyUrl = this.getTallyUrl();
-    let response: Response;
-
-    try {
-      response = await fetch(tallyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          Accept: 'text/xml',
-        },
-        body: xml,
-        signal: AbortSignal.timeout(timeoutMilliseconds),
-      });
-    } catch (error: unknown) {
-      throw new ServiceUnavailableException(
-        `Unable to connect to Tally at ${tallyUrl}: ${this.getErrorMessage(
-          error,
-        )}`,
-      );
-    }
-
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      throw new BadGatewayException({
-        message: `Tally returned HTTP ${response.status}`,
-        responsePreview: responseText.substring(0, 10_000),
-      });
-    }
-
-    if (!responseText.trim()) {
-      throw new BadGatewayException('Tally returned an empty response');
-    }
-
-    return responseText;
   }
 
   private validateLedgerDefinition(ledger: TallyLedgerDefinition): void {
@@ -475,37 +387,6 @@ export class TallyMasterService {
     return Array.from(uniqueItems.values());
   }
 
-  private extractXmlNumber(xml: string, tag: string): number {
-    const value = this.extractXmlText(xml, tag);
-
-    if (!value) {
-      return 0;
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  private extractXmlText(xml: string, tag: string): string | null {
-    const expression = new RegExp(
-      `<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`,
-      'i',
-    );
-
-    const match = xml.match(expression);
-
-    if (!match?.[1]) {
-      return null;
-    }
-
-    return this.decodeXml(match[1].trim());
-  }
-
-  private getTallyUrl(): string {
-    return this.configService
-      .get<string>('TALLY_URL', 'http://localhost:9000')
-      .trim();
-  }
 
   private getTallyCompanyName(): string {
     const companyName =
@@ -540,14 +421,6 @@ export class TallyMasterService {
       .replace(/\r?\n/g, ' ');
   }
 
-  private decodeXml(value: string): string {
-    return value
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&apos;/g, "'")
-      .replace(/&amp;/g, '&');
-  }
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {

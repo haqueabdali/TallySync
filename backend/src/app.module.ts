@@ -11,6 +11,8 @@ import { InventoryModule } from './inventory/inventory.module';
 import { SalesOrdersModule } from './sales-orders/sales-orders.module';
 import { TallySyncModule } from './tally-sync/tally-sync.module';
 
+import { MobileModule } from './mobile/mobile.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -65,6 +67,7 @@ import { TallySyncModule } from './tally-sync/tally-sync.module';
     InventoryModule,
     SalesOrdersModule,
     TallySyncModule,
+    MobileModule,
   ],
 
   controllers: [AppController],

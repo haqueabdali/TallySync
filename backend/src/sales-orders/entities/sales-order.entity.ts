@@ -25,6 +25,7 @@ export enum SalesOrderStatus {
 
 export enum SalesOrderSyncStatus {
   PENDING = 'pending',
+  SYNCING = 'syncing',
   SYNCED = 'synced',
   FAILED = 'failed',
 }
@@ -172,6 +173,35 @@ export class SalesOrderEntity {
     default: SalesOrderSyncStatus.PENDING,
   })
   syncStatus: SalesOrderSyncStatus;
+
+  @Column({
+    name: 'tally_voucher_id',
+    type: 'bigint',
+    nullable: true,
+  })
+  tallyVoucherId: string | null;
+
+  @Column({
+    name: 'tally_voucher_number',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  tallyVoucherNumber: string | null;
+
+  @Column({
+    name: 'tally_sync_error',
+    type: 'text',
+    nullable: true,
+  })
+  tallySyncError: string | null;
+
+  @Column({
+    name: 'tally_sync_attempts',
+    type: 'integer',
+    default: 0,
+  })
+  tallySyncAttempts: number;
 
   @Column({
     name: 'last_synced_at',

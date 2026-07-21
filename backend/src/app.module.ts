@@ -36,8 +36,8 @@ import { TallySyncModule } from './tally-sync/tally-sync.module';
 
         autoLoadEntities: true,
 
-        synchronize:
-          configService.get<string>('NODE_ENV') !== 'production',
+        synchronize: false,
+          //configService.get<string>('NODE_ENV') !== 'production',
 
         logging:
           configService.get<string>('NODE_ENV') === 'development',

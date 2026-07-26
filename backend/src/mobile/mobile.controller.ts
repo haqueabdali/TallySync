@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -7,6 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 
+import { CreateMobileSalesOrderDto } from './dto/create-mobile-sales-order.dto';
 import { MobileSalesOrderQueryDto } from './dto/mobile-sales-order-query.dto';
 import { MobileService } from './mobile.service';
 
@@ -19,18 +21,29 @@ export class MobileController {
     return this.mobileService.getDashboard();
   }
 
+  @Get('customers')
+  getCustomers(@Query('search') search?: string) {
+    return this.mobileService.getCustomers(search);
+  }
+
+  @Get('products')
+  getProducts(@Query('search') search?: string) {
+    return this.mobileService.getProducts(search);
+  }
+
   @Get('sales-orders')
-  getSalesOrders(
-    @Query() query: MobileSalesOrderQueryDto,
-  ) {
+  getSalesOrders(@Query() query: MobileSalesOrderQueryDto) {
     return this.mobileService.getSalesOrders(query);
   }
 
   @Get('sales-orders/:id')
-  getSalesOrder(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ) {
+  getSalesOrder(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.mobileService.getSalesOrder(id);
+  }
+
+  @Post('sales-orders')
+  createSalesOrder(@Body() body: CreateMobileSalesOrderDto) {
+    return this.mobileService.createSalesOrder(body);
   }
 
   @Post('sales-orders/sync-pending')
@@ -39,16 +52,12 @@ export class MobileController {
   }
 
   @Post('sales-orders/:id/sync')
-  syncSalesOrder(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ) {
+  syncSalesOrder(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.mobileService.syncSalesOrder(id);
   }
 
   @Post('sales-orders/:id/retry')
-  retrySalesOrder(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ) {
+  retrySalesOrder(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.mobileService.retrySalesOrder(id);
   }
 

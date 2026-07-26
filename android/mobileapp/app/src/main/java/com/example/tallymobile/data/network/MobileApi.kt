@@ -4,10 +4,21 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Body
 
 interface MobileApi {
     @GET("mobile/dashboard")
     suspend fun getDashboard(): ApiResponse<DashboardData>
+
+    @GET("mobile/customers")
+        suspend fun getCustomers(
+        @Query("search") search: String? = null
+    ): ApiResponse<List<CustomerListItem>>
+    
+    @GET("mobile/products")
+        suspend fun getProducts(
+        @Query("search") search: String? = null
+    ): ApiResponse<List<ProductListItem>>
 
     @GET("mobile/sales-orders")
     suspend fun getSalesOrders(
@@ -16,6 +27,8 @@ interface MobileApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): ApiResponse<SalesOrderPage>
+    
+  
 
     @GET("mobile/sales-orders/{id}")
     suspend fun getSalesOrder(

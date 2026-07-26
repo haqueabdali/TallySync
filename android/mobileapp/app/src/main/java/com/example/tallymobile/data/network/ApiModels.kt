@@ -129,3 +129,48 @@ data class BulkSyncItem(
     val status: String,
     val error: String?
 )
+
+data class CustomerListItem(
+    val id: String,
+    val name: String,
+    val phone: String?,
+    val email: String?,
+    val address: String?
+)
+
+data class ProductListItem(
+    val id: String,
+    val name: String,
+    val sku: String?,
+    val barcode: String?,
+    val sellingPrice: Double,
+    val stock: Double,
+    val unit: String?
+)
+
+data class CartItem(
+    val product: ProductListItem,
+    val quantity: Int
+) {
+    val subtotal: Double
+        get() = product.sellingPrice * quantity
+}
+
+data class CreateSalesOrderItemRequest(
+    val productId: String,
+    val quantity: Int,
+    val unitPrice: Double
+)
+
+data class CreateSalesOrderRequest(
+    val customerId: String,
+    val items: List<CreateSalesOrderItemRequest>,
+    val notes: String? = null
+)
+
+data class CreateSalesOrderResult(
+    val id: String,
+    val orderNumber: String?,
+    val totalAmount: Double?,
+    val syncStatus: String?
+)

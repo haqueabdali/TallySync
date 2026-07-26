@@ -1,3 +1,5 @@
+implementation("androidx.compose.material:material-icons-extended")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)

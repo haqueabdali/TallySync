@@ -15,7 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,7 +28,7 @@ import com.example.tallymobile.ui.navigation.AppRoute
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TallyMobileApp(
-    appViewModel: AppViewModel = viewModel()
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val state by appViewModel.uiState.collectAsStateWithLifecycle()

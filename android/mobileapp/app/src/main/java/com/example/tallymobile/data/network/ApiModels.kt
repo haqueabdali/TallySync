@@ -1,5 +1,7 @@
 package com.example.tallymobile.data.network
 
+import com.google.gson.annotations.SerializedName
+
 data class ApiResponse<T>(
     val success: Boolean,
     val message: String,
@@ -7,160 +9,49 @@ data class ApiResponse<T>(
 )
 
 data class DashboardData(
-    val tally: TallyStatus,
-    val orders: OrderStatistics,
-    val lastSync: LastSync?
+    val tally: TallyStatus = TallyStatus(),
+    val orders: DashboardOrders = DashboardOrders()
 )
 
 data class TallyStatus(
-    val connected: Boolean,
-    val responseTimeMilliseconds: Long?,
-    val checkedAt: String,
-    val companyName: String?,
-    val error: String?
+    val connected: Boolean = false,
+    val responseTimeMilliseconds: Long? = null,
+    val checkedAt: String? = null,
+    val companyName: String? = null,
+    val error: String? = null
 )
 
-data class OrderStatistics(
-    val total: Int,
-    val pending: Int,
-    val syncing: Int,
-    val synced: Int,
-    val failed: Int
-)
-
-data class LastSync(
-    val orderId: String,
-    val orderNumber: String,
-    val syncedAt: String?
-)
-
-data class SalesOrderPage(
-    val orders: List<SalesOrderSummary>,
-    val pagination: Pagination
-)
-
-data class Pagination(
-    val page: Int,
-    val limit: Int,
-    val total: Int,
-    val totalPages: Int,
-    val hasNextPage: Boolean,
-    val hasPreviousPage: Boolean
-)
-
-data class SalesOrderSummary(
-    val id: String,
-    val orderNumber: String,
-    val orderDate: String?,
-    val customerName: String,
-    val grandTotal: Double,
-    val status: String,
-    val syncStatus: String,
-    val tallySyncAttempts: Int,
-    val tallySyncError: String?,
-    val lastSyncedAt: String?,
-    val createdAt: String
-)
-
-data class SalesOrderDetails(
-    val id: String,
-    val orderNumber: String,
-    val orderDate: String?,
-    val expectedDeliveryDate: String?,
-    val status: String,
-    val syncStatus: String,
-    val subtotal: Double,
-    val taxTotal: Double,
-    val discountTotal: Double,
-    val grandTotal: Double,
-    val notes: String?,
-    val tallyVoucherId: String?,
-    val tallyVoucherNumber: String?,
-    val tallySyncError: String?,
-    val tallySyncAttempts: Int,
-    val lastSyncedAt: String?,
-    val createdAt: String,
-    val updatedAt: String,
-    val customer: CustomerSummary,
-    val items: List<SalesOrderItem>
-)
-
-data class CustomerSummary(
-    val id: String,
-    val name: String,
-    val phone: String?,
-    val email: String?,
-    val address: String?
-)
-
-data class SalesOrderItem(
-    val id: String,
-    val itemId: String?,
-    val itemName: String,
-    val sku: String?,
-    val quantity: Double,
-    val unit: String?,
-    val unitPrice: Double,
-    val discountPercent: Double,
-    val taxPercent: Double,
-    val lineSubtotal: Double,
-    val lineDiscount: Double,
-    val lineTax: Double,
-    val lineTotal: Double
-)
-
-data class SyncResult(
-    val orderId: String?,
-    val orderNumber: String?,
-    val alreadySynced: Boolean?
-)
-
-data class BulkSyncResult(
-    val total: Int,
-    val synced: Int,
-    val alreadySynced: Int,
-    val failed: Int,
-    val results: List<BulkSyncItem>
-)
-
-data class BulkSyncItem(
-    val orderId: String,
-    val orderNumber: String,
-    val status: String,
-    val error: String?
+data class DashboardOrders(
+    val pending: Int = 0,
+    val failed: Int = 0,
+    val synced: Int = 0,
+    val total: Int = 0
 )
 
 data class CustomerListItem(
     val id: String,
     val name: String,
-    val phone: String?,
-    val email: String?,
-    val address: String?
+    val phone: String? = null,
+    val email: String? = null,
+    val address: String? = null
 )
 
 data class ProductListItem(
     val id: String,
     val name: String,
-    val sku: String?,
-    val barcode: String?,
-    val sellingPrice: Double,
-    val stock: Double,
-    val unit: String?
+    val sku: String? = null,
+    val barcode: String? = null,
+    val sellingPrice: Double = 0.0,
+    val stock: Double = 0.0,
+    val unit: String? = null
 )
 
 data class CartItem(
     val product: ProductListItem,
-    val quantity: Int
+    val quantity: Int = 1
 ) {
-    val subtotal: Double
-        get() = product.sellingPrice * quantity
+    val subtotal: Double get() = product.sellingPrice * quantity
 }
-
-data class CreateSalesOrderItemRequest(
-    val productId: String,
-    val quantity: Int,
-    val unitPrice: Double
-)
 
 data class CreateSalesOrderRequest(
     val customerId: String,
@@ -168,9 +59,88 @@ data class CreateSalesOrderRequest(
     val notes: String? = null
 )
 
+data class CreateSalesOrderItemRequest(
+    val productId: String,
+    val quantity: Int,
+    val unitPrice: Double
+)
+
 data class CreateSalesOrderResult(
     val id: String,
-    val orderNumber: String?,
-    val totalAmount: Double?,
-    val syncStatus: String?
+    val orderNumber: String,
+    val totalAmount: Double = 0.0,
+    val syncStatus: String
+)
+
+data class SalesOrdersPage(
+    val orders: List<SalesOrderSummary> = emptyList(),
+    val pagination: Pagination = Pagination()
+)
+
+data class Pagination(
+    val page: Int = 1,
+    val limit: Int = 20,
+    val total: Int = 0,
+    val totalPages: Int = 0,
+    val hasNextPage: Boolean = false,
+    val hasPreviousPage: Boolean = false
+)
+
+data class SalesOrderSummary(
+    val id: String,
+    val orderNumber: String,
+    val orderDate: String? = null,
+    val customerName: String = "Unknown customer",
+    val grandTotal: Double = 0.0,
+    val status: String = "",
+    val syncStatus: String = "pending",
+    val tallySyncAttempts: Int = 0,
+    val tallySyncError: String? = null,
+    val lastSyncedAt: String? = null,
+    val createdAt: String? = null
+)
+
+data class SalesOrderDetails(
+    val id: String,
+    val orderNumber: String,
+    val orderDate: String? = null,
+    val expectedDeliveryDate: String? = null,
+    val status: String = "",
+    val syncStatus: String = "pending",
+    val subtotal: Double = 0.0,
+    val taxTotal: Double = 0.0,
+    val discountTotal: Double = 0.0,
+    val grandTotal: Double = 0.0,
+    val notes: String? = null,
+    val tallyVoucherId: String? = null,
+    val tallyVoucherNumber: String? = null,
+    val tallySyncError: String? = null,
+    val tallySyncAttempts: Int = 0,
+    val lastSyncedAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val customer: CustomerListItem,
+    val items: List<SalesOrderItemDetails> = emptyList()
+)
+
+data class SalesOrderItemDetails(
+    val id: String,
+    val itemId: String? = null,
+    val itemName: String = "",
+    val sku: String? = null,
+    val quantity: Double = 0.0,
+    val unit: String? = null,
+    val unitPrice: Double = 0.0,
+    val discountPercent: Double = 0.0,
+    val taxPercent: Double = 0.0,
+    val lineSubtotal: Double = 0.0,
+    val lineDiscount: Double = 0.0,
+    val lineTax: Double = 0.0,
+    val lineTotal: Double = 0.0
+)
+
+data class SyncResult(
+    val alreadySynced: Boolean? = null,
+    val synced: Int? = null,
+    val failed: Int? = null
 )

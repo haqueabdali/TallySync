@@ -1,7 +1,7 @@
-package com.example.tallymobile.di
+package com.example.tallysyncapp.di
 
-import com.example.tallymobile.data.network.ApiConfig
-import com.example.tallymobile.data.network.MobileApi
+import com.example.tallysyncapp.data.network.ApiConfig
+import com.example.tallysyncapp.data.network.MobileApi
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module

@@ -1,10 +1,11 @@
-package your.package.mobile.order
+package com.example.tallysyncapp.mobile.order
 
-import your.package.data.remote.dto.CustomerListItem
-import your.package.data.remote.dto.ProductListItem
-import your.package.mobile.order.model.CartItem
+import com.example.tallysyncapp.data.network.CartItem
+import com.example.tallysyncapp.data.network.CustomerListItem
+import com.example.tallysyncapp.data.network.ProductListItem
 
 data class OrderUiState(
+
     val customers: List<CustomerListItem> = emptyList(),
     val products: List<ProductListItem> = emptyList(),
 
@@ -24,44 +25,40 @@ data class OrderUiState(
 
     val errorMessage: String? = null
 ) {
-    val filteredCustomers: List<CustomerListItem>
-        get() {
-            if (customerSearchQuery.isBlank()) return customers
 
-            return customers.filter { customer ->
-                customer.name.contains(
-                    customerSearchQuery,
-                    ignoreCase = true
-                )
+    val filteredCustomers: List<CustomerListItem>
+        get() =
+            if (customerSearchQuery.isBlank()) {
+                customers
+            } else {
+                customers.filter {
+                    it.name.contains(customerSearchQuery, ignoreCase = true)
+                }
             }
-        }
 
     val filteredProducts: List<ProductListItem>
-        get() {
-            if (productSearchQuery.isBlank()) return products
-
-            return products.filter { product ->
-                product.name.contains(
-                    productSearchQuery,
-                    ignoreCase = true
-                ) || product.code.orEmpty().contains(
-                    productSearchQuery,
-                    ignoreCase = true
-                )
+        get() =
+            if (productSearchQuery.isBlank()) {
+                products
+            } else {
+                products.filter {
+                    it.name.contains(productSearchQuery, ignoreCase = true) ||
+                            it.sku.orEmpty().contains(productSearchQuery, ignoreCase = true) ||
+                            it.barcode.orEmpty().contains(productSearchQuery, ignoreCase = true)
+                }
             }
-        }
 
     val totalQuantity: Int
         get() = cartItems.sumOf { it.quantity }
 
     val subtotal: Double
-        get() = cartItems.sumOf { it.lineTotal }
+        get() = cartItems.sumOf { it.subtotal }
 
     val grandTotal: Double
         get() = subtotal
 
     val canSubmit: Boolean
         get() = selectedCustomer != null &&
-            cartItems.isNotEmpty() &&
-            !isSubmitting
+                cartItems.isNotEmpty() &&
+                !isSubmitting
 }

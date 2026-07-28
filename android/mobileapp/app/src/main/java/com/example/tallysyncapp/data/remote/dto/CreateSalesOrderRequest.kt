@@ -1,8 +1,8 @@
-package your.package.data.remote.dto
+package com.example.tallysyncapp.data.network
 
 data class CreateSalesOrderRequest(
     val customerId: String,
-    val notes: String?,
+    val notes: String? = null,
     val items: List<CreateSalesOrderItemRequest>
 )
 

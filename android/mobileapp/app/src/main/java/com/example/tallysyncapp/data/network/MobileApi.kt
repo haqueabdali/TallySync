@@ -1,4 +1,4 @@
-package com.example.tallymobile.data.network
+package com.example.tallysyncapp.data.network
 
 import retrofit2.http.Body
 import retrofit2.http.GET

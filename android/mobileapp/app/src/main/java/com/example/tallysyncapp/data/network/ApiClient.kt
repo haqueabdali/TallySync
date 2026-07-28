@@ -1,4 +1,4 @@
-package com.example.tallymobile.data.network
+package com.example.tallysyncapp.data.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

@@ -1,14 +1,13 @@
-package com.example.tallymobile.ui
+package com.example.tallysyncapp.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,8 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.tallymobile.data.network.CartItem
+import com.example.tallysyncapp.data.network.CartItem
 import java.util.Locale
+import com.example.tallysyncapp.ui.AppUiState
 
 @Composable
 fun ReviewOrderScreen(
@@ -31,118 +31,90 @@ fun ReviewOrderScreen(
     onBackToCart: () -> Unit,
     onSubmit: () -> Unit
 ) {
-    val total = state.cartItems.sumOf { item ->
-        item.subtotal
-    }
+    val total = state.cartItems.sumOf { it.subtotal }
+    val canSubmit = state.selectedCustomer != null &&
+            state.cartItems.isNotEmpty() &&
+            !state.isSubmittingOrder
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Review Order",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp)
+            style = MaterialTheme.typography.headlineMedium
         )
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        CustomerReviewCard(
+            customerName = state.selectedCustomer?.name ?: "No customer selected",
+            phone = state.selectedCustomer?.phone
+        )
+
+        Text(
+            text = "Products",
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        state.cartItems.forEach { item ->
+            ReviewProductCard(item = item)
+        }
+
+        OutlinedTextField(
+            value = state.orderNotes,
+            onValueChange = onNotesChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Order notes") },
+            minLines = 3,
+            maxLines = 5
+        )
+
+        HorizontalDivider()
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            item {
-                CustomerReviewCard(
-                    customerName = state.selectedCustomer?.name
-                        ?: "No customer selected",
-                    phone = state.selectedCustomer?.phone
-                )
-            }
+            Text(
+                text = "Total",
+                style = MaterialTheme.typography.titleLarge
+            )
 
-            item {
-                Text(
-                    text = "Products",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            Text(
+                text = formatReviewMoney(total),
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
 
-            items(
-                items = state.cartItems,
-                key = { item -> item.product.id }
-            ) { item ->
-                ReviewProductCard(item)
-            }
+        OutlinedButton(
+            onClick = onBackToCart,
+            enabled = !state.isSubmittingOrder,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Back to cart")
+        }
 
-            item {
-                OutlinedTextField(
-                    value = state.orderNotes,
-                    onValueChange = onNotesChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Order notes")
-                    },
-                    minLines = 3,
-                    maxLines = 5
-                )
-            }
-
-            item {
-                HorizontalDivider()
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Total",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-
-                    Text(
-                        text = money(total),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
+        Button(
+            onClick = onSubmit,
+            enabled = canSubmit,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (state.isSubmittingOrder) {
+                CircularProgressIndicator()
+            } else {
+                Text("Submit order")
             }
         }
 
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedButton(
-                onClick = onBackToCart,
-                enabled = !state.isSubmittingOrder,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Back to cart")
-            }
-
-            Button(
-                onClick = onSubmit,
-                enabled = !state.isSubmittingOrder &&
-                    state.selectedCustomer != null &&
-                    state.cartItems.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (state.isSubmittingOrder) {
-                    CircularProgressIndicator()
-                } else {
-                    Text("Submit order")
-                }
-            }
-
-            state.error?.let { error ->
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+        state.error?.let { errorMessage ->
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
@@ -152,9 +124,7 @@ private fun CustomerReviewCard(
     customerName: String,
     phone: String?
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -171,9 +141,9 @@ private fun CustomerReviewCard(
 
             phone
                 ?.takeIf { it.isNotBlank() }
-                ?.let {
+                ?.let { phoneNumber ->
                     Text(
-                        text = it,
+                        text = phoneNumber,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -182,45 +152,38 @@ private fun CustomerReviewCard(
 }
 
 @Composable
-private fun ReviewProductCard(
-    item: CartItem
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
+private fun ReviewProductCard(item: CartItem) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = item.product.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Text(
-                    text = "${item.quantity} × ${money(item.product.sellingPrice)}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
             Text(
-                text = money(item.subtotal),
+                text = item.product.name,
                 style = MaterialTheme.typography.titleMedium
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${item.quantity} × ${formatReviewMoney(item.unitPrice)}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = formatReviewMoney(item.subtotal),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }
 
-private fun money(value: Double): String {
-    return String.format(
-        Locale.getDefault(),
-        "€%.2f",
-        value
-    )
+private fun formatReviewMoney(value: Double): String {
+    return String.format(Locale.getDefault(), "€%.2f", value)
 }

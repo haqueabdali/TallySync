@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui.navigation
+package com.example.tallysyncapp.ui.navigation
 
 sealed class AppRoute(val route: String) {
 

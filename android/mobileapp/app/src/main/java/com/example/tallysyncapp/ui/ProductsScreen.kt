@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui
+package com.example.tallysyncapp.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.example.tallymobile.data.network.ProductListItem
+import com.example.tallysyncapp.data.network.ProductListItem
 import java.util.Locale
 
 @Composable

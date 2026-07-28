@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui
+package com.example.tallysyncapp.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

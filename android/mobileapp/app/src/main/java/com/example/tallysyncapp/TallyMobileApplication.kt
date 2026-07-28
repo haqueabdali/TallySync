@@ -1,4 +1,4 @@
-package com.example.tallymobile
+package com.example.tallysyncapp
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

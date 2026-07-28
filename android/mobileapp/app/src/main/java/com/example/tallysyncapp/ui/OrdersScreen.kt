@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui
+package com.example.tallysyncapp.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.tallymobile.data.network.SalesOrderSummary
+import com.example.tallysyncapp.data.network.SalesOrderSummary
 
 @Composable
 fun OrdersScreen(

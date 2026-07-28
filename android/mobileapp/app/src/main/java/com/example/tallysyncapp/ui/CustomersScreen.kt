@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui
+package com.example.tallysyncapp.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
-import com.example.tallymobile.data.network.CustomerListItem
+import com.example.tallysyncapp.data.network.CustomerListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

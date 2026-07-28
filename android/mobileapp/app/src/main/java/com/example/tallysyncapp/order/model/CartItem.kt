@@ -1,6 +1,4 @@
-package your.package.mobile.order.model
-
-import your.package.data.remote.dto.ProductListItem
+package com.example.tallysyncapp.data.network
 
 data class CartItem(
     val product: ProductListItem,
@@ -9,6 +7,9 @@ data class CartItem(
     val unitPrice: Double
         get() = product.sellingPrice
 
-    val lineTotal: Double
+    val subtotal: Double
         get() = unitPrice * quantity
+
+    val lineTotal: Double
+        get() = subtotal
 }

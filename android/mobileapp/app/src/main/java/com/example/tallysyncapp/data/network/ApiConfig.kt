@@ -1,4 +1,4 @@
-package com.example.tallymobile.data.network
+package com.example.tallysyncapp.data.network
 
 object ApiConfig {
     // Android Emulator -> host computer localhost.

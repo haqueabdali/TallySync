@@ -1,6 +1,4 @@
-package com.example.tallymobile.data.network
-
-import com.google.gson.annotations.SerializedName
+package com.example.tallysyncapp.data.network
 
 data class ApiResponse<T>(
     val success: Boolean,
@@ -46,7 +44,7 @@ data class ProductListItem(
     val unit: String? = null
 )
 
-data class CartItem(
+/*data class CartItem(
     val product: ProductListItem,
     val quantity: Int = 1
 ) {
@@ -63,7 +61,7 @@ data class CreateSalesOrderItemRequest(
     val productId: String,
     val quantity: Int,
     val unitPrice: Double
-)
+)*/
 
 data class CreateSalesOrderResult(
     val id: String,

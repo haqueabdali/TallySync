@@ -1,4 +1,4 @@
-package com.example.tallymobile.ui.navigation
+package com.example.tallysyncapp.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

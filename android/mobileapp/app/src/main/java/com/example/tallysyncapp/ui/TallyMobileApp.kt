@@ -12,8 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import com.example.tallysyncapp.invoice.InvoicePdfGenerator
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.tallysyncapp.ui.auth.AuthViewModel
+import com.example.tallysyncapp.ui.auth.LoginScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavType
@@ -27,11 +32,34 @@ import com.example.tallysyncapp.ui.navigation.AppRoute
 
 @Composable
 fun TallyMobileApp(
+    authViewModel: AuthViewModel = hiltViewModel()
+) {
+    val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+
+    if (!authState.isAuthenticated) {
+        LoginScreen(
+            state = authState,
+            onEmailChange = authViewModel::updateEmail,
+            onPasswordChange = authViewModel::updatePassword,
+            onLogin = authViewModel::login
+        )
+        return
+    }
+
+    AuthenticatedTallyMobileApp(
+        onLogout = authViewModel::logout
+    )
+}
+
+@Composable
+private fun AuthenticatedTallyMobileApp(
+    onLogout: () -> Unit,
     appViewModel: AppViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
 
     val state by appViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val snackbarHostState = remember {
         SnackbarHostState()
@@ -139,6 +167,13 @@ fun TallyMobileApp(
                     onRefresh = {
                         appViewModel.loadDashboard()
                     },
+                    onOpenInventory = {
+                        navController.navigate(
+                            AppRoute.Products.route
+                        ) {
+                            launchSingleTop = true
+                        }
+                    },
                     onOpenOrders = {
                         navController.navigate(
                             AppRoute.Orders.route
@@ -164,20 +199,68 @@ fun TallyMobileApp(
 
                 CustomersScreen(
                     state = state,
-                    onSearchChange = {
-                        appViewModel.updateCustomerSearch(it)
-                    },
-                    onSearch = {
-                        appViewModel.loadCustomers()
-                    },
+                    selectable = false,
+                    onSearchChange = appViewModel::updateCustomerSearch,
+                    onSearch = appViewModel::loadCustomers,
+                    onCustomerClick = { customer ->
+                        navController.navigate(
+                            AppRoute.CustomerDetails.createRoute(customer.id)
+                        )
+                    }
+                )
+            }
+
+            /*
+             * Customer picker used only during order creation
+             */
+            composable(
+                route = AppRoute.CustomerPicker.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadCustomers()
+                }
+
+                CustomersScreen(
+                    state = state,
+                    selectable = true,
+                    onSearchChange = appViewModel::updateCustomerSearch,
+                    onSearch = appViewModel::loadCustomers,
                     onCustomerClick = { customer ->
                         appViewModel.selectCustomer(customer)
+                        navController.popBackStack()
+                    }
+                )
+            }
 
-                        navController.navigate(
-                            AppRoute.NewOrder.route
-                        ) {
-                            launchSingleTop = true
-                        }
+            /*
+             * Customer details and recent orders
+             */
+            composable(
+                route = AppRoute.CustomerDetails.route,
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val customerId = backStackEntry.arguments?.getString("id").orEmpty()
+
+                LaunchedEffect(customerId, state.customers) {
+                    if (customerId.isNotBlank() && state.customers.isNotEmpty()) {
+                        appViewModel.openCustomer(customerId)
+                    }
+                }
+
+                CustomerDetailsScreen(
+                    state = state,
+                    onBack = {
+                        appViewModel.clearViewedCustomer()
+                        navController.popBackStack()
+                    },
+                    onCreateOrder = {
+                        state.viewedCustomer?.let(appViewModel::selectCustomer)
+                        navController.navigate(AppRoute.NewOrder.route)
+                    },
+                    onOpenOrder = { orderId ->
+                        navController.navigate(AppRoute.OrderDetails.createRoute(orderId))
                     }
                 )
             }
@@ -192,7 +275,7 @@ fun TallyMobileApp(
                     selectedCustomer = state.selectedCustomer,
                     onSelectCustomer = {
                         navController.navigate(
-                            AppRoute.Customers.route
+                            AppRoute.CustomerPicker.route
                         )
                     },
                     onContinue = {
@@ -203,29 +286,6 @@ fun TallyMobileApp(
                     onCancel = {
                         appViewModel.clearSelectedCustomer()
                         navController.popBackStack()
-                    }
-                )
-            }
-
-            /*
-             * Products
-             */
-            composable(
-                route = AppRoute.Products.route
-            ) {
-                LaunchedEffect(Unit) {
-                    appViewModel.loadProducts()
-                }
-
-                ProductsScreen(
-                    state = state,
-                    onSearchChange = appViewModel::updateProductSearch,
-                    onSearch = { appViewModel.loadProducts() },
-                    onAddProduct = appViewModel::addProductToCart,
-                    onOpenCart = {
-                        navController.navigate(AppRoute.Cart.route) {
-                            launchSingleTop = true
-                        }
                     }
                 )
             }
@@ -379,6 +439,40 @@ fun TallyMobileApp(
                     },
                     onRetry = { id ->
                         appViewModel.retryOrder(id)
+                    },
+                    onCreateInvoicePdf = {
+                        state.selectedOrder?.let { order ->
+                            runCatching {
+                                InvoicePdfGenerator.createPdf(context, order)
+                            }.onSuccess { file ->
+                                Toast.makeText(
+                                    context,
+                                    "PDF created: ${file.name}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }.onFailure { error ->
+                                Toast.makeText(
+                                    context,
+                                    error.message ?: "Could not create PDF",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    },
+                    onShareInvoicePdf = {
+                        state.selectedOrder?.let { order ->
+                            runCatching {
+                                InvoicePdfGenerator.createPdf(context, order)
+                            }.onSuccess { file ->
+                                InvoicePdfGenerator.sharePdf(context, file)
+                            }.onFailure { error ->
+                                Toast.makeText(
+                                    context,
+                                    error.message ?: "Could not share PDF",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 )
             }
@@ -392,7 +486,8 @@ fun TallyMobileApp(
                 SettingsScreen(
                     onRefreshDashboard = {
                         appViewModel.loadDashboard()
-                    }
+                    },
+                    onLogout = onLogout
                 )
             }
         }

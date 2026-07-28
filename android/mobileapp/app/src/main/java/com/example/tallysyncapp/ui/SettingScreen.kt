@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SettingsScreen(
-    onRefreshDashboard: () -> Unit
+    onRefreshDashboard: () -> Unit,
+    onLogout: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -49,9 +50,7 @@ fun SettingsScreen(
         }
 
         OutlinedButton(
-            onClick = {
-                // Logout will be connected after authentication is added.
-            },
+            onClick = onLogout,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Logout")
@@ -64,17 +63,8 @@ private fun SettingInformation(
     title: String,
     value: String
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }

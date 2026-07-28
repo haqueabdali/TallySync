@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.tallysyncapp.data.network.CartItem
 import java.util.Locale
-import com.example.tallysyncapp.ui.AppUiState
 
 @Composable
 fun ReviewOrderScreen(

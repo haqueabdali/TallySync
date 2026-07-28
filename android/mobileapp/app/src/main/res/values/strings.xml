@@ -18,4 +18,5 @@
     <string name="refresh">Refresh</string>
     <string name="close">Close</string>
     <string name="clear_search">Clear search</string>
+    <string name="share_invoice">Share Invoice</string>
 </resources>

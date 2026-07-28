@@ -2,6 +2,7 @@ package com.example.tallysyncapp.di
 
 import com.example.tallysyncapp.data.network.ApiConfig
 import com.example.tallysyncapp.data.network.MobileApi
+import com.example.tallysyncapp.auth.AuthApi
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -48,4 +49,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMobileApi(retrofit: Retrofit): MobileApi = retrofit.create(MobileApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
 }

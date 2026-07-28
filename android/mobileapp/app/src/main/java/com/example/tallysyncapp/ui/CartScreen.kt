@@ -25,7 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.tallysyncapp.data.network.CartItem
+import com.example.tallysyncapp.data.network.CustomerListItem
+import com.example.tallysyncapp.data.network.ProductListItem
 import java.util.Locale
 
 @Composable
@@ -255,4 +258,60 @@ private fun money(value: Double): String {
         "€%.2f",
         value
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CartScreenPreview() {
+    MaterialTheme {
+        CartScreen(
+            state = AppUiState(
+                cartItems = listOf(
+                    CartItem(
+                        product = ProductListItem(
+                            id = "1",
+                            name = "Premium Headphones",
+                            sellingPrice = 149.99,
+                            stock = 10.0
+                        ),
+                        quantity = 1
+                    ),
+                    CartItem(
+                        product = ProductListItem(
+                            id = "2",
+                            name = "Wireless Mouse",
+                            sellingPrice = 25.50,
+                            stock = 5.0
+                        ),
+                        quantity = 2
+                    )
+                ),
+                selectedCustomer = CustomerListItem(
+                    id = "c1",
+                    name = "Acme Corporation",
+                    phone = "+1 555-0123"
+                )
+            ),
+            onIncrease = {},
+            onDecrease = {},
+            onRemove = {},
+            onAddMoreProducts = {},
+            onContinue = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EmptyCartScreenPreview() {
+    MaterialTheme {
+        CartScreen(
+            state = AppUiState(),
+            onIncrease = {},
+            onDecrease = {},
+            onRemove = {},
+            onAddMoreProducts = {},
+            onContinue = {}
+        )
+    }
 }

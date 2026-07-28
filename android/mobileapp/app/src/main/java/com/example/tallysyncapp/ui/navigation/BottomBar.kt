@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 
 private data class BottomNavigationItem(
@@ -68,7 +69,7 @@ fun AppBottomBar(
                 selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(AppRoute.Dashboard.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
 

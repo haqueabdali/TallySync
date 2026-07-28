@@ -18,10 +18,13 @@ data class AppUiState(
     val selectedCustomer: CustomerListItem? = null,
     val selectedOrder: SalesOrderDetails? = null,
     val createdOrder: CreateSalesOrderResult? = null,
+    val viewedCustomer: CustomerListItem? = null,
+    val customerOrders: List<SalesOrderSummary> = emptyList(),
     
     val customerSearch: String = "",
     val productSearch: String = "",
     val orderNotes: String = "",
+    val selectedFilter: String? = null,
     
     val isOnline: Boolean = true,
     val localPendingOrders: Int = 0,

@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.util.Locale
-import com.example.tallysyncapp.ui.AppUiState
 
 @Composable
 fun OrderSuccessScreen(

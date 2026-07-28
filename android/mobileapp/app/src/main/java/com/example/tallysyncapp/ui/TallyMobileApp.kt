@@ -208,6 +208,29 @@ fun TallyMobileApp(
             }
 
             /*
+             * Products
+             */
+            composable(
+                route = AppRoute.Products.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadProducts()
+                }
+
+                ProductsScreen(
+                    state = state,
+                    onSearchChange = appViewModel::updateProductSearch,
+                    onSearch = { appViewModel.loadProducts() },
+                    onAddProduct = appViewModel::addProductToCart,
+                    onOpenCart = {
+                        navController.navigate(AppRoute.Cart.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            /*
              * Shopping cart
              */
             composable(

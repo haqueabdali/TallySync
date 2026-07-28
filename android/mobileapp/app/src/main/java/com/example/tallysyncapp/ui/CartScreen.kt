@@ -94,6 +94,7 @@ fun CartScreen(
                         onDecrease = {
                             onDecrease(item.product.id)
                         },
+                        canIncrease = item.quantity + 1 <= item.product.stock,
                         onRemove = {
                             onRemove(item.product.id)
                         }
@@ -145,6 +146,7 @@ private fun CartItemCard(
     item: CartItem,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
+    canIncrease: Boolean,
     onRemove: () -> Unit
 ) {
     Card(
@@ -201,7 +203,8 @@ private fun CartItemCard(
                 )
 
                 IconButton(
-                    onClick = onIncrease
+                    onClick = onIncrease,
+                    enabled = canIncrease
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,

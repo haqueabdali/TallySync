@@ -68,28 +68,18 @@ export class TallyRetryService {
 
   private getBaseDelayMilliseconds(): number {
     const configured = Number(
-      this.configService.get<string>(
-        'TALLY_HTTP_RETRY_BASE_DELAY_MS',
-        '500',
-      ),
+      this.configService.get<string>('TALLY_HTTP_RETRY_BASE_DELAY_MS', '500'),
     );
 
-    return Number.isFinite(configured) && configured >= 0
-      ? configured
-      : 500;
+    return Number.isFinite(configured) && configured >= 0 ? configured : 500;
   }
 
   private getMaxDelayMilliseconds(): number {
     const configured = Number(
-      this.configService.get<string>(
-        'TALLY_HTTP_RETRY_MAX_DELAY_MS',
-        '5000',
-      ),
+      this.configService.get<string>('TALLY_HTTP_RETRY_MAX_DELAY_MS', '5000'),
     );
 
-    return Number.isFinite(configured) && configured >= 0
-      ? configured
-      : 5000;
+    return Number.isFinite(configured) && configured >= 0 ? configured : 5000;
   }
 
   private sleep(milliseconds: number): Promise<void> {

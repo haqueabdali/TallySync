@@ -11,9 +11,8 @@ import {
 } from 'class-validator';
 
 export class PreviewSalesVoucherItemDto {
-  
   godownName?: string;
-  
+
   @IsString()
   @IsNotEmpty()
   stockItemName: string;
@@ -29,8 +28,6 @@ export class PreviewSalesVoucherItemDto {
   @IsString()
   @IsNotEmpty()
   unit: string;
-
-  
 }
 
 export class PreviewSalesVoucherDto {
@@ -54,6 +51,4 @@ export class PreviewSalesVoucherDto {
   @ValidateNested({ each: true })
   @Type(() => PreviewSalesVoucherItemDto)
   items: PreviewSalesVoucherItemDto[];
-
-
 }

@@ -64,9 +64,7 @@ export class TallyXmlService {
         }
 
         if (!Number.isFinite(rateValue) || rateValue <= 0) {
-          throw new BadRequestException(
-            `Invalid rate for "${stockItemName}"`,
-          );
+          throw new BadRequestException(`Invalid rate for "${stockItemName}"`);
         }
 
         if (!Number.isFinite(itemAmount) || itemAmount <= 0) {
@@ -120,9 +118,7 @@ export class TallyXmlService {
   <BODY>
     <DESC>
       <STATICVARIABLES>
-        <SVCURRENTCOMPANY>${this.escapeXml(
-          tallyCompanyName,
-        )}</SVCURRENTCOMPANY>
+        <SVCURRENTCOMPANY>${this.escapeXml(tallyCompanyName)}</SVCURRENTCOMPANY>
         <IMPORTDUPS>@@DUPCOMBINE</IMPORTDUPS>
       </STATICVARIABLES>
     </DESC>
@@ -202,9 +198,7 @@ export class TallyXmlService {
       this.configService.getOrThrow<string>('TALLY_COMPANY_NAME');
 
     if (!companyName.trim()) {
-      throw new BadRequestException(
-        'TALLY_COMPANY_NAME must not be empty',
-      );
+      throw new BadRequestException('TALLY_COMPANY_NAME must not be empty');
     }
 
     return companyName.trim();

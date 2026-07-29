@@ -1,11 +1,4 @@
-import {
-  IsEnum,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-  Matches,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { UserStatus } from '../../auth/entities/user.entity';
 /**

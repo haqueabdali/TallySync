@@ -55,16 +55,12 @@ export class TallySyncController {
   }
 
   @Post('voucher/preview')
-  previewSalesVoucher(
-    @Body() dto: PreviewSalesVoucherDto,
-  ) {
+  previewSalesVoucher(@Body() dto: PreviewSalesVoucherDto) {
     return this.tallySyncService.previewSalesVoucher(dto);
   }
 
   @Post('sales-order/:id')
-  syncSalesOrder(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ) {
+  syncSalesOrder(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tallySyncService.syncSalesOrder(id);
   }
 

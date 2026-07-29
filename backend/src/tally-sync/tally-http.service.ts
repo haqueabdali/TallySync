@@ -19,10 +19,7 @@ export class TallyHttpService {
     private readonly tallyRetryService: TallyRetryService,
   ) {}
 
-  async postXml(
-    xml: string,
-    timeoutMilliseconds = 20_000,
-  ): Promise<string> {
+  async postXml(xml: string, timeoutMilliseconds = 20_000): Promise<string> {
     const tallyUrl = this.getTallyUrl();
 
     try {
@@ -93,15 +90,15 @@ export class TallyHttpService {
           message: failure.message,
           status: failure.status,
           responsePreview:
-            (failure as TallyHttpFailure & {
-              responsePreview?: string;
-            }).responsePreview ?? null,
+            (
+              failure as TallyHttpFailure & {
+                responsePreview?: string;
+              }
+            ).responsePreview ?? null,
         });
       }
 
-      throw new ServiceUnavailableException(
-        this.getErrorMessage(error),
-      );
+      throw new ServiceUnavailableException(this.getErrorMessage(error));
     }
   }
 

@@ -5,25 +5,45 @@ export class CreateSalesOrders1784100000000 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TYPE "public"."sales_order_status_enum"
-      AS ENUM (
-        'draft',
-        'submitted',
-        'approved',
-        'rejected',
-        'fulfilled',
-        'cancelled'
-      )
-    `);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type
+    WHERE typname = 'sales_order_status_enum'
+  ) THEN
+    CREATE TYPE "public"."sales_order_status_enum"
+    AS ENUM (
+      'draft',
+      'submitted',
+      'approved',
+      'rejected',
+      'fulfilled',
+      'cancelled'
+    );
+  END IF;
+END
+$$;
+`);
 
     await queryRunner.query(`
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_type
+      WHERE typname = 'sales_order_sync_status_enum'
+    ) THEN
       CREATE TYPE "public"."sales_order_sync_status_enum"
       AS ENUM (
         'pending',
         'synced',
         'failed'
-      )
-    `);
+      );
+    END IF;
+  END
+  $$;
+`);
 
     await queryRunner.query(`
       CREATE TABLE "customers" (

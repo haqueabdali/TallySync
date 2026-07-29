@@ -744,8 +744,8 @@ export class SalesOrdersService {
     await this.validateCurrentStockForOrder(order.items, companyId);
 
     order.status = SalesOrderStatus.SUBMITTED;
-order.approvedBy = null;
-order.approvedAt = null;
+    order.approvedBy = null;
+    order.approvedAt = null;
 
     order.rejectionReason = null;
     order.syncStatus = SalesOrderSyncStatus.PENDING;
@@ -863,76 +863,30 @@ order.approvedAt = null;
 
     return this.toSalesOrderResponse(cancelledOrder);
   }
-async fulfilSalesOrder(
-  orderId: string,
-  context: SalesRequestContext,
-): Promise<SalesOrderResponseDto> {
-  const companyId = this.requireCompanyId(context);
-  const actorId = this.requireActorId(context);
+  async fulfilSalesOrder(
+    orderId: string,
+    context: SalesRequestContext,
+  ): Promise<SalesOrderResponseDto> {
+    const companyId = this.requireCompanyId(context);
+    const actorId = this.requireActorId(context);
 
-  try {
-    return await this.dataSource.transaction(
-      async (
-        entityManager: EntityManager,
-      ): Promise<SalesOrderResponseDto> => {
-        const orderRepository =
-          entityManager.getRepository(SalesOrderEntity);
+    try {
+      return await this.dataSource.transaction(
+        async (
+          entityManager: EntityManager,
+        ): Promise<SalesOrderResponseDto> => {
+          const orderRepository = entityManager.getRepository(SalesOrderEntity);
 
-        const orderItemRepository =
-          entityManager.getRepository(SalesOrderItemEntity);
+          const orderItemRepository =
+            entityManager.getRepository(SalesOrderItemEntity);
 
-        const itemRepository =
-          entityManager.getRepository(ItemEntity);
+          const itemRepository = entityManager.getRepository(ItemEntity);
 
-        // Lock only the sales_orders table row.
-        // Eager relations are disabled to prevent LEFT JOIN ... FOR UPDATE.
-        const order = await orderRepository.findOne({
-          where: {
-            id: orderId,
-            companyId,
-            deletedAt: IsNull(),
-          },
-          loadEagerRelations: false,
-          lock: {
-            mode: 'pessimistic_write',
-          },
-        });
-
-        if (!order) {
-          throw new NotFoundException('Sales order not found');
-        }
-
-        if (order.status !== SalesOrderStatus.APPROVED) {
-          throw new BadRequestException(
-            `Only approved sales orders can be fulfilled. Current status: ${order.status}`,
-          );
-        }
-
-        const orderItems = await orderItemRepository.find({
-          where: {
-            salesOrderId: order.id,
-          },
-          loadEagerRelations: false,
-        });
-
-        if (orderItems.length === 0) {
-          throw new BadRequestException(
-            'Sales order must contain at least one item',
-          );
-        }
-
-        for (const orderItem of orderItems) {
-          if (!orderItem.itemId) {
-            throw new BadRequestException(
-              `Order item ${orderItem.id} has no inventory item reference`,
-            );
-          }
-
-          // Lock only the items table row.
-          // Eager relations are disabled here as well.
-          const inventoryItem = await itemRepository.findOne({
+          // Lock only the sales_orders table row.
+          // Eager relations are disabled to prevent LEFT JOIN ... FOR UPDATE.
+          const order = await orderRepository.findOne({
             where: {
-              id: orderItem.itemId,
+              id: orderId,
               companyId,
               deletedAt: IsNull(),
             },
@@ -942,121 +896,153 @@ async fulfilSalesOrder(
             },
           });
 
-          if (!inventoryItem) {
+          if (!order) {
+            throw new NotFoundException('Sales order not found');
+          }
+
+          if (order.status !== SalesOrderStatus.APPROVED) {
             throw new BadRequestException(
-              `Inventory item ${
-                orderItem.itemName ?? orderItem.itemId
-              } does not exist`,
+              `Only approved sales orders can be fulfilled. Current status: ${order.status}`,
             );
           }
 
-          const requestedQuantity = Number(orderItem.quantity);
-          const availableQuantity = Number(inventoryItem.stockQty);
+          const orderItems = await orderItemRepository.find({
+            where: {
+              salesOrderId: order.id,
+            },
+            loadEagerRelations: false,
+          });
 
-          if (
-            !Number.isFinite(requestedQuantity) ||
-            requestedQuantity <= 0
-          ) {
+          if (orderItems.length === 0) {
             throw new BadRequestException(
-              `Invalid quantity for ${
-                orderItem.itemName ?? inventoryItem.name
-              }: ${orderItem.quantity}`,
+              'Sales order must contain at least one item',
             );
           }
 
-          if (
-            !Number.isFinite(availableQuantity) ||
-            availableQuantity < 0
-          ) {
+          for (const orderItem of orderItems) {
+            if (!orderItem.itemId) {
+              throw new BadRequestException(
+                `Order item ${orderItem.id} has no inventory item reference`,
+              );
+            }
+
+            // Lock only the items table row.
+            // Eager relations are disabled here as well.
+            const inventoryItem = await itemRepository.findOne({
+              where: {
+                id: orderItem.itemId,
+                companyId,
+                deletedAt: IsNull(),
+              },
+              loadEagerRelations: false,
+              lock: {
+                mode: 'pessimistic_write',
+              },
+            });
+
+            if (!inventoryItem) {
+              throw new BadRequestException(
+                `Inventory item ${
+                  orderItem.itemName ?? orderItem.itemId
+                } does not exist`,
+              );
+            }
+
+            const requestedQuantity = Number(orderItem.quantity);
+            const availableQuantity = Number(inventoryItem.stockQty);
+
+            if (!Number.isFinite(requestedQuantity) || requestedQuantity <= 0) {
+              throw new BadRequestException(
+                `Invalid quantity for ${
+                  orderItem.itemName ?? inventoryItem.name
+                }: ${orderItem.quantity}`,
+              );
+            }
+
+            if (!Number.isFinite(availableQuantity) || availableQuantity < 0) {
+              throw new InternalServerErrorException(
+                `Invalid stock quantity for ${inventoryItem.name}: ${inventoryItem.stockQty}`,
+              );
+            }
+
+            if (requestedQuantity > availableQuantity) {
+              throw new BadRequestException(
+                `Insufficient stock for ${
+                  orderItem.itemName ?? inventoryItem.name
+                }. Available: ${availableQuantity}, required: ${requestedQuantity}`,
+              );
+            }
+
+            const remainingStock = availableQuantity - requestedQuantity;
+
+            inventoryItem.stockQty = remainingStock;
+            inventoryItem.syncStatus = InventorySyncStatus.PENDING;
+            inventoryItem.lastSyncedAt = null;
+
+            await itemRepository.save(inventoryItem);
+          }
+
+          order.status = SalesOrderStatus.FULFILLED;
+          order.syncStatus = SalesOrderSyncStatus.PENDING;
+          order.lastSyncedAt = null;
+
+          await orderRepository.save(order);
+
+          // Relations are safe here because this query has no lock.
+          const fulfilledOrder = await orderRepository.findOne({
+            where: {
+              id: order.id,
+              companyId,
+              deletedAt: IsNull(),
+            },
+            relations: {
+              customer: true,
+              items: true,
+            },
+          });
+
+          if (!fulfilledOrder) {
             throw new InternalServerErrorException(
-              `Invalid stock quantity for ${inventoryItem.name}: ${inventoryItem.stockQty}`,
+              'Fulfilled sales order could not be reloaded',
             );
           }
 
-          if (requestedQuantity > availableQuantity) {
-            throw new BadRequestException(
-              `Insufficient stock for ${
-                orderItem.itemName ?? inventoryItem.name
-              }. Available: ${availableQuantity}, required: ${requestedQuantity}`,
+          if (fulfilledOrder.status !== SalesOrderStatus.FULFILLED) {
+            throw new InternalServerErrorException(
+              `Unexpected status after fulfilment: ${fulfilledOrder.status}`,
             );
           }
 
-          const remainingStock =
-            availableQuantity - requestedQuantity;
-
-          inventoryItem.stockQty = remainingStock;
-          inventoryItem.syncStatus =
-            InventorySyncStatus.PENDING;
-          inventoryItem.lastSyncedAt = null;
-
-          await itemRepository.save(inventoryItem);
-        }
-
-        order.status = SalesOrderStatus.FULFILLED;
-        order.syncStatus = SalesOrderSyncStatus.PENDING;
-        order.lastSyncedAt = null;
-
-        await orderRepository.save(order);
-
-        // Relations are safe here because this query has no lock.
-        const fulfilledOrder = await orderRepository.findOne({
-          where: {
-            id: order.id,
-            companyId,
-            deletedAt: IsNull(),
-          },
-          relations: {
-            customer: true,
-            items: true,
-          },
-        });
-
-        if (!fulfilledOrder) {
-          throw new InternalServerErrorException(
-            'Fulfilled sales order could not be reloaded',
+          this.logger.log(
+            `Sales order ${fulfilledOrder.orderNumber} fulfilled by ${actorId}`,
           );
-        }
 
-        if (
-          fulfilledOrder.status !== SalesOrderStatus.FULFILLED
-        ) {
-          throw new InternalServerErrorException(
-            `Unexpected status after fulfilment: ${fulfilledOrder.status}`,
-          );
-        }
+          return this.toSalesOrderResponse(fulfilledOrder);
+        },
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
 
-        this.logger.log(
-          `Sales order ${fulfilledOrder.orderNumber} fulfilled by ${actorId}`,
-        );
+      const stack = error instanceof Error ? error.stack : undefined;
 
-        return this.toSalesOrderResponse(fulfilledOrder);
-      },
-    );
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed to fulfil sales order ${orderId}: ${message}`,
+        stack,
+      );
 
-    const stack =
-      error instanceof Error ? error.stack : undefined;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
 
-    this.logger.error(
-      `Failed to fulfil sales order ${orderId}: ${message}`,
-      stack,
-    );
-
-    if (
-      error instanceof NotFoundException ||
-      error instanceof BadRequestException ||
-      error instanceof InternalServerErrorException
-    ) {
-      throw error;
+      throw new InternalServerErrorException(
+        `Failed to fulfil sales order: ${message}`,
+      );
     }
-
-    throw new InternalServerErrorException(
-      `Failed to fulfil sales order: ${message}`,
-    );
   }
-}
   async getSalesOrderSummary(
     context: SalesRequestContext,
   ): Promise<SalesOrderSummaryResponseDto> {

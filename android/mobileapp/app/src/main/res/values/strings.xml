@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">tallysyncapp</string>
+    <string name="app_name">TallySync</string>
+    <string name="share_invoice">Share invoice PDF</string>
+    <string name="print_invoice">Print invoice</string>
 </resources>

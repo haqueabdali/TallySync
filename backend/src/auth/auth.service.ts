@@ -373,10 +373,7 @@ export class AuthService {
      */
     const accessToken = await this.jwtService.signAsync(jwtPayload);
 
-    const decodedToken = this.jwtService.decode(accessToken) as {
-      exp?: number;
-      iat?: number;
-    } | null;
+    const decodedToken = this.jwtService.decode(accessToken);
 
     if (
       !decodedToken ||

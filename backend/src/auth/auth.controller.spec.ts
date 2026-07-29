@@ -123,7 +123,7 @@ describe('AuthController', () => {
 
       const result = await controller.logout(
         { refreshToken: 'raw' },
-        mockUser() as any,
+        mockUser(),
       );
 
       expect(authService.logout).toHaveBeenCalledWith(
@@ -166,7 +166,7 @@ describe('AuthController', () => {
         token: 'raw-token',
         newPassword: 'NewPass1!',
       };
-      const result = await controller.resetPassword(dto as any);
+      const result = await controller.resetPassword(dto);
 
       expect(authService.resetPassword).toHaveBeenCalledWith(dto);
       expect(result.message).toMatch(/reset successfully/i);
@@ -182,10 +182,7 @@ describe('AuthController', () => {
       });
 
       const dto = { currentPassword: 'Old1!', newPassword: 'New1!' };
-      const result = await controller.changePassword(
-        dto as any,
-        mockUser() as any,
-      );
+      const result = await controller.changePassword(dto, mockUser());
 
       expect(authService.changePassword).toHaveBeenCalledWith(
         dto,

@@ -39,7 +39,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditCtx } from '../users/decorators/audit-context.decorator';
 import type { AuditContext } from '../users/interfaces/audit-context.interface';
 
-@Controller('api/v1/inventory')
+@Controller('inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}

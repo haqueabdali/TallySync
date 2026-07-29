@@ -1,5 +1,3 @@
-// src/modules/auth/guards/internal-service.guard.ts
-
 import {
   CanActivate,
   ExecutionContext,
@@ -7,22 +5,27 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
 
 /**
- * Guards internal-only endpoints called by trusted backend services
- * (e.g. the Python Tally Sync Agent) rather than end-user clients.
+ * Protects endpoints intended only for trusted backend services.
  *
- * Expects header: X-Internal-Service-Key: <shared secret>
- * The shared secret must match INTERNAL_SERVICE_KEY in environment config
- * and should be rotated periodically and never exposed to the Android app.
+ * Required header:
+ *   X-Internal-Service-Key: <shared secret>
+ *
+ * The value must match INTERNAL_SERVICE_KEY.
  */
 @Injectable()
 export class InternalServiceGuard implements CanActivate {
   constructor(private readonly configService: ConfigService) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const providedKey = request.headers['x-internal-service-key'];
+    const request = context.switchToHttp().getRequest<Request>();
+    const providedHeader = request.headers['x-internal-service-key'];
+    const providedKey = Array.isArray(providedHeader)
+      ? providedHeader[0]
+      : providedHeader;
+
     const expectedKey = this.configService.get<string>('INTERNAL_SERVICE_KEY');
 
     if (!expectedKey) {

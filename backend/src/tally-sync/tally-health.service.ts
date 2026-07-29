@@ -41,9 +41,7 @@ export class TallyHealthService {
   <BODY>
     <DESC>
       <STATICVARIABLES>
-        <SVCURRENTCOMPANY>${this.escapeXml(
-          tallyCompanyName,
-        )}</SVCURRENTCOMPANY>
+        <SVCURRENTCOMPANY>${this.escapeXml(tallyCompanyName)}</SVCURRENTCOMPANY>
         <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
       </STATICVARIABLES>
     </DESC>
@@ -89,9 +87,7 @@ export class TallyHealthService {
       this.configService.getOrThrow<string>('TALLY_COMPANY_NAME');
 
     if (!companyName.trim()) {
-      throw new BadRequestException(
-        'TALLY_COMPANY_NAME must not be empty',
-      );
+      throw new BadRequestException('TALLY_COMPANY_NAME must not be empty');
     }
 
     return companyName.trim();

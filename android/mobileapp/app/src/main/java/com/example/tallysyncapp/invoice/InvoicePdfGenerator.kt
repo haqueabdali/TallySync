@@ -2,6 +2,8 @@ package com.example.tallysyncapp.invoice
 
 import android.content.Context
 import android.content.Intent
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -99,6 +101,23 @@ object InvoicePdfGenerator {
         FileOutputStream(outputFile).use { stream -> document.writeTo(stream) }
         document.close()
         return outputFile
+    }
+
+    fun printPdf(context: Context, file: File, jobName: String) {
+        require(file.exists() && file.length() > 0L) { "Invoice PDF is unavailable" }
+
+        val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+        val attributes = PrintAttributes.Builder()
+            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+            .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+            .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+            .build()
+
+        printManager.print(
+            jobName,
+            InvoicePrintAdapter(file),
+            attributes
+        )
     }
 
     fun sharePdf(context: Context, file: File) {

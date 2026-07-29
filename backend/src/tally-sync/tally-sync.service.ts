@@ -10,25 +10,15 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TallyMasterService } from './tally-master.service';
-import {
-  TallySalesVoucherPreview,
-  TallyXmlService,
-} from './tally-xml.service';
+import { TallySalesVoucherPreview, TallyXmlService } from './tally-xml.service';
 import { TallyHttpService } from './tally-http.service';
 import {
   TallyParserService,
   TallyVoucherImportResult,
 } from './tally-parser.service';
-import {
-  TallyHealthResult,
-  TallyHealthService,
-} from './tally-health.service';
+import { TallyHealthResult, TallyHealthService } from './tally-health.service';
 import { SalesOrderEntity } from '../sales-orders/entities/sales-order.entity';
 import { PreviewSalesVoucherDto } from './dto/preview-sales-voucher.dto';
-
-
-
-
 
 type TallyStockItemDefinition = {
   name: string;
@@ -67,12 +57,9 @@ export class TallySyncService {
       .where('salesOrder.status = :status', {
         status: 'fulfilled',
       })
-      .andWhere(
-  'salesOrder.syncStatus IN (:...syncStatuses)',
-  {
-    syncStatuses: ['pending', 'failed'],
-  },
-)
+      .andWhere('salesOrder.syncStatus IN (:...syncStatuses)', {
+        syncStatuses: ['pending', 'failed'],
+      })
       .andWhere('salesOrder.deletedAt IS NULL')
       .orderBy('salesOrder.createdAt', 'ASC')
       .getMany();
@@ -88,9 +75,7 @@ export class TallySyncService {
     };
   }
 
-  previewSalesVoucher(
-    dto: PreviewSalesVoucherDto,
-  ): TallySalesVoucherPreview {
+  previewSalesVoucher(dto: PreviewSalesVoucherDto): TallySalesVoucherPreview {
     return this.tallyXmlService.buildSalesVoucher(dto);
   }
 
@@ -135,15 +120,11 @@ export class TallySyncService {
       }
 
       if (!order.customer) {
-        throw new BadRequestException(
-          'Sales order does not have a customer',
-        );
+        throw new BadRequestException('Sales order does not have a customer');
       }
 
       if (!order.items?.length) {
-        throw new BadRequestException(
-          'Sales order does not contain any items',
-        );
+        throw new BadRequestException('Sales order does not contain any items');
       }
 
       const salesLedgerName = this.configService
@@ -163,47 +144,44 @@ export class TallySyncService {
         .trim();
 
       const stockItems: TallyStockItemDefinition[] = order.items.map(
-  (orderItem) => {
-    if (!orderItem.item) {
-      throw new BadRequestException(
-        'One or more sales-order items do not have an inventory item',
+        (orderItem) => {
+          if (!orderItem.item) {
+            throw new BadRequestException(
+              'One or more sales-order items do not have an inventory item',
+            );
+          }
+
+          const stockItemName =
+            orderItem.item.tallyItemName?.trim() || orderItem.item.name?.trim();
+
+          if (!stockItemName) {
+            throw new BadRequestException(
+              'One or more inventory items do not have a valid Tally item name',
+            );
+          }
+
+          return {
+            name: stockItemName,
+            parent: defaultStockGroup,
+            baseUnit: defaultUnit,
+          };
+        },
       );
-    }
-
-    const stockItemName =
-      orderItem.item.tallyItemName?.trim() ||
-      orderItem.item.name?.trim();
-
-    if (!stockItemName) {
-      throw new BadRequestException(
-        'One or more inventory items do not have a valid Tally item name',
-      );
-    }
-
-    return {
-      name: stockItemName,
-      parent: defaultStockGroup,
-      baseUnit: defaultUnit,
-    };
-  },
-);
 
       const voucherDate = this.toIsoDate(order.orderDate);
 
       await this.tallyMasterService.ensureLedgerMasters([
-  {
-    name: order.customer.name,
-    parent: 'Sundry Debtors',
-    isBillWise: true,
-  },
-  {
-    name: salesLedgerName,
-    parent: 'Sales Accounts',
-    isBillWise: false,
-  },
-]);
-
-
+        {
+          name: order.customer.name,
+          parent: 'Sundry Debtors',
+          isBillWise: true,
+        },
+        {
+          name: salesLedgerName,
+          parent: 'Sales Accounts',
+          isBillWise: false,
+        },
+      ]);
 
       await this.tallyMasterService.ensureStockItemMasters(stockItems);
 
@@ -221,8 +199,7 @@ export class TallySyncService {
 
           return {
             stockItemName:
-              orderItem.item.tallyItemName?.trim() ||
-              orderItem.item.name,
+              orderItem.item.tallyItemName?.trim() || orderItem.item.name,
             quantity: Number(orderItem.quantity),
             rate: Number(orderItem.unitPrice),
             unit: defaultUnit,
@@ -231,10 +208,7 @@ export class TallySyncService {
         }),
       });
 
-      responseText = await this.tallyHttpService.postXml(
-        voucher.xml,
-        20_000,
-      );
+      responseText = await this.tallyHttpService.postXml(voucher.xml, 20_000);
 
       const tallyResult =
         this.tallyParserService.parseVoucherImportResponse(responseText);
@@ -256,15 +230,13 @@ export class TallySyncService {
       await this.salesOrderRepository.update(
         { id: order.id },
         {
-          syncStatus:
-            'synced' as SalesOrderEntity['syncStatus'],
+          syncStatus: 'synced' as SalesOrderEntity['syncStatus'],
           lastSyncedAt: new Date(),
           tallyVoucherId:
             tallyResult.lastVoucherId > 0
               ? String(tallyResult.lastVoucherId)
               : null,
-          tallyVoucherNumber:
-            tallyResult.voucherNumber ?? order.orderNumber,
+          tallyVoucherNumber: tallyResult.voucherNumber ?? order.orderNumber,
           tallySyncError: null,
         },
       );
@@ -279,8 +251,7 @@ export class TallySyncService {
           tallyResult.lastVoucherId > 0
             ? String(tallyResult.lastVoucherId)
             : null,
-        tallyVoucherNumber:
-          tallyResult.voucherNumber ?? order.orderNumber,
+        tallyVoucherNumber: tallyResult.voucherNumber ?? order.orderNumber,
         tally: tallyResult,
         responsePreview: responseText.substring(0, 2_000),
       };
@@ -288,10 +259,7 @@ export class TallySyncService {
       const message = this.getErrorMessage(error);
 
       try {
-        await this.markOrderSyncFailed(
-          order?.id ?? claimedOrder.id,
-          message,
-        );
+        await this.markOrderSyncFailed(order?.id ?? claimedOrder.id, message);
       } catch {
         // Preserve the original synchronization error.
       }
@@ -377,102 +345,77 @@ export class TallySyncService {
     };
   }
 
-  private async claimSalesOrderForSync(
-    id: string,
-  ): Promise<SalesOrderEntity> {
-    return this.salesOrderRepository.manager.transaction(
-      async (manager) => {
-        const repository =
-          manager.getRepository(SalesOrderEntity);
+  private async claimSalesOrderForSync(id: string): Promise<SalesOrderEntity> {
+    return this.salesOrderRepository.manager.transaction(async (manager) => {
+      const repository = manager.getRepository(SalesOrderEntity);
 
-        const order = await repository
-          .createQueryBuilder('salesOrder')
-          .setLock('pessimistic_write')
-          .where('salesOrder.id = :id', { id })
-          .andWhere('salesOrder.deletedAt IS NULL')
-          .getOne();
+      const order = await repository
+        .createQueryBuilder('salesOrder')
+        .setLock('pessimistic_write')
+        .where('salesOrder.id = :id', { id })
+        .andWhere('salesOrder.deletedAt IS NULL')
+        .getOne();
 
-        if (!order) {
-          throw new NotFoundException(
-            'Sales order not found',
+      if (!order) {
+        throw new NotFoundException('Sales order not found');
+      }
+
+      const syncStatus = String(order.syncStatus);
+
+      if (syncStatus === 'synced') {
+        return order;
+      }
+
+      if (syncStatus === 'syncing') {
+        const staleAfterMilliseconds = 60 * 1_000;
+
+        const databaseClockRows: Array<{
+          now: Date | string;
+        }> = await manager.query('SELECT NOW() AS "now"');
+
+        const databaseNowValue = databaseClockRows[0]?.now;
+
+        const databaseNowTime = new Date(String(databaseNowValue)).getTime();
+
+        const updatedAtTime =
+          order.updatedAt instanceof Date
+            ? order.updatedAt.getTime()
+            : new Date(String(order.updatedAt)).getTime();
+
+        const lockAgeMilliseconds = databaseNowTime - updatedAtTime;
+
+        const isStale =
+          !Number.isFinite(updatedAtTime) ||
+          (Number.isFinite(databaseNowTime) &&
+            lockAgeMilliseconds >= staleAfterMilliseconds);
+
+        if (!isStale) {
+          const retryAfterSeconds = Math.max(
+            1,
+            Math.ceil((staleAfterMilliseconds - lockAgeMilliseconds) / 1_000),
           );
+
+          throw new ConflictException({
+            message: 'Sales order synchronization is already in progress',
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            syncStatus,
+            retryAfterSeconds,
+          });
         }
+      }
 
-        const syncStatus = String(order.syncStatus);
+      order.syncStatus = 'syncing' as SalesOrderEntity['syncStatus'];
 
-        if (syncStatus === 'synced') {
-          return order;
-        }
+      order.tallySyncAttempts = Number(order.tallySyncAttempts ?? 0) + 1;
 
-        if (syncStatus === 'syncing') {
-          const staleAfterMilliseconds = 60 * 1_000;
+      order.tallySyncError = null;
 
-          const databaseClockRows: Array<{
-            now: Date | string;
-          }> = await manager.query(
-            'SELECT NOW() AS "now"',
-          );
-
-          const databaseNowValue =
-            databaseClockRows[0]?.now;
-
-          const databaseNowTime = new Date(
-            String(databaseNowValue),
-          ).getTime();
-
-          const updatedAtTime =
-            order.updatedAt instanceof Date
-              ? order.updatedAt.getTime()
-              : new Date(
-                  String(order.updatedAt),
-                ).getTime();
-
-          const lockAgeMilliseconds =
-            databaseNowTime - updatedAtTime;
-
-          const isStale =
-            !Number.isFinite(updatedAtTime) ||
-            (Number.isFinite(databaseNowTime) &&
-              lockAgeMilliseconds >=
-                staleAfterMilliseconds);
-
-          if (!isStale) {
-            const retryAfterSeconds = Math.max(
-              1,
-              Math.ceil(
-                (staleAfterMilliseconds -
-                  lockAgeMilliseconds) /
-                  1_000,
-              ),
-            );
-
-            throw new ConflictException({
-              message:
-                'Sales order synchronization is already in progress',
-              orderId: order.id,
-              orderNumber: order.orderNumber,
-              syncStatus,
-              retryAfterSeconds,
-            });
-          }
-        }
-
-        order.syncStatus =
-          'syncing' as SalesOrderEntity['syncStatus'];
-
-        order.tallySyncAttempts =
-          Number(order.tallySyncAttempts ?? 0) + 1;
-
-        order.tallySyncError = null;
-
-        return repository.save(order);
-      },
-    );
+      return repository.save(order);
+    });
   }
 
-  private async loadSalesOrderForTally(
-    id: string,
-  ): Promise<SalesOrderEntity> {
+  private async loadSalesOrderForTally(id: string): Promise<SalesOrderEntity> {
     const order = await this.salesOrderRepository.findOne({
       where: { id },
       relations: {
@@ -484,9 +427,7 @@ export class TallySyncService {
     });
 
     if (!order) {
-      throw new NotFoundException(
-        'Sales order not found',
-      );
+      throw new NotFoundException('Sales order not found');
     }
 
     return order;
@@ -499,38 +440,29 @@ export class TallySyncService {
     await this.salesOrderRepository.update(
       { id: orderId },
       {
-        syncStatus:
-          'failed' as SalesOrderEntity['syncStatus'],
+        syncStatus: 'failed' as SalesOrderEntity['syncStatus'],
         tallySyncError: errorMessage.substring(0, 10_000),
         lastSyncedAt: new Date(),
       },
     );
   }
 
-
   private getTallyCompanyName(): string {
     const companyName =
-      this.configService.getOrThrow<string>(
-        'TALLY_COMPANY_NAME',
-      );
+      this.configService.getOrThrow<string>('TALLY_COMPANY_NAME');
 
     if (!companyName.trim()) {
-      throw new BadRequestException(
-        'TALLY_COMPANY_NAME must not be empty',
-      );
+      throw new BadRequestException('TALLY_COMPANY_NAME must not be empty');
     }
 
     return companyName.trim();
   }
 
   private toIsoDate(value: Date | string): string {
-    const date =
-      value instanceof Date ? value : new Date(value);
+    const date = value instanceof Date ? value : new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      throw new BadRequestException(
-        'Sales order has an invalid order date',
-      );
+      throw new BadRequestException('Sales order has an invalid order date');
     }
 
     return date.toISOString().slice(0, 10);
@@ -544,7 +476,6 @@ export class TallySyncService {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
   }
-
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {

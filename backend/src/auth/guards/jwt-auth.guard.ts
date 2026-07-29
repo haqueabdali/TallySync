@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**
- * Global JWT guard.
+ * Global JWT access-token guard.
  * Routes decorated with @Public() bypass JWT validation.
  */
 @Injectable()
@@ -17,7 +18,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -30,12 +33,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest<TUser>(err: Error | null, user: TUser | false): TUser {
+  handleRequest<TUser>(err: Error | null, user: TUser | false | null): TUser {
     if (err || !user) {
       throw new UnauthorizedException(
         err?.message ?? 'Invalid or missing access token',
       );
     }
+
     return user;
   }
 }

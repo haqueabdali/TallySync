@@ -17,9 +17,7 @@ export type TallyVoucherImportResult = TallyBaseImportResult & {
 
 @Injectable()
 export class TallyParserService {
-  parseVoucherImportResponse(
-    responseXml: string,
-  ): TallyVoucherImportResult {
+  parseVoucherImportResponse(responseXml: string): TallyVoucherImportResult {
     const created = this.extractXmlNumber(responseXml, 'CREATED');
     const altered = this.extractXmlNumber(responseXml, 'ALTERED');
     const ignored = this.extractXmlNumber(responseXml, 'IGNORED');
@@ -33,10 +31,7 @@ export class TallyParserService {
 
     return {
       success:
-        errors === 0 &&
-        exceptions === 0 &&
-        !lineError &&
-        created + altered > 0,
+        errors === 0 && exceptions === 0 && !lineError && created + altered > 0,
       created,
       altered,
       ignored,
@@ -48,9 +43,7 @@ export class TallyParserService {
     };
   }
 
-  parseMasterImportResponse(
-    responseXml: string,
-  ): TallyBaseImportResult {
+  parseMasterImportResponse(responseXml: string): TallyBaseImportResult {
     const created = this.extractXmlNumber(responseXml, 'CREATED');
     const altered = this.extractXmlNumber(responseXml, 'ALTERED');
     const ignored = this.extractXmlNumber(responseXml, 'IGNORED');
@@ -105,9 +98,7 @@ export class TallyParserService {
     return /<ENVELOPE(?:\s|>)/i.test(responseXml);
   }
 
-  buildVoucherFailureMessage(
-    result: TallyVoucherImportResult,
-  ): string {
+  buildVoucherFailureMessage(result: TallyVoucherImportResult): string {
     if (result.lineError) {
       return `Tally rejected the sales voucher: ${result.lineError}`;
     }

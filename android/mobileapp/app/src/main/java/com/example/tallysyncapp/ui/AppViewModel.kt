@@ -7,8 +7,13 @@ import com.example.tallysyncapp.data.network.CartItem
 import com.example.tallysyncapp.data.network.CreateSalesOrderItemRequest
 import com.example.tallysyncapp.data.network.CreateSalesOrderRequest
 import com.example.tallysyncapp.data.network.CustomerListItem
+import com.example.tallysyncapp.data.network.DashboardData
 import com.example.tallysyncapp.data.network.ProductListItem
+import com.example.tallysyncapp.data.network.SalesOrderDetails
 import com.example.tallysyncapp.data.network.SalesOrderSummary
+import com.example.tallysyncapp.data.network.SaveSupplierRequest
+import com.example.tallysyncapp.data.network.SupplierListItem
+import com.example.tallysyncapp.report.ReportRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +38,71 @@ class AppViewModel @Inject constructor(
         launchRequest {
             val response = repository.getCustomers(search.trim().takeIf(String::isNotEmpty))
             _uiState.value = _uiState.value.copy(customers = response.data, message = response.message)
+        }
+    }
+
+    fun loadSuppliers(search: String = _uiState.value.supplierSearch) {
+        _uiState.value = _uiState.value.copy(supplierSearch = search)
+        launchRequest {
+            val response = repository.getSuppliers(search.trim().takeIf(String::isNotEmpty))
+            _uiState.value = _uiState.value.copy(suppliers = response.data, message = response.message)
+        }
+    }
+
+    fun updateSupplierSearch(search: String) {
+        _uiState.value = _uiState.value.copy(supplierSearch = search)
+    }
+
+    fun selectSupplier(supplier: SupplierListItem?) {
+        _uiState.value = _uiState.value.copy(selectedSupplier = supplier)
+    }
+
+    fun saveSupplier(request: SaveSupplierRequest, onSuccess: () -> Unit) {
+        if (request.name.isBlank()) return setError("Supplier name is required.")
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSavingSupplier = true, error = null)
+            try {
+                val current = _uiState.value.selectedSupplier
+                val response = if (current == null) {
+                    repository.createSupplier(request)
+                } else {
+                    repository.updateSupplier(current.id, request)
+                }
+                _uiState.value = _uiState.value.copy(
+                    selectedSupplier = response.data,
+                    isSavingSupplier = false,
+                    message = response.message
+                )
+                loadSuppliers()
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSavingSupplier = false,
+                    error = error.message ?: "Unable to save supplier."
+                )
+            }
+        }
+    }
+
+    fun deleteSelectedSupplier(onSuccess: () -> Unit) {
+        val supplier = _uiState.value.selectedSupplier ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSavingSupplier = true, error = null)
+            try {
+                repository.deleteSupplier(supplier.id)
+                _uiState.value = _uiState.value.copy(
+                    selectedSupplier = null,
+                    isSavingSupplier = false,
+                    message = "Supplier deleted successfully"
+                )
+                loadSuppliers()
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSavingSupplier = false,
+                    error = error.message ?: "Unable to delete supplier."
+                )
+            }
         }
     }
 
@@ -163,6 +233,33 @@ class AppViewModel @Inject constructor(
         loadDashboard(); loadOrders()
     }
 
+
+    fun updateReportRange(range: ReportRange) {
+        _uiState.value = _uiState.value.copy(reportRange = range)
+    }
+
+    fun loadReports() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(loading = true, error = null)
+            try {
+                val first = repository.getSalesOrders(page = 1)
+                val allOrders = first.data.orders.toMutableList()
+                val totalPages = first.data.pagination.totalPages.coerceAtLeast(1).coerceAtMost(100)
+                for (page in 2..totalPages) {
+                    allOrders += repository.getSalesOrders(page = page).data.orders
+                }
+                _uiState.value = _uiState.value.copy(
+                    reportOrders = allOrders.distinctBy { it.id },
+                    message = first.message
+                )
+            } catch (error: Exception) {
+                setError(error.message ?: "Unable to load reports")
+            } finally {
+                _uiState.value = _uiState.value.copy(loading = false)
+            }
+        }
+    }
+
     fun clearNewOrder() {
         _uiState.value = _uiState.value.copy(
             selectedCustomer = null, cartItems = emptyList(), customerSearch = "",
@@ -172,6 +269,7 @@ class AppViewModel @Inject constructor(
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
     fun clearMessage() { _uiState.value = _uiState.value.copy(message = null) }
+    fun showMessage(message: String) { _uiState.value = _uiState.value.copy(message = message) }
     private fun setError(message: String) { _uiState.value = _uiState.value.copy(error = message) }
 
     private fun launchRequest(block: suspend () -> Unit) {

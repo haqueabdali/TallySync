@@ -142,3 +142,32 @@ data class SyncResult(
     val synced: Int? = null,
     val failed: Int? = null
 )
+
+data class SupplierListItem(
+    val id: String,
+    val name: String,
+    val contactPerson: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val taxNumber: String? = null,
+    val paymentTermsDays: Int = 0,
+    val openingBalance: Double = 0.0,
+    val isActive: Boolean = true,
+    val notes: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+
+data class SaveSupplierRequest(
+    val name: String,
+    val contactPerson: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val taxNumber: String? = null,
+    val paymentTermsDays: Int = 0,
+    val openingBalance: Double = 0.0,
+    val isActive: Boolean = true,
+    val notes: String? = null
+)

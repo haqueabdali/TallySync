@@ -3,6 +3,8 @@ package com.example.tallysyncapp.data.network
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PATCH
+import retrofit2.http.DELETE
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -38,4 +40,19 @@ interface MobileApi {
 
     @POST("mobile/sales-orders/sync-pending")
     suspend fun syncPendingSalesOrders(): ApiResponse<SyncResult>
+    @GET("suppliers")
+    suspend fun getSuppliers(@Query("search") search: String? = null): ApiResponse<List<SupplierListItem>>
+
+    @GET("suppliers/{id}")
+    suspend fun getSupplier(@Path("id") id: String): ApiResponse<SupplierListItem>
+
+    @POST("suppliers")
+    suspend fun createSupplier(@Body request: SaveSupplierRequest): ApiResponse<SupplierListItem>
+
+    @PATCH("suppliers/{id}")
+    suspend fun updateSupplier(@Path("id") id: String, @Body request: SaveSupplierRequest): ApiResponse<SupplierListItem>
+
+    @DELETE("suppliers/{id}")
+    suspend fun deleteSupplier(@Path("id") id: String)
+
 }

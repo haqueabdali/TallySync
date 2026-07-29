@@ -29,6 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tallysyncapp.ui.navigation.AppBottomBar
 import com.example.tallysyncapp.ui.navigation.AppRoute
+import com.example.tallysyncapp.scanner.BarcodeScannerScreen
+import com.example.tallysyncapp.report.CsvReportExporter
+import com.example.tallysyncapp.report.buildSalesReport
 
 @Composable
 fun TallyMobileApp(
@@ -167,13 +170,6 @@ private fun AuthenticatedTallyMobileApp(
                     onRefresh = {
                         appViewModel.loadDashboard()
                     },
-                    onOpenInventory = {
-                        navController.navigate(
-                            AppRoute.Products.route
-                        ) {
-                            launchSingleTop = true
-                        }
-                    },
                     onOpenOrders = {
                         navController.navigate(
                             AppRoute.Orders.route
@@ -181,9 +177,55 @@ private fun AuthenticatedTallyMobileApp(
                             launchSingleTop = true
                         }
                     },
+                    onOpenReports = {
+                        navController.navigate(AppRoute.Reports.route)
+                    },
+                    onOpenSuppliers = {
+                        navController.navigate(AppRoute.Suppliers.route)
+                    },
                     onSyncPending = {
                         appViewModel.syncPending()
                     }
+                )
+            }
+
+            /*
+             * Suppliers
+             */
+            composable(route = AppRoute.Suppliers.route) {
+                LaunchedEffect(Unit) { appViewModel.loadSuppliers() }
+                SuppliersScreen(
+                    state = state,
+                    onSearchChange = appViewModel::updateSupplierSearch,
+                    onSearch = { appViewModel.loadSuppliers() },
+                    onAdd = {
+                        appViewModel.selectSupplier(null)
+                        navController.navigate(AppRoute.SupplierForm.createRoute())
+                    },
+                    onOpen = { supplier ->
+                        appViewModel.selectSupplier(supplier)
+                        navController.navigate(AppRoute.SupplierForm.createRoute(supplier.id))
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SupplierForm.route,
+                arguments = listOf(navArgument("id") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                })
+            ) {
+                SupplierEditorRoute(
+                    supplier = state.selectedSupplier,
+                    isSaving = state.isSavingSupplier,
+                    onSave = { request ->
+                        appViewModel.saveSupplier(request) { navController.popBackStack() }
+                    },
+                    onDelete = state.selectedSupplier?.let {
+                        { appViewModel.deleteSelectedSupplier { navController.popBackStack() } }
+                    },
+                    onBack = { navController.popBackStack() }
                 )
             }
 
@@ -287,6 +329,50 @@ private fun AuthenticatedTallyMobileApp(
                         appViewModel.clearSelectedCustomer()
                         navController.popBackStack()
                     }
+                )
+            }
+
+            /*
+             * Products and barcode scanner
+             */
+            composable(
+                route = AppRoute.Products.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadProducts()
+                }
+
+                ProductsScreen(
+                    state = state,
+                    onSearchChange = appViewModel::updateProductSearch,
+                    onSearch = { appViewModel.loadProducts() },
+                    onAddProduct = appViewModel::addProductToCart,
+                    onOpenCart = {
+                        navController.navigate(AppRoute.Cart.route)
+                    },
+                    onOpenScanner = {
+                        navController.navigate(AppRoute.BarcodeScanner.route)
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.BarcodeScanner.route
+            ) {
+                LaunchedEffect(Unit) {
+                    if (state.products.isEmpty()) {
+                        appViewModel.loadProducts()
+                    }
+                }
+
+                BarcodeScannerScreen(
+                    state = state,
+                    onBack = { navController.popBackStack() },
+                    onProductFound = { product ->
+                        appViewModel.addProductToCart(product)
+                        navController.popBackStack()
+                    },
+                    onMessage = appViewModel::showMessage
                 )
             }
 
@@ -459,6 +545,25 @@ private fun AuthenticatedTallyMobileApp(
                             }
                         }
                     },
+                    onPrintInvoicePdf = {
+                        state.selectedOrder?.let { order ->
+                            runCatching {
+                                InvoicePdfGenerator.createPdf(context, order)
+                            }.onSuccess { file ->
+                                InvoicePdfGenerator.printPdf(
+                                    context = context,
+                                    file = file,
+                                    jobName = "TallySync ${order.orderNumber}"
+                                )
+                            }.onFailure { error ->
+                                Toast.makeText(
+                                    context,
+                                    error.message ?: "Could not print PDF",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    },
                     onShareInvoicePdf = {
                         state.selectedOrder?.let { order ->
                             runCatching {
@@ -472,6 +577,42 @@ private fun AuthenticatedTallyMobileApp(
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
+                        }
+                    }
+                )
+            }
+
+            /*
+             * Reports and analytics
+             */
+            composable(
+                route = AppRoute.Reports.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadReports()
+                }
+
+                val reportSummary = buildSalesReport(
+                    orders = state.reportOrders,
+                    range = state.reportRange
+                )
+
+                ReportsScreen(
+                    state = state,
+                    summary = reportSummary,
+                    onRangeSelected = appViewModel::updateReportRange,
+                    onRefresh = appViewModel::loadReports,
+                    onExportCsv = {
+                        runCatching {
+                            CsvReportExporter.createCsv(context, state.reportOrders)
+                        }.onSuccess { file ->
+                            CsvReportExporter.shareCsv(context, file)
+                        }.onFailure { error ->
+                            Toast.makeText(
+                                context,
+                                error.message ?: "Could not export report",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
                 )

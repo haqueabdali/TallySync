@@ -67,8 +67,6 @@ describe('UsersController', () => {
 
   describe('createUser()', () => {
     it('delegates to UsersService.createUser and returns the result', async () => {
-      usersService.createUser.mockResolvedValue(userResponse());
-
       const dto = {
         companyId: 'company-uuid-1',
         roleId: 'role-uuid-1',
@@ -77,10 +75,16 @@ describe('UsersController', () => {
         password: 'ValidPass1!',
       };
 
+      const expected = userResponse();
+
+      usersService.createUser.mockResolvedValue(expected);
+
       const result = await controller.createUser(dto, mockAuditCtx);
 
+      expect(usersService.createUser).toHaveBeenCalledTimes(1);
       expect(usersService.createUser).toHaveBeenCalledWith(dto, mockAuditCtx);
-      expect(result).toEqual(userResponse());
+
+      expect(result).toStrictEqual(expected);
     });
   });
 

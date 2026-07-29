@@ -4,13 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  ILike,
-  In,
-  IsNull,
-  Repository,
-} from 'typeorm';
+import { Brackets, ILike, In, IsNull, Repository } from 'typeorm';
 
 import { ItemEntity } from '../inventory/entities/item.entity';
 import { CustomerEntity } from '../sales-orders/entities/customer.entity';
@@ -129,8 +123,12 @@ export class MobileService {
       query.andWhere(
         new Brackets((where) => {
           where
-            .where('item.name ILIKE :search', { search: `%${normalizedSearch}%` })
-            .orWhere('item.sku ILIKE :search', { search: `%${normalizedSearch}%` });
+            .where('item.name ILIKE :search', {
+              search: `%${normalizedSearch}%`,
+            })
+            .orWhere('item.sku ILIKE :search', {
+              search: `%${normalizedSearch}%`,
+            });
         }),
       );
     }
@@ -274,7 +272,9 @@ export class MobileService {
       throw new NotFoundException('Customer not found');
     }
 
-    const uniqueProductIds = [...new Set(dto.items.map((item) => item.productId))];
+    const uniqueProductIds = [
+      ...new Set(dto.items.map((item) => item.productId)),
+    ];
     const products = await this.itemRepository.find({
       where: { id: In(uniqueProductIds) },
     });
@@ -283,13 +283,17 @@ export class MobileService {
       throw new NotFoundException('One or more products were not found');
     }
 
-    const productById = new Map(products.map((product) => [product.id, product]));
+    const productById = new Map(
+      products.map((product) => [product.id, product]),
+    );
 
     const preparedItems = dto.items.map((requestedItem) => {
       const product = productById.get(requestedItem.productId);
 
       if (!product) {
-        throw new NotFoundException(`Product ${requestedItem.productId} was not found`);
+        throw new NotFoundException(
+          `Product ${requestedItem.productId} was not found`,
+        );
       }
 
       const quantity = Number(requestedItem.quantity);
@@ -297,7 +301,9 @@ export class MobileService {
       const lineSubtotal = this.roundMoney(quantity * unitPrice);
 
       if (!Number.isFinite(lineSubtotal) || lineSubtotal <= 0) {
-        throw new BadRequestException(`Invalid total for product ${requestedItem.productId}`);
+        throw new BadRequestException(
+          `Invalid total for product ${requestedItem.productId}`,
+        );
       }
 
       const productData = product as ItemEntity & {
@@ -409,7 +415,9 @@ export class MobileService {
 
     return {
       success: status.connected,
-      message: status.connected ? 'Tally is connected' : 'Tally is disconnected',
+      message: status.connected
+        ? 'Tally is connected'
+        : 'Tally is disconnected',
       data: status,
     };
   }

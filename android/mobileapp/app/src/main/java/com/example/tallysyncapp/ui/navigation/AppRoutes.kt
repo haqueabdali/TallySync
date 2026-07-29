@@ -7,12 +7,18 @@ sealed class AppRoute(val route: String) {
     data object CustomerDetails : AppRoute("customers/{id}") {
         fun createRoute(id: String): String = "customers/$id"
     }
+    data object Suppliers : AppRoute("suppliers")
+    data object SupplierForm : AppRoute("suppliers/form?id={id}") {
+        fun createRoute(id: String? = null): String = "suppliers/form?id=${id.orEmpty()}"
+    }
     data object Products : AppRoute("products")
+    data object BarcodeScanner : AppRoute("products/scanner")
     data object NewOrder : AppRoute("new-order")
     data object Cart : AppRoute("cart")
     data object ReviewOrder : AppRoute("review-order")
     data object OrderSuccess : AppRoute("order-success")
     data object Orders : AppRoute("orders")
+    data object Reports : AppRoute("reports")
     data object Settings : AppRoute("settings")
     data object OrderDetails : AppRoute("orders/{id}") {
         fun createRoute(id: String): String = "orders/$id"

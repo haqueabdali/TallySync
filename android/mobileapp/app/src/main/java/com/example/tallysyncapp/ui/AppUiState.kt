@@ -7,6 +7,8 @@ import com.example.tallysyncapp.data.network.ProductListItem
 import com.example.tallysyncapp.data.network.SalesOrderSummary
 import com.example.tallysyncapp.data.network.SalesOrderDetails
 import com.example.tallysyncapp.data.network.CreateSalesOrderResult
+import com.example.tallysyncapp.report.ReportRange
+import com.example.tallysyncapp.data.network.SupplierListItem
 
 data class AppUiState(
     val dashboard: DashboardData? = null,
@@ -25,6 +27,14 @@ data class AppUiState(
     val productSearch: String = "",
     val orderNotes: String = "",
     val selectedFilter: String? = null,
+    
+    val suppliers: List<SupplierListItem> = emptyList(),
+    val selectedSupplier: SupplierListItem? = null,
+    val supplierSearch: String = "",
+    val isSavingSupplier: Boolean = false,
+    
+    val reportOrders: List<SalesOrderSummary> = emptyList(),
+    val reportRange: ReportRange = ReportRange.LAST_30_DAYS,
     
     val isOnline: Boolean = true,
     val localPendingOrders: Int = 0,

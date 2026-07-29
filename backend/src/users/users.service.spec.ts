@@ -181,7 +181,10 @@ describe('UsersService', () => {
     });
 
     it('throws ConflictException when email is already registered', async () => {
-      userRepo.findOne.mockResolvedValueOnce(makeUser()); // email taken
+      userRepo.findOne.mockReset();
+
+      userRepo.findOne.mockResolvedValue(makeUser());
+
       await expect(service.createUser(dto, mockAuditCtx)).rejects.toThrow(
         ConflictException,
       );

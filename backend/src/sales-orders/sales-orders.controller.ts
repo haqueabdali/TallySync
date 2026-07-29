@@ -13,8 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-
-
 import { SalesOrdersService } from './sales-orders.service';
 import { RejectSalesOrderDto } from './dto/reject-sales-order.dto';
 import { CreateCustomerDto } from './dto/create-customer.dto';
@@ -42,7 +40,7 @@ import type { AuditContext } from '../users/interfaces/audit-context.interface';
 
 import type { SalesRequestContext } from './interfaces/sales-request-context.interface';
 
-@Controller('api/v1/sales-orders')
+@Controller('sales-orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SalesOrdersController {
   constructor(private readonly salesOrdersService: SalesOrdersService) {}
@@ -119,28 +117,28 @@ export class SalesOrdersController {
     );
   }
 
-@Post('customers')
-@HttpCode(HttpStatus.CREATED)
-createCustomer(
-  @Body() dto: CreateCustomerDto,
-  @AuditCtx() audit: AuditContext,
-): Promise<CustomerResponseDto> {
-  return this.salesOrdersService.createCustomer(
-    dto,
-    this.toSalesContext(audit),
-  );
-}
+  @Post('customers')
+  @HttpCode(HttpStatus.CREATED)
+  createCustomer(
+    @Body() dto: CreateCustomerDto,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<CustomerResponseDto> {
+    return this.salesOrdersService.createCustomer(
+      dto,
+      this.toSalesContext(audit),
+    );
+  }
 
-@Get('customers')
-listCustomers(
-  @Query() query: ListCustomersQueryDto,
-  @AuditCtx() audit: AuditContext,
-): Promise<PaginatedCustomersResponseDto> {
-  return this.salesOrdersService.listCustomers(
-    query,
-    this.toSalesContext(audit),
-  );
-}
+  @Get('customers')
+  listCustomers(
+    @Query() query: ListCustomersQueryDto,
+    @AuditCtx() audit: AuditContext,
+  ): Promise<PaginatedCustomersResponseDto> {
+    return this.salesOrdersService.listCustomers(
+      query,
+      this.toSalesContext(audit),
+    );
+  }
 
   @Get('customers/:id')
   @Roles('admin', 'company_owner', 'vendor', 'sales_rep')

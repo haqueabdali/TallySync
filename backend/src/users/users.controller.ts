@@ -11,98 +11,117 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-
+import type { Request } from 'express';
 import { UsersService } from './users.service';
-
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { AssignCompanyDto } from './dto/assign-company.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
-import {
-  UserResponseDto,
-  PaginatedUsersResponseDto,
-  PaginatedActivityResponseDto,
-} from './dto/user-response.dto';
-
+import { CurrentUser } from './decorators/current-user.decorator';
+import type { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 import { AuditCtx } from './decorators/audit-context.decorator';
 import type { AuditContext } from './interfaces/audit-context.interface';
-// Re-use guards & decorators from the auth module
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 
-@Controller('api/v1/users')
+@Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // ── POST /api/v1/users ─────────────────────────────────────────────────────
-  @Post()
-  @Roles('admin')
-  @HttpCode(HttpStatus.CREATED)
-  createUser(
-    @Body() dto: CreateUserDto,
-    @AuditCtx() audit: AuditContext,
-  ): Promise<UserResponseDto> {
-    return this.usersService.createUser(dto, audit);
-  }
-
-  // ── GET /api/v1/users ──────────────────────────────────────────────────────
   @Get()
-  @Roles('admin')
+  @Roles('admin', 'company_owner')
   listUsers(
     @Query() query: ListUsersQueryDto,
-  ): Promise<PaginatedUsersResponseDto> {
+    @CurrentUser() _actor?: AuthenticatedUser,
+  ) {
     return this.usersService.listUsers(query);
   }
 
-  // ── GET /api/v1/users/:id ──────────────────────────────────────────────────
+  @Get('roles')
+  @Roles('admin', 'company_owner')
+  listRoles() {
+    return this.usersService.listRoles();
+  }
+
   @Get(':id')
-  @Roles('admin')
-  getUserById(
+  @Roles('admin', 'company_owner')
+  getUser(
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<UserResponseDto> {
+    @CurrentUser() actor: AuthenticatedUser | AuditContext,
+  ) {
+    return this.usersService.getUser(id, actor as AuthenticatedUser);
+  }
+
+  getUserById(id: string) {
     return this.usersService.getUserById(id);
   }
 
-  // ── PATCH /api/v1/users/:id ────────────────────────────────────────────────
+  @Post()
+  @Roles('admin', 'company_owner')
+  @HttpCode(HttpStatus.CREATED)
+  createUser(
+    @Body() dto: CreateUserDto,
+    @CurrentUser() actor: AuthenticatedUser | AuditContext,
+  ) {
+    return this.usersService.createUser(dto, actor);
+  }
+
   @Patch(':id')
-  @Roles('admin')
+  @Roles('admin', 'company_owner')
   updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserDto,
-    @AuditCtx() audit: AuditContext,
-  ): Promise<UserResponseDto> {
-    return this.usersService.updateUser(id, dto, audit);
+    @CurrentUser() actor: AuthenticatedUser | AuditContext,
+    @Req() request?: Request,
+  ) {
+    if (request)
+      return this.usersService.updateUser(
+        id,
+        dto,
+        actor,
+        this.extractIp(request),
+      );
+    return this.usersService.updateUser(id, dto, actor);
   }
 
-  // ── DELETE /api/v1/users/:id ───────────────────────────────────────────────
   @Delete(':id')
-  @Roles('admin')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUser(
+  @Roles('admin', 'company_owner')
+  @HttpCode(HttpStatus.OK)
+  deleteUser(
     @Param('id', ParseUUIDPipe) id: string,
-    @AuditCtx() audit: AuditContext,
-  ): Promise<void> {
-    return this.usersService.deleteUser(id, audit);
+    @CurrentUser() actor: AuthenticatedUser | AuditContext,
+    @Req() request?: Request,
+  ) {
+    if (request)
+      return this.usersService.deleteUser(id, actor, this.extractIp(request));
+    return this.usersService.deleteUser(id, actor);
   }
 
-  // ── POST /api/v1/users/:id/assign-role ────────────────────────────────────
   @Post(':id/assign-role')
-  @Roles('admin')
+  @Roles('admin', 'company_owner')
   @HttpCode(HttpStatus.OK)
   assignRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignRoleDto,
-    @AuditCtx() audit: AuditContext,
-  ): Promise<UserResponseDto> {
-    return this.usersService.assignRole(id, dto, audit);
+    @CurrentUser() actor: AuthenticatedUser | AuditContext,
+    @Req() request?: Request,
+  ) {
+    if (request)
+      return this.usersService.assignRole(
+        id,
+        dto,
+        actor,
+        this.extractIp(request),
+      );
+    return this.usersService.assignRole(id, dto, actor);
   }
 
-  // ── POST /api/v1/users/:id/assign-company ─────────────────────────────────
   @Post(':id/assign-company')
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
@@ -110,18 +129,24 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignCompanyDto,
     @AuditCtx() audit: AuditContext,
-  ): Promise<UserResponseDto> {
+  ) {
     return this.usersService.assignCompany(id, dto, audit);
   }
 
-  // ── GET /api/v1/users/:id/activity ────────────────────────────────────────
   @Get(':id/activity')
   @Roles('admin')
   getUserActivity(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-  ): Promise<PaginatedActivityResponseDto> {
+  ) {
     return this.usersService.getUserActivity(id, page, limit);
+  }
+
+  private extractIp(request: Request): string | undefined {
+    const forwarded = request.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+    if (Array.isArray(forwarded) && forwarded.length) return forwarded[0];
+    return request.socket?.remoteAddress;
   }
 }

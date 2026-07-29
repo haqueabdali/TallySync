@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -29,6 +30,7 @@ fun OrderDetailsScreen(
     onSync: (String) -> Unit,
     onRetry: (String) -> Unit,
     onCreateInvoicePdf: () -> Unit,
+    onPrintInvoicePdf: () -> Unit,
     onShareInvoicePdf: () -> Unit
 ) {
     val order = state.selectedOrder
@@ -56,24 +58,34 @@ fun OrderDetailsScreen(
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onCreateInvoicePdf,
-                    modifier = Modifier.weight(1f)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
-                    Text(" Save PDF", maxLines = 1)
+                    OutlinedButton(
+                        onClick = onCreateInvoicePdf,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
+                        Text(" Save PDF", maxLines = 1)
+                    }
+
+                    OutlinedButton(
+                        onClick = onPrintInvoicePdf,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Outlined.Print, contentDescription = null)
+                        Text(" Print", maxLines = 1)
+                    }
                 }
 
                 Button(
                     onClick = onShareInvoicePdf,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Outlined.Share, contentDescription = null)
-                    Text(" Share", maxLines = 1)
+                    Text(" Share invoice", maxLines = 1)
                 }
             }
         }

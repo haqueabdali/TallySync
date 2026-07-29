@@ -12,7 +12,8 @@ import { SalesOrdersModule } from './sales-orders/sales-orders.module';
 import { TallySyncModule } from './tally-sync/tally-sync.module';
 
 import { MobileModule } from './mobile/mobile.module';
-
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { HealthModule } from './health/health.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,10 +40,9 @@ import { MobileModule } from './mobile/mobile.module';
         autoLoadEntities: true,
 
         synchronize: false,
-          //configService.get<string>('NODE_ENV') !== 'production',
+        //configService.get<string>('NODE_ENV') !== 'production',
 
-        logging:
-          configService.get<string>('NODE_ENV') === 'development',
+        logging: configService.get<string>('NODE_ENV') === 'development',
 
         ssl:
           configService.get<string>('DATABASE_SSL') === 'true'
@@ -68,6 +68,8 @@ import { MobileModule } from './mobile/mobile.module';
     SalesOrdersModule,
     TallySyncModule,
     MobileModule,
+    SuppliersModule,
+    HealthModule,
   ],
 
   controllers: [AppController],

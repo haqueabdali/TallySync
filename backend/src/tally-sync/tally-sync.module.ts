@@ -12,14 +12,8 @@ import { TallySyncController } from './tally-sync.controller';
 import { TallySyncService } from './tally-sync.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      SalesOrderEntity,
-    ]),
-  ],
-  controllers: [
-    TallySyncController,
-  ],
+  imports: [TypeOrmModule.forFeature([SalesOrderEntity])],
+  controllers: [TallySyncController],
   providers: [
     TallySyncService,
     TallyMasterService,

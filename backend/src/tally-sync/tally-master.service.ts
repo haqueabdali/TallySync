@@ -37,7 +37,6 @@ export type TallyStockItemDefinition = {
 
 @Injectable()
 export class TallyMasterService {
-
   constructor(
     private readonly configService: ConfigService,
     private readonly tallyHttpService: TallyHttpService,
@@ -97,9 +96,7 @@ export class TallyMasterService {
       const cacheKey = this.normalizeName(stockItem.name);
 
       if (this.tallyCacheService.hasStockItem(cacheKey)) {
-        results.push(
-          this.existingMasterResult('Stock Item', stockItem.name),
-        );
+        results.push(this.existingMasterResult('Stock Item', stockItem.name));
         continue;
       }
 
@@ -107,9 +104,7 @@ export class TallyMasterService {
 
       if (exists) {
         this.tallyCacheService.rememberStockItem(cacheKey);
-        results.push(
-          this.existingMasterResult('Stock Item', stockItem.name),
-        );
+        results.push(this.existingMasterResult('Stock Item', stockItem.name));
         continue;
       }
 
@@ -167,7 +162,10 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.tallyHttpService.postXml(requestXml, 10_000);
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      10_000,
+    );
     return this.tallyParserService.collectionContainsName(
       responseText,
       'LEDGER',
@@ -175,9 +173,7 @@ export class TallyMasterService {
     );
   }
 
-  private async tallyStockItemExists(
-    stockItemName: string,
-  ): Promise<boolean> {
+  private async tallyStockItemExists(stockItemName: string): Promise<boolean> {
     const tallyCompanyName = this.getTallyCompanyName();
 
     const requestXml = `
@@ -211,7 +207,10 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.tallyHttpService.postXml(requestXml, 10_000);
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      10_000,
+    );
     return this.tallyParserService.collectionContainsName(
       responseText,
       'STOCKITEM',
@@ -258,8 +257,12 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.tallyHttpService.postXml(requestXml, 15_000);
-    const parsed = this.tallyParserService.parseMasterImportResponse(responseText);
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      15_000,
+    );
+    const parsed =
+      this.tallyParserService.parseMasterImportResponse(responseText);
 
     return {
       ...parsed,
@@ -290,9 +293,7 @@ export class TallyMasterService {
     </DESC>
     <DATA>
       <TALLYMESSAGE xmlns:UDF="TallyUDF">
-        <STOCKITEM NAME="${this.escapeXml(
-          stockItem.name,
-        )}" ACTION="Create">
+        <STOCKITEM NAME="${this.escapeXml(stockItem.name)}" ACTION="Create">
           <NAME>${this.escapeXml(stockItem.name)}</NAME>
           <PARENT>${this.escapeXml(stockItem.parent)}</PARENT>
           <BASEUNITS>${this.escapeXml(stockItem.baseUnit)}</BASEUNITS>
@@ -307,8 +308,12 @@ export class TallyMasterService {
 </ENVELOPE>
     `.trim();
 
-    const responseText = await this.tallyHttpService.postXml(requestXml, 15_000);
-    const parsed = this.tallyParserService.parseMasterImportResponse(responseText);
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      15_000,
+    );
+    const parsed =
+      this.tallyParserService.parseMasterImportResponse(responseText);
 
     return {
       ...parsed,
@@ -387,22 +392,21 @@ export class TallyMasterService {
     return Array.from(uniqueItems.values());
   }
 
-
   private getTallyCompanyName(): string {
     const companyName =
       this.configService.getOrThrow<string>('TALLY_COMPANY_NAME');
 
     if (!companyName.trim()) {
-      throw new BadRequestException(
-        'TALLY_COMPANY_NAME must not be empty',
-      );
+      throw new BadRequestException('TALLY_COMPANY_NAME must not be empty');
     }
 
     return companyName.trim();
   }
 
   private normalizeName(value: string): string {
-    return String(value ?? '').trim().toLocaleLowerCase('en-US');
+    return String(value ?? '')
+      .trim()
+      .toLocaleLowerCase('en-US');
   }
 
   private escapeXml(value: string): string {
@@ -420,7 +424,6 @@ export class TallyMasterService {
       .replace(/"/g, '\\"')
       .replace(/\r?\n/g, ' ');
   }
-
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof Error) {

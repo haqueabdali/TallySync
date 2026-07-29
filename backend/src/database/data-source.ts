@@ -16,6 +16,7 @@ import { ItemEntity } from '../inventory/entities/item.entity';
 import { CustomerEntity } from '../sales-orders/entities/customer.entity';
 import { SalesOrderEntity } from '../sales-orders/entities/sales-order.entity';
 import { SalesOrderItemEntity } from '../sales-orders/entities/sales-order-item.entity';
+import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -52,6 +53,7 @@ export default new DataSource({
     CustomerEntity,
     SalesOrderEntity,
     SalesOrderItemEntity,
+    SupplierEntity,
   ],
 
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],

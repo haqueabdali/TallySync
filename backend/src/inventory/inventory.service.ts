@@ -276,14 +276,7 @@ export class InventoryService {
   }
 
   // ==========================================================================
-  // ITEM METHODS
-  //
-  // These methods will be added in Part 2:
-  // - createItem
-  // - listItems
-  // - getItemById
-  // - updateItem
-  // - deleteItem
+  // ITEM MANAGEMENT
   // ==========================================================================
 
   async createItem(

@@ -15,7 +15,7 @@ export class CreateItemDto {
 
   @IsString()
   @Length(2, 255)
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
@@ -28,33 +28,25 @@ export class CreateItemDto {
   unit?: string;
 
   @Type(() => Number)
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
+  @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
-  salePrice: number;
+  salePrice!: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
+  @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   purchasePrice?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
+  @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   openingStock?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
+  @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   reorderLevel?: number;
 

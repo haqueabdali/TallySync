@@ -14,6 +14,13 @@ import { TallySyncModule } from './tally-sync/tally-sync.module';
 import { MobileModule } from './mobile/mobile.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { HealthModule } from './health/health.module';
+import { DashboardModule} from './dashboard/dashboard.module';
+import { CategoriesModule } from './categories/categories.module';
+import { WarehousesModule } from './warehouses/warehouses.module';
+import { ItemsModule } from './items/items.module';
+import { CustomersModule } from './customers/customers.module';
+import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -70,6 +77,12 @@ import { HealthModule } from './health/health.module';
     MobileModule,
     SuppliersModule,
     HealthModule,
+    DashboardModule,
+    CategoriesModule,
+    WarehousesModule,
+    ItemsModule,
+    CustomersModule,
+    PurchaseOrdersModule,
   ],
 
   controllers: [AppController],

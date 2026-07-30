@@ -9,7 +9,6 @@ import {
   Max,
   Min,
 } from 'class-validator';
-
 import { InventorySyncStatus } from '../entities/item.entity';
 
 export type ItemSortField =

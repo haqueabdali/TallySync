@@ -9,11 +9,14 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix('api/v1');
 
-  app.useGlobalPipes(
+ app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
@@ -42,7 +45,9 @@ async function bootstrap(): Promise<void> {
   });
 
   const port = Number(process.env.PORT) || 3000;
-  await app.listen(port);
+  await app.listen(
+    Number(process.env.PORT) || 3000,
+  );
 }
 
 void bootstrap();

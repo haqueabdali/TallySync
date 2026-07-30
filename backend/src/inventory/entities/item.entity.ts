@@ -1,14 +1,15 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  Check,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
+  Entity,
   Index,
-  Check,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  ValueTransformer,
 } from 'typeorm';
 import { CategoryEntity } from './category.entity';
 
@@ -18,35 +19,42 @@ export enum InventorySyncStatus {
   FAILED = 'failed',
 }
 
+const numericTransformer: ValueTransformer = {
+  to: (value: number | null | undefined) => value,
+  from: (value: string | number | null) =>
+    value === null ? null : Number(value),
+};
+
 @Entity('items')
+@Index('idx_items_company_id', ['companyId'])
+@Index('idx_items_category_id', ['categoryId'])
+@Index('idx_items_company_name', ['companyId', 'name'])
 @Index('uq_items_company_sku', ['companyId', 'sku'], {
   unique: true,
   where: '"sku" IS NOT NULL AND "deleted_at" IS NULL',
 })
-@Check('"sale_price" >= 0')
-@Check('"purchase_price" >= 0')
-@Check('"stock_qty" >= 0')
-@Check('"reorder_level" >= 0')
+@Check('chk_items_sale_price_non_negative', '"sale_price" >= 0')
+@Check('chk_items_purchase_price_non_negative', '"purchase_price" >= 0')
+@Check('chk_items_stock_qty_non_negative', '"stock_qty" >= 0')
+@Check('chk_items_reorder_level_non_negative', '"reorder_level" >= 0')
 export class ItemEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'company_id', type: 'uuid' })
-  @Index()
-  companyId: string;
+  companyId!: string;
 
   @Column({ name: 'category_id', type: 'uuid', nullable: true })
-  @Index()
-  categoryId: string | null;
+  categoryId!: string | null;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar', length: 128, nullable: true })
-  sku: string | null;
+  sku!: string | null;
 
   @Column({ type: 'varchar', length: 32, default: 'Nos' })
-  unit: string;
+  unit!: string;
 
   @Column({
     name: 'sale_price',
@@ -54,12 +62,9 @@ export class ItemEntity {
     precision: 15,
     scale: 4,
     default: 0,
-    transformer: {
-      to: (v: number) => v,
-      from: (v: string) => parseFloat(v),
-    },
+    transformer: numericTransformer,
   })
-  salePrice: number;
+  salePrice!: number;
 
   @Column({
     name: 'purchase_price',
@@ -67,12 +72,9 @@ export class ItemEntity {
     precision: 15,
     scale: 4,
     default: 0,
-    transformer: {
-      to: (v: number) => v,
-      from: (v: string) => parseFloat(v),
-    },
+    transformer: numericTransformer,
   })
-  purchasePrice: number;
+  purchasePrice!: number;
 
   @Column({
     name: 'stock_qty',
@@ -80,12 +82,9 @@ export class ItemEntity {
     precision: 15,
     scale: 4,
     default: 0,
-    transformer: {
-      to: (v: number) => v,
-      from: (v: string) => parseFloat(v),
-    },
+    transformer: numericTransformer,
   })
-  stockQty: number;
+  stockQty!: number;
 
   @Column({
     name: 'reorder_level',
@@ -93,47 +92,38 @@ export class ItemEntity {
     precision: 15,
     scale: 4,
     default: 0,
-    transformer: {
-      to: (v: number) => v,
-      from: (v: string) => parseFloat(v),
-    },
+    transformer: numericTransformer,
   })
-  reorderLevel: number;
+  reorderLevel!: number;
 
-  @Column({
-    name: 'tally_item_name',
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-  })
-  tallyItemName: string | null;
+  @Column({ name: 'tally_item_name', type: 'varchar', length: 255, nullable: true })
+  tallyItemName!: string | null;
 
   @Column({
     name: 'sync_status',
     type: 'enum',
     enum: InventorySyncStatus,
+    enumName: 'inventory_sync_status_enum',
     default: InventorySyncStatus.PENDING,
   })
-  syncStatus: InventorySyncStatus;
+  syncStatus!: InventorySyncStatus;
 
   @Column({ name: 'last_synced_at', type: 'timestamptz', nullable: true })
-  lastSyncedAt: Date | null;
+  lastSyncedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
-  // ── Relations ─────────────────────────────────────────────────────────────
-
-  @ManyToOne(() => CategoryEntity, (cat) => cat.items, {
+  @ManyToOne(() => CategoryEntity, (category) => category.items, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'category_id' })
-  category: CategoryEntity | null;
+  category!: CategoryEntity | null;
 }

@@ -2,7 +2,12 @@ import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export type CategorySortField =
-  'createdAt' | 'updatedAt' | 'name' | 'tallyGroup';
+  | 'createdAt'
+  | 'updatedAt'
+  | 'name'
+  | 'tallyGroup';
+
+export type CategorySortOrder = 'ASC' | 'DESC';
 
 export class ListCategoriesQueryDto {
   @IsOptional()
@@ -28,5 +33,5 @@ export class ListCategoriesQueryDto {
 
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
-  sortOrder: 'ASC' | 'DESC' = 'ASC';
+  sortOrder: CategorySortOrder = 'ASC';
 }

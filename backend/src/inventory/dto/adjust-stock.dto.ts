@@ -16,14 +16,12 @@ export enum StockAdjustmentType {
 
 export class AdjustStockDto {
   @IsEnum(StockAdjustmentType)
-  adjustmentType: StockAdjustmentType;
+  adjustmentType!: StockAdjustmentType;
 
   @Type(() => Number)
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
+  @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
-  quantity: number;
+  quantity!: number;
 
   @IsOptional()
   @IsString()

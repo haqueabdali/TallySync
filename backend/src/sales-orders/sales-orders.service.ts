@@ -1,80 +1,39 @@
 import {
   BadRequestException,
-  InternalServerErrorException,
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { randomBytes } from 'crypto';
-import { Brackets, DataSource, In, IsNull, Repository } from 'typeorm';
-import type { EntityManager } from 'typeorm';
-
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
-  ItemEntity,
-  InventorySyncStatus,
-} from '../inventory/entities/item.entity';
-import { CustomerEntity } from './entities/customer.entity';
-import {
-  SalesOrderEntity,
-  SalesOrderStatus,
-  SalesOrderSyncStatus,
-} from './entities/sales-order.entity';
-import { SalesOrderItemEntity } from './entities/sales-order-item.entity';
+  Brackets,
+  DataSource,
+  Repository,
+} from 'typeorm';
 
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { ListCustomersQueryDto } from './dto/list-customers-query.dto';
+import { CustomerEntity } from '../customers/entities/customer.entity';
+import { ItemEntity } from '../items/entities/item.entity';
+import { SalesQuotationItem } from '../sales-quotations/entities/sales-quotation-item.entity';
+import { SalesQuotation } from '../sales-quotations/entities/sales-quotation.entity';
+import { SalesQuotationStatus } from '../sales-quotations/enums/sales-quotation-status.enum';
+import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
-import type { OrderItemDto } from './dto/order-item.dto';
-
-import { ListSalesOrdersQueryDto } from './dto/list-sales-orders-query.dto';
-import { UpdateSalesOrderDto } from './dto/update-sales-order.dto';
-
+import { SalesOrderFilterDto } from './dto/sales-order-filter.dto';
 import {
-  CustomerResponseDto,
-  PaginatedCustomersResponseDto,
   PaginatedSalesOrdersResponseDto,
+  SalesOrderItemResponseDto,
   SalesOrderResponseDto,
-  SalesOrderSummaryResponseDto,
 } from './dto/sales-order-response.dto';
-
-import type { SalesRequestContext } from './interfaces/sales-request-context.interface';
-
-interface CalculatedOrderLine {
-  item: ItemEntity;
-  quantity: number;
-  unitPrice: number;
-  discountPercent: number;
-  taxPercent: number;
-  lineSubtotal: number;
-  lineDiscount: number;
-  lineTax: number;
-  lineTotal: number;
-}
-
-interface CalculatedOrderTotals {
-  lines: CalculatedOrderLine[];
-  subtotal: number;
-  discountTotal: number;
-  taxTotal: number;
-  grandTotal: number;
-}
+import { UpdateSalesOrderDto } from './dto/update-sales-order.dto';
+import { SalesOrderItemEntity } from './entities/sales-order-item.entity';
+import { SalesOrderEntity } from './entities/sales-order.entity';
+import { SalesOrderStatus } from './enums/sales-order-status.enum';
 
 @Injectable()
 export class SalesOrdersService {
-  private readonly logger = new Logger(SalesOrdersService.name);
-
-  /**
-   * Temporary approval threshold.
-   * Later move this to company configuration.
-   */
-  private readonly approvalThreshold = 100000;
-
   constructor(
-    @InjectRepository(CustomerEntity)
-    private readonly customerRepository: Repository<CustomerEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
 
     @InjectRepository(SalesOrderEntity)
     private readonly salesOrderRepository: Repository<SalesOrderEntity>,
@@ -82,1544 +41,721 @@ export class SalesOrdersService {
     @InjectRepository(SalesOrderItemEntity)
     private readonly salesOrderItemRepository: Repository<SalesOrderItemEntity>,
 
+    @InjectRepository(CustomerEntity)
+    private readonly customerRepository: Repository<CustomerEntity>,
+
+    @InjectRepository(WarehouseEntity)
+    private readonly warehouseRepository: Repository<WarehouseEntity>,
+
     @InjectRepository(ItemEntity)
     private readonly itemRepository: Repository<ItemEntity>,
 
-    private readonly dataSource: DataSource,
+    @InjectRepository(SalesQuotation)
+    private readonly quotationRepository: Repository<SalesQuotation>,
+
+    @InjectRepository(SalesQuotationItem)
+    private readonly quotationItemRepository: Repository<SalesQuotationItem>,
   ) {}
 
-  // ==========================================================================
-  // CUSTOMER MANAGEMENT
-  // ==========================================================================
+  async create(
+    dto: CreateSalesOrderDto,
+    companyId: string,
+    userId: string,
+  ): Promise<SalesOrderResponseDto> {
+    await this.validateReferences(dto, companyId);
+    this.ensureUniqueItems(dto.items.map((item) => item.itemId));
 
-  async createCustomer(
-    dto: CreateCustomerDto,
-    context: SalesRequestContext,
-  ): Promise<CustomerResponseDto> {
-    const companyId = this.requireCompanyId(context);
+    return this.dataSource.transaction(async (manager) => {
+      const orderRepository = manager.getRepository(SalesOrderEntity);
+      const itemRepository = manager.getRepository(SalesOrderItemEntity);
 
-    const name = this.normalizeRequiredText(dto.name, 'Customer name');
+      const order = orderRepository.create({
+        companyId,
+        customerId: dto.customerId,
+        warehouseId: dto.warehouseId,
+        salesQuotationId: dto.salesQuotationId ?? null,
+        orderNumber: await this.generateOrderNumber(
+          companyId,
+          dto.orderDate,
+        ),
+        orderDate: dto.orderDate,
+        expectedDeliveryDate: dto.expectedDeliveryDate ?? null,
+        status: SalesOrderStatus.Draft,
+        currency: (dto.currency ?? 'EUR').toUpperCase(),
+        subtotal: 0,
+        discountTotal: 0,
+        taxTotal: 0,
+        shippingTotal: this.round(dto.shippingTotal ?? 0),
+        grandTotal: 0,
+        customerReference: this.optional(dto.customerReference),
+        shippingAddress: this.optional(dto.shippingAddress),
+        notes: this.optional(dto.notes),
+        createdBy: userId,
+        updatedBy: userId,
+        items: [],
+      });
 
-    const email = this.normalizeEmail(dto.email);
+      const savedOrder = await orderRepository.save(order);
 
-    if (email) {
-      await this.ensureCustomerEmailAvailable(companyId, email);
-    }
+      savedOrder.items = dto.items.map((line) => {
+        const totals = this.calculateLine(
+          line.quantity,
+          line.unitPrice,
+          line.discountPercent ?? 0,
+          line.taxPercent ?? 0,
+        );
 
-    const customer = this.customerRepository.create({
-      companyId,
-      name,
-      email,
-      phone: this.normalizeNullableText(dto.phone),
-      address: this.normalizeNullableText(dto.address),
-      tallyLedgerName: this.normalizeNullableText(dto.tallyLedgerName),
-      creditLimit: this.ensureNonNegativeNumber(
-        dto.creditLimit ?? 0,
-        'Credit limit',
-      ),
-      isActive: dto.isActive ?? true,
+        return itemRepository.create({
+          salesOrderId: savedOrder.id,
+          itemId: line.itemId,
+          salesQuotationItemId: line.salesQuotationItemId ?? null,
+          description: this.optional(line.description),
+          quantity: line.quantity,
+          deliveredQuantity: 0,
+          unitPrice: line.unitPrice,
+          discountPercent: line.discountPercent ?? 0,
+          taxPercent: line.taxPercent ?? 0,
+          ...totals,
+        });
+      });
+
+      savedOrder.items = await itemRepository.save(savedOrder.items);
+      this.calculateOrderTotals(savedOrder);
+
+      return this.toResponse(
+        await orderRepository.save(savedOrder),
+      );
     });
-
-    const savedCustomer = await this.customerRepository.save(customer);
-
-    this.logger.log(
-      `Customer ${savedCustomer.id} created by ${
-        context.actorId ?? 'unknown actor'
-      }`,
-    );
-
-    return this.toCustomerResponse(savedCustomer);
   }
 
-  async listCustomers(
-    query: ListCustomersQueryDto,
-    context: SalesRequestContext,
-  ): Promise<PaginatedCustomersResponseDto> {
-    const companyId = this.requireCompanyId(context);
+  async findAll(
+    filter: SalesOrderFilterDto,
+    companyId: string,
+  ): Promise<PaginatedSalesOrdersResponseDto> {
+    const page = filter.page ?? 1;
+    const limit = filter.limit ?? 20;
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
+    const query = this.salesOrderRepository
+      .createQueryBuilder('salesOrder')
+      .leftJoinAndSelect('salesOrder.items', 'items')
+      .where('salesOrder.company_id = :companyId', { companyId });
 
-    const queryBuilder = this.customerRepository
-      .createQueryBuilder('customer')
-      .where('customer.companyId = :companyId', {
-        companyId,
-      })
-      .andWhere('customer.deletedAt IS NULL');
+    if (filter.search?.trim()) {
+      const search = `%${filter.search.trim()}%`;
 
-    const search = query.search?.trim();
-
-    if (search) {
-      queryBuilder.andWhere(
-        new Brackets((builder) => {
-          builder
-            .where(
-              `LOWER(customer.name)
-               LIKE LOWER(:search)`,
-              {
-                search: `%${search}%`,
-              },
-            )
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('salesOrder.order_number ILIKE :search', { search })
             .orWhere(
-              `LOWER(
-                COALESCE(customer.email, '')
-              ) LIKE LOWER(:search)`,
-              {
-                search: `%${search}%`,
-              },
+              'salesOrder.customer_reference ILIKE :search',
+              { search },
             )
-            .orWhere(
-              `LOWER(
-                COALESCE(customer.phone, '')
-              ) LIKE LOWER(:search)`,
-              {
-                search: `%${search}%`,
-              },
-            )
-            .orWhere(
-              `LOWER(
-                COALESCE(
-                  customer.tallyLedgerName,
-                  ''
-                )
-              ) LIKE LOWER(:search)`,
-              {
-                search: `%${search}%`,
-              },
-            );
+            .orWhere('salesOrder.notes ILIKE :search', { search });
         }),
       );
     }
 
-    if (query.isActive !== undefined) {
-      queryBuilder.andWhere('customer.isActive = :isActive', {
-        isActive: query.isActive,
+    if (filter.customerId) {
+      query.andWhere('salesOrder.customer_id = :customerId', {
+        customerId: filter.customerId,
       });
     }
 
-    const allowedSortColumns: Record<string, string> = {
-      createdAt: 'customer.createdAt',
-      updatedAt: 'customer.updatedAt',
-      name: 'customer.name',
-      email: 'customer.email',
-      creditLimit: 'customer.creditLimit',
-    };
-
-    const sortColumn =
-      allowedSortColumns[query.sortBy ?? 'name'] ?? 'customer.name';
-
-    const sortOrder = query.sortOrder === 'DESC' ? 'DESC' : 'ASC';
-
-    const [customers, total] = await queryBuilder
-      .orderBy(sortColumn, sortOrder)
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      data: customers.map((customer) => this.toCustomerResponse(customer)),
-      page,
-      limit,
-      total,
-      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
-    };
-  }
-
-  async getCustomerById(
-    customerId: string,
-    context: SalesRequestContext,
-  ): Promise<CustomerResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const customer = await this.findCustomerEntity(customerId, companyId);
-
-    return this.toCustomerResponse(customer);
-  }
-
-  async updateCustomer(
-    customerId: string,
-    dto: UpdateCustomerDto,
-    context: SalesRequestContext,
-  ): Promise<CustomerResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const customer = await this.findCustomerEntity(customerId, companyId);
-
-    if (dto.name !== undefined) {
-      customer.name = this.normalizeRequiredText(dto.name, 'Customer name');
+    if (filter.warehouseId) {
+      query.andWhere('salesOrder.warehouse_id = :warehouseId', {
+        warehouseId: filter.warehouseId,
+      });
     }
 
-    if (dto.email !== undefined) {
-      const email = this.normalizeEmail(dto.email);
+    if (filter.salesQuotationId) {
+      query.andWhere(
+        'salesOrder.sales_quotation_id = :salesQuotationId',
+        { salesQuotationId: filter.salesQuotationId },
+      );
+    }
 
-      if (email && email !== customer.email) {
-        await this.ensureCustomerEmailAvailable(companyId, email, customer.id);
+    if (filter.status) {
+      query.andWhere('salesOrder.status = :status', {
+        status: filter.status,
+      });
+    }
+
+    if (filter.dateFrom) {
+      query.andWhere('salesOrder.order_date >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
+    }
+
+    if (filter.dateTo) {
+      query.andWhere('salesOrder.order_date <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
+    }
+
+    const sortColumns: Record<string, string> = {
+      orderNumber: 'salesOrder.order_number',
+      orderDate: 'salesOrder.order_date',
+      expectedDeliveryDate: 'salesOrder.expected_delivery_date',
+      grandTotal: 'salesOrder.grand_total',
+      createdAt: 'salesOrder.created_at',
+      updatedAt: 'salesOrder.updated_at',
+    };
+
+    query
+      .orderBy(
+        sortColumns[filter.sortBy] ?? 'salesOrder.created_at',
+        filter.sortOrder,
+      )
+      .addOrderBy('salesOrder.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .distinct(true);
+
+    const [orders, total] = await query.getManyAndCount();
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+    return {
+      data: orders.map((order) => this.toResponse(order)),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  async findOne(
+    id: string,
+    companyId: string,
+  ): Promise<SalesOrderResponseDto> {
+    return this.toResponse(await this.getEntity(id, companyId));
+  }
+
+  async update(
+    id: string,
+    dto: UpdateSalesOrderDto,
+    companyId: string,
+    userId: string,
+  ): Promise<SalesOrderResponseDto> {
+    return this.dataSource.transaction(async (manager) => {
+      const orderRepository = manager.getRepository(SalesOrderEntity);
+      const itemRepository = manager.getRepository(SalesOrderItemEntity);
+
+      const order = await orderRepository.findOne({
+        where: { id, companyId },
+        relations: { items: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Sales order not found.');
       }
 
-      customer.email = email;
-    }
+      this.ensureDraft(order);
 
-    if (dto.phone !== undefined) {
-      customer.phone = this.normalizeNullableText(dto.phone);
-    }
+      const mergedDto: CreateSalesOrderDto = {
+        customerId: dto.customerId ?? order.customerId,
+        warehouseId: dto.warehouseId ?? order.warehouseId,
+        salesQuotationId:
+          dto.salesQuotationId ?? order.salesQuotationId ?? undefined,
+        orderDate: dto.orderDate ?? order.orderDate,
+        expectedDeliveryDate:
+          dto.expectedDeliveryDate ??
+          order.expectedDeliveryDate ??
+          undefined,
+        currency: dto.currency ?? order.currency,
+        shippingTotal:
+          dto.shippingTotal ?? Number(order.shippingTotal),
+        customerReference:
+          dto.customerReference ??
+          order.customerReference ??
+          undefined,
+        shippingAddress:
+          dto.shippingAddress ?? order.shippingAddress ?? undefined,
+        notes: dto.notes ?? order.notes ?? undefined,
+        items:
+          dto.items ??
+          order.items.map((item) => ({
+            itemId: item.itemId,
+            salesQuotationItemId:
+              item.salesQuotationItemId ?? undefined,
+            description: item.description ?? undefined,
+            quantity: Number(item.quantity),
+            unitPrice: Number(item.unitPrice),
+            discountPercent: Number(item.discountPercent),
+            taxPercent: Number(item.taxPercent),
+          })),
+      };
 
-    if (dto.address !== undefined) {
-      customer.address = this.normalizeNullableText(dto.address);
-    }
+      await this.validateReferences(mergedDto, companyId);
 
-    if (dto.tallyLedgerName !== undefined) {
-      customer.tallyLedgerName = this.normalizeNullableText(
-        dto.tallyLedgerName,
-      );
-    }
+      if (dto.items) {
+        this.ensureUniqueItems(dto.items.map((item) => item.itemId));
 
-    if (dto.creditLimit !== undefined) {
-      customer.creditLimit = this.ensureNonNegativeNumber(
-        dto.creditLimit,
-        'Credit limit',
-      );
-    }
-
-    if (dto.isActive !== undefined) {
-      customer.isActive = dto.isActive;
-    }
-
-    const savedCustomer = await this.customerRepository.save(customer);
-
-    this.logger.log(
-      `Customer ${savedCustomer.id} updated by ${
-        context.actorId ?? 'unknown actor'
-      }`,
-    );
-
-    return this.toCustomerResponse(savedCustomer);
-  }
-
-  async deleteCustomer(
-    customerId: string,
-    context: SalesRequestContext,
-  ): Promise<void> {
-    const companyId = this.requireCompanyId(context);
-
-    const customer = await this.findCustomerEntity(customerId, companyId);
-
-    const linkedOrderCount = await this.salesOrderRepository.count({
-      where: {
-        companyId,
-        customerId,
-        deletedAt: IsNull(),
-      },
-    });
-
-    if (linkedOrderCount > 0) {
-      throw new BadRequestException(
-        'Customer cannot be deleted because sales orders are linked to this customer',
-      );
-    }
-
-    await this.customerRepository.softRemove(customer);
-
-    this.logger.log(
-      `Customer ${customer.id} deleted by ${
-        context.actorId ?? 'unknown actor'
-      }`,
-    );
-  }
-
-  // ==========================================================================
-  // SALES ORDER CREATION
-  // ==========================================================================
-
-  async createSalesOrder(
-    dto: CreateSalesOrderDto,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const actorId = this.requireActorId(context);
-
-    this.validateOrderDates(dto.orderDate, dto.expectedDeliveryDate);
-
-    return this.dataSource.transaction(
-      async (entityManager: EntityManager): Promise<SalesOrderResponseDto> => {
-        const customerRepository = entityManager.getRepository(CustomerEntity);
-
-        const orderRepository = entityManager.getRepository(SalesOrderEntity);
-
-        const orderItemRepository =
-          entityManager.getRepository(SalesOrderItemEntity);
-
-        const itemRepository = entityManager.getRepository(ItemEntity);
-
-        const customer = await customerRepository.findOne({
-          where: {
-            id: dto.customerId,
-            companyId,
-            isActive: true,
-            deletedAt: IsNull(),
-          },
+        await itemRepository.delete({
+          salesOrderId: order.id,
         });
 
-        if (!customer) {
-          throw new NotFoundException('Active customer not found');
-        }
-
-        const calculated = await this.calculateOrderLines(
-          dto.items,
-          companyId,
-          itemRepository,
-        );
-
-        const orderNumber = await this.generateUniqueOrderNumber(
-          companyId,
-          orderRepository,
-        );
-
-        const approvalRequired =
-          calculated.grandTotal >= this.approvalThreshold;
-
-        const order = orderRepository.create({
-          companyId,
-          customerId: customer.id,
-          createdBy: actorId,
-          orderNumber,
-          orderDate: dto.orderDate,
-          expectedDeliveryDate: dto.expectedDeliveryDate ?? null,
-          status: SalesOrderStatus.DRAFT,
-          subtotal: calculated.subtotal,
-          discountTotal: calculated.discountTotal,
-          taxTotal: calculated.taxTotal,
-          grandTotal: calculated.grandTotal,
-          notes: this.normalizeNullableText(dto.notes),
-          approvalRequired,
-          approvedBy: null,
-          approvedAt: null,
-          rejectionReason: null,
-          syncStatus: SalesOrderSyncStatus.PENDING,
-          lastSyncedAt: null,
-        });
-
-        const savedOrder = await orderRepository.save(order);
-
-        const orderItems = calculated.lines.map((line) =>
-          orderItemRepository.create({
-            salesOrderId: savedOrder.id,
-            itemId: line.item.id,
-            itemName: line.item.name,
-            sku: line.item.sku,
-            quantity: line.quantity,
-            unit: line.item.unit,
-            unitPrice: line.unitPrice,
-            discountPercent: line.discountPercent,
-            taxPercent: line.taxPercent,
-            lineSubtotal: line.lineSubtotal,
-            lineDiscount: line.lineDiscount,
-            lineTax: line.lineTax,
-            lineTotal: line.lineTotal,
-          }),
-        );
-
-        await orderItemRepository.save(orderItems);
-
-        const createdOrder = await orderRepository.findOne({
-          where: {
-            id: savedOrder.id,
-            companyId,
-          },
-          relations: {
-            customer: true,
-            items: true,
-          },
-        });
-
-        if (!createdOrder) {
-          throw new NotFoundException(
-            'Created sales order could not be loaded',
-          );
-        }
-
-        this.logger.log(
-          `Sales order ${createdOrder.orderNumber} created by ${actorId}`,
-        );
-
-        return this.toSalesOrderResponse(createdOrder);
-      },
-    );
-  }
-
-  async listSalesOrders(
-    query: ListSalesOrdersQueryDto,
-    context: SalesRequestContext,
-  ): Promise<PaginatedSalesOrdersResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
-
-    const queryBuilder = this.salesOrderRepository
-      .createQueryBuilder('order')
-      .leftJoinAndSelect('order.customer', 'customer')
-      .leftJoinAndSelect('order.items', 'items')
-      .where('order.companyId = :companyId', {
-        companyId,
-      })
-      .andWhere('order.deletedAt IS NULL');
-
-    const search = query.search?.trim();
-
-    if (search) {
-      queryBuilder.andWhere(
-        new Brackets((builder) => {
-          builder
-            .where('LOWER(order.orderNumber) LIKE LOWER(:search)', {
-              search: `%${search}%`,
-            })
-            .orWhere('LOWER(customer.name) LIKE LOWER(:search)', {
-              search: `%${search}%`,
-            })
-            .orWhere(
-              `LOWER(COALESCE(customer.email, ''))
-             LIKE LOWER(:search)`,
-              {
-                search: `%${search}%`,
-              },
-            );
-        }),
-      );
-    }
-
-    if (query.customerId) {
-      queryBuilder.andWhere('order.customerId = :customerId', {
-        customerId: query.customerId,
-      });
-    }
-
-    if (query.createdBy) {
-      queryBuilder.andWhere('order.createdBy = :createdBy', {
-        createdBy: query.createdBy,
-      });
-    }
-
-    if (query.status) {
-      queryBuilder.andWhere('order.status = :status', {
-        status: query.status,
-      });
-    }
-
-    if (query.syncStatus) {
-      queryBuilder.andWhere('order.syncStatus = :syncStatus', {
-        syncStatus: query.syncStatus,
-      });
-    }
-
-    if (query.dateFrom) {
-      queryBuilder.andWhere('order.orderDate >= :dateFrom', {
-        dateFrom: query.dateFrom,
-      });
-    }
-
-    if (query.dateTo) {
-      queryBuilder.andWhere('order.orderDate <= :dateTo', {
-        dateTo: query.dateTo,
-      });
-    }
-
-    const allowedSortColumns: Record<string, string> = {
-      createdAt: 'order.createdAt',
-      updatedAt: 'order.updatedAt',
-      orderDate: 'order.orderDate',
-      orderNumber: 'order.orderNumber',
-      grandTotal: 'order.grandTotal',
-      status: 'order.status',
-    };
-
-    const sortColumn =
-      allowedSortColumns[query.sortBy ?? 'createdAt'] ?? 'order.createdAt';
-
-    const sortOrder = query.sortOrder === 'ASC' ? 'ASC' : 'DESC';
-
-    const [orders, total] = await queryBuilder
-      .orderBy(sortColumn, sortOrder)
-      .addOrderBy('items.createdAt', 'ASC')
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      data: orders.map((order) => this.toSalesOrderResponse(order)),
-      page,
-      limit,
-      total,
-      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
-    };
-  }
-  async getSalesOrderById(
-    orderId: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const order = await this.findSalesOrderEntity(orderId, companyId);
-
-    return this.toSalesOrderResponse(order);
-  }
-  async updateSalesOrder(
-    orderId: string,
-    dto: UpdateSalesOrderDto,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    return this.dataSource.transaction(
-      async (entityManager: EntityManager): Promise<SalesOrderResponseDto> => {
-        const orderRepository = entityManager.getRepository(SalesOrderEntity);
-
-        const customerRepository = entityManager.getRepository(CustomerEntity);
-
-        const orderItemRepository =
-          entityManager.getRepository(SalesOrderItemEntity);
-
-        const itemRepository = entityManager.getRepository(ItemEntity);
-
-        const order = await orderRepository.findOne({
-          where: {
-            id: orderId,
-            companyId,
-            deletedAt: IsNull(),
-          },
-          relations: {
-            customer: true,
-            items: true,
-          },
-        });
-
-        if (!order) {
-          throw new NotFoundException('Sales order not found');
-        }
-
-        if (
-          order.status !== SalesOrderStatus.DRAFT &&
-          order.status !== SalesOrderStatus.REJECTED
-        ) {
-          throw new BadRequestException(
-            'Only draft or rejected sales orders can be edited',
-          );
-        }
-
-        if (dto.customerId !== undefined) {
-          const customer = await customerRepository.findOne({
-            where: {
-              id: dto.customerId,
-              companyId,
-              isActive: true,
-              deletedAt: IsNull(),
-            },
-          });
-
-          if (!customer) {
-            throw new NotFoundException('Active customer not found');
-          }
-
-          order.customerId = customer.id;
-          order.customer = customer;
-        }
-
-        const orderDate = dto.orderDate ?? order.orderDate;
-
-        const expectedDeliveryDate =
-          dto.expectedDeliveryDate === undefined
-            ? order.expectedDeliveryDate
-            : dto.expectedDeliveryDate;
-
-        this.validateOrderDates(orderDate, expectedDeliveryDate);
-
-        order.orderDate = orderDate;
-        order.expectedDeliveryDate = expectedDeliveryDate;
-
-        if (dto.notes !== undefined) {
-          order.notes = this.normalizeNullableText(dto.notes);
-        }
-
-        if (dto.items !== undefined) {
-          const calculated = await this.calculateOrderLines(
-            dto.items,
-            companyId,
-            itemRepository,
+        order.items = dto.items.map((line) => {
+          const totals = this.calculateLine(
+            line.quantity,
+            line.unitPrice,
+            line.discountPercent ?? 0,
+            line.taxPercent ?? 0,
           );
 
-          await orderItemRepository.delete({
+          return itemRepository.create({
             salesOrderId: order.id,
+            itemId: line.itemId,
+            salesQuotationItemId:
+              line.salesQuotationItemId ?? null,
+            description: this.optional(line.description),
+            quantity: line.quantity,
+            deliveredQuantity: 0,
+            unitPrice: line.unitPrice,
+            discountPercent: line.discountPercent ?? 0,
+            taxPercent: line.taxPercent ?? 0,
+            ...totals,
           });
-
-          const newOrderItems = calculated.lines.map((line) =>
-            orderItemRepository.create({
-              salesOrderId: order.id,
-              itemId: line.item.id,
-              itemName: line.item.name,
-              sku: line.item.sku,
-              quantity: line.quantity,
-              unit: line.item.unit,
-              unitPrice: line.unitPrice,
-              discountPercent: line.discountPercent,
-              taxPercent: line.taxPercent,
-              lineSubtotal: line.lineSubtotal,
-              lineDiscount: line.lineDiscount,
-              lineTax: line.lineTax,
-              lineTotal: line.lineTotal,
-            }),
-          );
-
-          await orderItemRepository.save(newOrderItems);
-
-          order.subtotal = calculated.subtotal;
-          order.discountTotal = calculated.discountTotal;
-          order.taxTotal = calculated.taxTotal;
-          order.grandTotal = calculated.grandTotal;
-          order.approvalRequired =
-            calculated.grandTotal >= this.approvalThreshold;
-        }
-
-        order.status = SalesOrderStatus.DRAFT;
-        order.approvedBy = null;
-        order.approvedAt = null;
-        order.rejectionReason = null;
-        order.syncStatus = SalesOrderSyncStatus.PENDING;
-        order.lastSyncedAt = null;
-
-        await orderRepository.save(order);
-
-        const updatedOrder = await orderRepository.findOne({
-          where: {
-            id: order.id,
-            companyId,
-          },
-          relations: {
-            customer: true,
-            items: true,
-          },
         });
 
-        if (!updatedOrder) {
-          throw new NotFoundException(
-            'Updated sales order could not be loaded',
-          );
-        }
+        order.items = await itemRepository.save(order.items);
+      }
 
-        this.logger.log(
-          `Sales order ${order.orderNumber} updated by ${
-            context.actorId ?? 'unknown actor'
-          }`,
+      if (dto.customerId !== undefined) {
+        order.customerId = dto.customerId;
+      }
+
+      if (dto.warehouseId !== undefined) {
+        order.warehouseId = dto.warehouseId;
+      }
+
+      if (dto.salesQuotationId !== undefined) {
+        order.salesQuotationId = dto.salesQuotationId ?? null;
+      }
+
+      if (dto.orderDate !== undefined) {
+        order.orderDate = dto.orderDate;
+      }
+
+      if (dto.expectedDeliveryDate !== undefined) {
+        order.expectedDeliveryDate =
+          dto.expectedDeliveryDate ?? null;
+      }
+
+      if (dto.currency !== undefined) {
+        order.currency = dto.currency.toUpperCase();
+      }
+
+      if (dto.shippingTotal !== undefined) {
+        order.shippingTotal = this.round(dto.shippingTotal);
+      }
+
+      if (dto.customerReference !== undefined) {
+        order.customerReference = this.optional(
+          dto.customerReference,
         );
+      }
 
-        return this.toSalesOrderResponse(updatedOrder);
-      },
+      if (dto.shippingAddress !== undefined) {
+        order.shippingAddress = this.optional(dto.shippingAddress);
+      }
+
+      if (dto.notes !== undefined) {
+        order.notes = this.optional(dto.notes);
+      }
+
+      order.updatedBy = userId;
+      this.calculateOrderTotals(order);
+
+      return this.toResponse(
+        await orderRepository.save(order),
+      );
+    });
+  }
+
+  async confirm(
+    id: string,
+    companyId: string,
+    userId: string,
+  ): Promise<SalesOrderResponseDto> {
+    const order = await this.getEntity(id, companyId);
+    this.ensureDraft(order);
+
+    if (!order.items.length) {
+      throw new BadRequestException(
+        'Sales order must contain at least one item.',
+      );
+    }
+
+    order.status = SalesOrderStatus.Confirmed;
+    order.updatedBy = userId;
+
+    return this.toResponse(
+      await this.salesOrderRepository.save(order),
     );
   }
 
-  async submitSalesOrder(
-    orderId: string,
-    context: SalesRequestContext,
+  async cancel(
+    id: string,
+    companyId: string,
+    userId: string,
   ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const order = await this.findSalesOrderEntity(orderId, companyId);
+    const order = await this.getEntity(id, companyId);
 
     if (
-      order.status !== SalesOrderStatus.DRAFT &&
-      order.status !== SalesOrderStatus.REJECTED
+      order.status === SalesOrderStatus.Delivered ||
+      order.status === SalesOrderStatus.PartiallyDelivered
     ) {
-      throw new BadRequestException(
-        'Only draft or rejected sales orders can be submitted',
+      throw new ConflictException(
+        'A delivered or partially delivered sales order cannot be cancelled.',
       );
     }
 
-    if (!order.items || order.items.length === 0) {
-      throw new BadRequestException(
-        'A sales order must contain at least one item',
-      );
+    if (order.status === SalesOrderStatus.Cancelled) {
+      return this.toResponse(order);
     }
 
-    await this.validateCurrentStockForOrder(order.items, companyId);
+    order.status = SalesOrderStatus.Cancelled;
+    order.updatedBy = userId;
 
-    order.status = SalesOrderStatus.SUBMITTED;
-    order.approvedBy = null;
-    order.approvedAt = null;
+    return this.toResponse(
+      await this.salesOrderRepository.save(order),
+    );
+  }
 
-    order.rejectionReason = null;
-    order.syncStatus = SalesOrderSyncStatus.PENDING;
-    order.lastSyncedAt = null;
+  async recalculateDeliveryStatus(
+    id: string,
+    companyId: string,
+  ): Promise<SalesOrderResponseDto> {
+    const order = await this.getEntity(id, companyId);
 
-    await this.salesOrderRepository.save(order);
-
-    const submittedOrder = await this.findSalesOrderEntity(order.id, companyId);
-
-    this.logger.log(
-      `Sales order ${order.orderNumber} submitted by ${
-        context.actorId ?? 'unknown actor'
-      }`,
+    const totalOrdered = order.items.reduce(
+      (sum, item) => sum + Number(item.quantity),
+      0,
+    );
+    const totalDelivered = order.items.reduce(
+      (sum, item) => sum + Number(item.deliveredQuantity),
+      0,
     );
 
-    return this.toSalesOrderResponse(submittedOrder);
-  }
-  async approveSalesOrder(
-    orderId: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-    const actorId = this.requireActorId(context);
-
-    const order = await this.findSalesOrderEntity(orderId, companyId);
-
-    if (order.status !== SalesOrderStatus.SUBMITTED) {
-      throw new BadRequestException(
-        'Only submitted sales orders can be approved',
-      );
+    if (totalDelivered <= 0) {
+      order.status = SalesOrderStatus.Confirmed;
+    } else if (totalDelivered >= totalOrdered) {
+      order.status = SalesOrderStatus.Delivered;
+    } else {
+      order.status = SalesOrderStatus.PartiallyDelivered;
     }
 
-    await this.validateCurrentStockForOrder(order.items, companyId);
-
-    order.status = SalesOrderStatus.APPROVED;
-    order.approvedBy = actorId;
-    order.approvedAt = new Date();
-    order.rejectionReason = null;
-    order.syncStatus = SalesOrderSyncStatus.PENDING;
-    order.lastSyncedAt = null;
-
-    await this.salesOrderRepository.save(order);
-
-    const approvedOrder = await this.findSalesOrderEntity(order.id, companyId);
-
-    this.logger.log(`Sales order ${order.orderNumber} approved by ${actorId}`);
-
-    return this.toSalesOrderResponse(approvedOrder);
-  }
-  async rejectSalesOrder(
-    orderId: string,
-    reason: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-    const actorId = this.requireActorId(context);
-
-    const order = await this.findSalesOrderEntity(orderId, companyId);
-
-    if (order.status !== SalesOrderStatus.SUBMITTED) {
-      throw new BadRequestException(
-        'Only submitted sales orders can be rejected',
-      );
-    }
-
-    const rejectionReason = this.normalizeRequiredText(
-      reason,
-      'Rejection reason',
+    return this.toResponse(
+      await this.salesOrderRepository.save(order),
     );
-
-    order.status = SalesOrderStatus.REJECTED;
-    order.approvedBy = null;
-    order.approvedAt = null;
-    order.rejectionReason = rejectionReason;
-    order.syncStatus = SalesOrderSyncStatus.PENDING;
-    order.lastSyncedAt = null;
-
-    await this.salesOrderRepository.save(order);
-
-    const rejectedOrder = await this.findSalesOrderEntity(order.id, companyId);
-
-    this.logger.log(`Sales order ${order.orderNumber} rejected by ${actorId}`);
-
-    return this.toSalesOrderResponse(rejectedOrder);
   }
-  async cancelSalesOrder(
-    orderId: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-    const actorId = this.requireActorId(context);
 
-    const order = await this.findSalesOrderEntity(orderId, companyId);
+  async remove(
+    id: string,
+    companyId: string,
+  ): Promise<{ message: string }> {
+    const order = await this.getEntity(id, companyId);
+    this.ensureDraft(order);
 
-    const cancellableStatuses = [
-      SalesOrderStatus.DRAFT,
-      SalesOrderStatus.SUBMITTED,
-      SalesOrderStatus.APPROVED,
-      SalesOrderStatus.REJECTED,
-    ];
-
-    if (!cancellableStatuses.includes(order.status)) {
-      throw new BadRequestException('This sales order cannot be cancelled');
-    }
-
-    order.status = SalesOrderStatus.CANCELLED;
-    order.syncStatus = SalesOrderSyncStatus.PENDING;
-    order.lastSyncedAt = null;
-
-    await this.salesOrderRepository.save(order);
-
-    const cancelledOrder = await this.findSalesOrderEntity(order.id, companyId);
-
-    this.logger.log(`Sales order ${order.orderNumber} cancelled by ${actorId}`);
-
-    return this.toSalesOrderResponse(cancelledOrder);
-  }
-  async fulfilSalesOrder(
-    orderId: string,
-    context: SalesRequestContext,
-  ): Promise<SalesOrderResponseDto> {
-    const companyId = this.requireCompanyId(context);
-    const actorId = this.requireActorId(context);
-
-    try {
-      return await this.dataSource.transaction(
-        async (
-          entityManager: EntityManager,
-        ): Promise<SalesOrderResponseDto> => {
-          const orderRepository = entityManager.getRepository(SalesOrderEntity);
-
-          const orderItemRepository =
-            entityManager.getRepository(SalesOrderItemEntity);
-
-          const itemRepository = entityManager.getRepository(ItemEntity);
-
-          // Lock only the sales_orders table row.
-          // Eager relations are disabled to prevent LEFT JOIN ... FOR UPDATE.
-          const order = await orderRepository.findOne({
-            where: {
-              id: orderId,
-              companyId,
-              deletedAt: IsNull(),
-            },
-            loadEagerRelations: false,
-            lock: {
-              mode: 'pessimistic_write',
-            },
-          });
-
-          if (!order) {
-            throw new NotFoundException('Sales order not found');
-          }
-
-          if (order.status !== SalesOrderStatus.APPROVED) {
-            throw new BadRequestException(
-              `Only approved sales orders can be fulfilled. Current status: ${order.status}`,
-            );
-          }
-
-          const orderItems = await orderItemRepository.find({
-            where: {
-              salesOrderId: order.id,
-            },
-            loadEagerRelations: false,
-          });
-
-          if (orderItems.length === 0) {
-            throw new BadRequestException(
-              'Sales order must contain at least one item',
-            );
-          }
-
-          for (const orderItem of orderItems) {
-            if (!orderItem.itemId) {
-              throw new BadRequestException(
-                `Order item ${orderItem.id} has no inventory item reference`,
-              );
-            }
-
-            // Lock only the items table row.
-            // Eager relations are disabled here as well.
-            const inventoryItem = await itemRepository.findOne({
-              where: {
-                id: orderItem.itemId,
-                companyId,
-                deletedAt: IsNull(),
-              },
-              loadEagerRelations: false,
-              lock: {
-                mode: 'pessimistic_write',
-              },
-            });
-
-            if (!inventoryItem) {
-              throw new BadRequestException(
-                `Inventory item ${
-                  orderItem.itemName ?? orderItem.itemId
-                } does not exist`,
-              );
-            }
-
-            const requestedQuantity = Number(orderItem.quantity);
-            const availableQuantity = Number(inventoryItem.stockQty);
-
-            if (!Number.isFinite(requestedQuantity) || requestedQuantity <= 0) {
-              throw new BadRequestException(
-                `Invalid quantity for ${
-                  orderItem.itemName ?? inventoryItem.name
-                }: ${orderItem.quantity}`,
-              );
-            }
-
-            if (!Number.isFinite(availableQuantity) || availableQuantity < 0) {
-              throw new InternalServerErrorException(
-                `Invalid stock quantity for ${inventoryItem.name}: ${inventoryItem.stockQty}`,
-              );
-            }
-
-            if (requestedQuantity > availableQuantity) {
-              throw new BadRequestException(
-                `Insufficient stock for ${
-                  orderItem.itemName ?? inventoryItem.name
-                }. Available: ${availableQuantity}, required: ${requestedQuantity}`,
-              );
-            }
-
-            const remainingStock = availableQuantity - requestedQuantity;
-
-            inventoryItem.stockQty = remainingStock;
-            inventoryItem.syncStatus = InventorySyncStatus.PENDING;
-            inventoryItem.lastSyncedAt = null;
-
-            await itemRepository.save(inventoryItem);
-          }
-
-          order.status = SalesOrderStatus.FULFILLED;
-          order.syncStatus = SalesOrderSyncStatus.PENDING;
-          order.lastSyncedAt = null;
-
-          await orderRepository.save(order);
-
-          // Relations are safe here because this query has no lock.
-          const fulfilledOrder = await orderRepository.findOne({
-            where: {
-              id: order.id,
-              companyId,
-              deletedAt: IsNull(),
-            },
-            relations: {
-              customer: true,
-              items: true,
-            },
-          });
-
-          if (!fulfilledOrder) {
-            throw new InternalServerErrorException(
-              'Fulfilled sales order could not be reloaded',
-            );
-          }
-
-          if (fulfilledOrder.status !== SalesOrderStatus.FULFILLED) {
-            throw new InternalServerErrorException(
-              `Unexpected status after fulfilment: ${fulfilledOrder.status}`,
-            );
-          }
-
-          this.logger.log(
-            `Sales order ${fulfilledOrder.orderNumber} fulfilled by ${actorId}`,
-          );
-
-          return this.toSalesOrderResponse(fulfilledOrder);
-        },
-      );
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-
-      const stack = error instanceof Error ? error.stack : undefined;
-
-      this.logger.error(
-        `Failed to fulfil sales order ${orderId}: ${message}`,
-        stack,
-      );
-
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
-      ) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to fulfil sales order: ${message}`,
-      );
-    }
-  }
-  async getSalesOrderSummary(
-    context: SalesRequestContext,
-  ): Promise<SalesOrderSummaryResponseDto> {
-    const companyId = this.requireCompanyId(context);
-
-    const result = await this.salesOrderRepository
-      .createQueryBuilder('order')
-      .select('COUNT(order.id)', 'totalOrders')
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :draftStatus
-      )`,
-        'draftOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :submittedStatus
-      )`,
-        'submittedOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :approvedStatus
-      )`,
-        'approvedOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :rejectedStatus
-      )`,
-        'rejectedOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :fulfilledStatus
-      )`,
-        'fulfilledOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.status = :cancelledStatus
-      )`,
-        'cancelledOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.syncStatus = :pendingSyncStatus
-      )`,
-        'pendingSyncOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.syncStatus = :syncedSyncStatus
-      )`,
-        'syncedOrders',
-      )
-      .addSelect(
-        `COUNT(order.id) FILTER (
-        WHERE order.syncStatus = :failedSyncStatus
-      )`,
-        'failedSyncOrders',
-      )
-      .addSelect(
-        `COALESCE(
-        SUM(order.grandTotal) FILTER (
-          WHERE order.status = :fulfilledStatus
-        ),
-        0
-      )`,
-        'totalSalesValue',
-      )
-      .where('order.companyId = :companyId', {
-        companyId,
-      })
-      .andWhere('order.deletedAt IS NULL')
-      .setParameters({
-        draftStatus: SalesOrderStatus.DRAFT,
-        submittedStatus: SalesOrderStatus.SUBMITTED,
-        approvedStatus: SalesOrderStatus.APPROVED,
-        rejectedStatus: SalesOrderStatus.REJECTED,
-        fulfilledStatus: SalesOrderStatus.FULFILLED,
-        cancelledStatus: SalesOrderStatus.CANCELLED,
-        pendingSyncStatus: SalesOrderSyncStatus.PENDING,
-        syncedSyncStatus: SalesOrderSyncStatus.SYNCED,
-        failedSyncStatus: SalesOrderSyncStatus.FAILED,
-      })
-      .getRawOne<{
-        totalOrders: string;
-        draftOrders: string;
-        submittedOrders: string;
-        approvedOrders: string;
-        rejectedOrders: string;
-        fulfilledOrders: string;
-        cancelledOrders: string;
-        pendingSyncOrders: string;
-        syncedOrders: string;
-        failedSyncOrders: string;
-        totalSalesValue: string;
-      }>();
+    await this.salesOrderRepository.softRemove(order);
 
     return {
-      totalOrders: Number(result?.totalOrders ?? 0),
-      draftOrders: Number(result?.draftOrders ?? 0),
-      submittedOrders: Number(result?.submittedOrders ?? 0),
-      approvedOrders: Number(result?.approvedOrders ?? 0),
-      rejectedOrders: Number(result?.rejectedOrders ?? 0),
-      fulfilledOrders: Number(result?.fulfilledOrders ?? 0),
-      cancelledOrders: Number(result?.cancelledOrders ?? 0),
-      pendingSyncOrders: Number(result?.pendingSyncOrders ?? 0),
-      syncedOrders: Number(result?.syncedOrders ?? 0),
-      failedSyncOrders: Number(result?.failedSyncOrders ?? 0),
-      totalSalesValue: Number(result?.totalSalesValue ?? 0),
+      message: 'Sales order deleted successfully.',
     };
   }
 
-  // ==========================================================================
-  // PRIVATE CUSTOMER HELPERS
-  // ==========================================================================
-
-  private async findSalesOrderEntity(
-    orderId: string,
-    companyId: string,
-  ): Promise<SalesOrderEntity> {
-    const order = await this.salesOrderRepository.findOne({
-      where: {
-        id: orderId,
-        companyId,
-        deletedAt: IsNull(),
-      },
-      relations: {
-        customer: true,
-        items: true,
-      },
-    });
-
-    if (!order) {
-      throw new NotFoundException('Sales order not found');
-    }
-
-    return order;
-  }
-  private async validateCurrentStockForOrder(
-    orderItems: SalesOrderItemEntity[],
+  private async validateReferences(
+    dto: CreateSalesOrderDto,
     companyId: string,
   ): Promise<void> {
-    const itemIds = orderItems.map((orderItem) => orderItem.itemId);
-
-    const inventoryItems = await this.itemRepository.find({
-      where: {
-        id: In(itemIds),
-        companyId,
-        deletedAt: IsNull(),
-      },
-    });
-
-    const inventoryMap = new Map(inventoryItems.map((item) => [item.id, item]));
-
-    for (const orderItem of orderItems) {
-      const inventoryItem = inventoryMap.get(orderItem.itemId);
-
-      if (!inventoryItem) {
-        throw new BadRequestException(
-          `Inventory item ${orderItem.itemName} no longer exists`,
-        );
-      }
-
-      if (Number(orderItem.quantity) > Number(inventoryItem.stockQty)) {
-        throw new BadRequestException(
-          `Insufficient stock for ${orderItem.itemName}. Available: ${inventoryItem.stockQty}, requested: ${orderItem.quantity}`,
-        );
-      }
-    }
-  }
-
-  private async ensureCustomerEmailAvailable(
-    companyId: string,
-    email: string,
-    excludedCustomerId?: string,
-  ): Promise<void> {
-    const queryBuilder = this.customerRepository
-      .createQueryBuilder('customer')
-      .where('customer.companyId = :companyId', {
-        companyId,
-      })
-      .andWhere(
-        `LOWER(customer.email)
-           = LOWER(:email)`,
-        {
-          email,
-        },
-      )
-      .andWhere('customer.deletedAt IS NULL');
-
-    if (excludedCustomerId) {
-      queryBuilder.andWhere('customer.id != :excludedCustomerId', {
-        excludedCustomerId,
-      });
-    }
-
-    const duplicate = await queryBuilder.getOne();
-
-    if (duplicate) {
-      throw new ConflictException('A customer with this email already exists');
-    }
-  }
-
-  // ==========================================================================
-  // PRIVATE SALES ORDER HELPERS
-  // ==========================================================================
-
-  private async calculateOrderLines(
-    requestedLines: OrderItemDto[],
-    companyId: string,
-    itemRepository: Repository<ItemEntity>,
-  ): Promise<CalculatedOrderTotals> {
-    if (!Array.isArray(requestedLines) || requestedLines.length === 0) {
-      throw new BadRequestException(
-        'A sales order must contain at least one item',
-      );
-    }
-
-    const requestedItemIds = requestedLines.map((line) => line.itemId);
-
-    const uniqueItemIds = new Set(requestedItemIds);
-
-    if (uniqueItemIds.size !== requestedItemIds.length) {
-      throw new BadRequestException(
-        'The same inventory item cannot appear more than once in an order',
-      );
-    }
-
-    const inventoryItems = await itemRepository.find({
-      where: {
-        id: In([...uniqueItemIds]),
-        companyId,
-        deletedAt: IsNull(),
-      },
-    });
-
-    if (inventoryItems.length !== uniqueItemIds.size) {
-      throw new BadRequestException(
-        'One or more inventory items were not found',
-      );
-    }
-
-    const inventoryById = new Map(
-      inventoryItems.map((item) => [item.id, item]),
-    );
-
-    const calculatedLines: CalculatedOrderLine[] = [];
-
-    for (const requestedLine of requestedLines) {
-      const item = inventoryById.get(requestedLine.itemId);
-
-      if (!item) {
-        throw new BadRequestException(
-          `Inventory item ${requestedLine.itemId} was not found`,
-        );
-      }
-
-      const quantity = this.ensurePositiveNumber(
-        requestedLine.quantity,
-        `Quantity for ${item.name}`,
-      );
-
-      if (quantity > item.stockQty) {
-        throw new BadRequestException(
-          `Insufficient stock for ${item.name}. Available: ${item.stockQty}, requested: ${quantity}`,
-        );
-      }
-
-      const unitPrice =
-        requestedLine.unitPrice === undefined
-          ? this.ensureNonNegativeNumber(
-              item.salePrice,
-              `Sale price for ${item.name}`,
-            )
-          : this.ensureNonNegativeNumber(
-              requestedLine.unitPrice,
-              `Unit price for ${item.name}`,
-            );
-
-      const discountPercent = this.ensurePercentage(
-        requestedLine.discountPercent ?? 0,
-        `Discount percentage for ${item.name}`,
-      );
-
-      const taxPercent = this.ensurePercentage(
-        requestedLine.taxPercent ?? 0,
-        `Tax percentage for ${item.name}`,
-      );
-
-      const rawSubtotal = quantity * unitPrice;
-
-      const rawDiscount = rawSubtotal * (discountPercent / 100);
-
-      const taxableAmount = rawSubtotal - rawDiscount;
-
-      const rawTax = taxableAmount * (taxPercent / 100);
-
-      const rawTotal = taxableAmount + rawTax;
-
-      calculatedLines.push({
-        item,
-        quantity: this.roundNumber(quantity, 4),
-        unitPrice: this.roundNumber(unitPrice, 4),
-        discountPercent: this.roundNumber(discountPercent, 2),
-        taxPercent: this.roundNumber(taxPercent, 2),
-        lineSubtotal: this.roundMoney(rawSubtotal),
-        lineDiscount: this.roundMoney(rawDiscount),
-        lineTax: this.roundMoney(rawTax),
-        lineTotal: this.roundMoney(rawTotal),
-      });
-    }
-
-    const subtotal = this.roundMoney(
-      calculatedLines.reduce((total, line) => total + line.lineSubtotal, 0),
-    );
-
-    const discountTotal = this.roundMoney(
-      calculatedLines.reduce((total, line) => total + line.lineDiscount, 0),
-    );
-
-    const taxTotal = this.roundMoney(
-      calculatedLines.reduce((total, line) => total + line.lineTax, 0),
-    );
-
-    const grandTotal = this.roundMoney(
-      calculatedLines.reduce((total, line) => total + line.lineTotal, 0),
-    );
-
-    return {
-      lines: calculatedLines,
-      subtotal,
-      discountTotal,
-      taxTotal,
-      grandTotal,
-    };
-  }
-
-  private async generateUniqueOrderNumber(
-    companyId: string,
-    orderRepository: Repository<SalesOrderEntity>,
-  ): Promise<string> {
-    const now = new Date();
-
-    const year = String(now.getFullYear());
-
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-
-    const day = String(now.getDate()).padStart(2, '0');
-
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const randomPart = randomBytes(3).toString('hex').toUpperCase();
-
-      const orderNumber = `SO-${year}${month}${day}-${randomPart}`;
-
-      const existing = await orderRepository.findOne({
-        where: {
-          companyId,
-          orderNumber,
-          deletedAt: IsNull(),
-        },
-      });
-
-      if (!existing) {
-        return orderNumber;
-      }
-    }
-
-    throw new ConflictException(
-      'Unable to generate a unique sales order number',
-    );
-  }
-
-  // ==========================================================================
-  // RESPONSE MAPPERS
-  // ==========================================================================
-
-  private toCustomerResponse(customer: CustomerEntity): CustomerResponseDto {
-    return {
-      id: customer.id,
-      companyId: customer.companyId,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address,
-      tallyLedgerName: customer.tallyLedgerName,
-      creditLimit: Number(customer.creditLimit),
-      isActive: customer.isActive,
-      createdAt: customer.createdAt,
-      updatedAt: customer.updatedAt,
-    };
-  }
-
-  private toSalesOrderResponse(order: SalesOrderEntity): SalesOrderResponseDto {
-    if (!order.customer) {
-      throw new Error('Sales order customer relation was not loaded');
-    }
-
-    return {
-      id: order.id,
-      companyId: order.companyId,
-      customerId: order.customerId,
-      createdBy: order.createdBy,
-      orderNumber: order.orderNumber,
-      orderDate: order.orderDate,
-      expectedDeliveryDate: order.expectedDeliveryDate,
-      status: order.status,
-      subtotal: Number(order.subtotal),
-      taxTotal: Number(order.taxTotal),
-      discountTotal: Number(order.discountTotal),
-      grandTotal: Number(order.grandTotal),
-      notes: order.notes,
-      approvalRequired: order.approvalRequired,
-      approvedBy: order.approvedBy,
-      approvedAt: order.approvedAt,
-      rejectionReason: order.rejectionReason,
-      syncStatus: order.syncStatus,
-      lastSyncedAt: order.lastSyncedAt,
-      customer: {
-        id: order.customer.id,
-        name: order.customer.name,
-        email: order.customer.email,
-        phone: order.customer.phone,
-        tallyLedgerName: order.customer.tallyLedgerName,
-      },
-      items: (order.items ?? []).map((item) => ({
-        id: item.id,
-        itemId: item.itemId,
-        itemName: item.itemName,
-        sku: item.sku,
-        quantity: Number(item.quantity),
-        unit: item.unit,
-        unitPrice: Number(item.unitPrice),
-        discountPercent: Number(item.discountPercent),
-        taxPercent: Number(item.taxPercent),
-        lineSubtotal: Number(item.lineSubtotal),
-        lineDiscount: Number(item.lineDiscount),
-        lineTax: Number(item.lineTax),
-        lineTotal: Number(item.lineTotal),
-      })),
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
-    };
-  }
-
-  // ==========================================================================
-  // GENERAL VALIDATION HELPERS
-  // ==========================================================================
-
-  private requireCompanyId(context: SalesRequestContext): string {
-    if (!context.companyId) {
-      throw new BadRequestException(
-        'The authenticated user is not assigned to a company',
-      );
-    }
-
-    return context.companyId;
-  }
-
-  private requireActorId(context: SalesRequestContext): string {
-    if (!context.actorId) {
-      throw new BadRequestException(
-        'Authenticated user information is missing',
-      );
-    }
-
-    return context.actorId;
-  }
-
-  private normalizeRequiredText(value: string, fieldName: string): string {
-    const normalized = value.trim();
-
-    if (!normalized) {
-      throw new BadRequestException(`${fieldName} cannot be empty`);
-    }
-
-    return normalized;
-  }
-
-  private normalizeNullableText(
-    value: string | null | undefined,
-  ): string | null {
-    if (value === undefined || value === null) {
-      return null;
-    }
-
-    const normalized = value.trim();
-
-    return normalized.length > 0 ? normalized : null;
-  }
-
-  private normalizeEmail(value: string | null | undefined): string | null {
-    const normalized = this.normalizeNullableText(value);
-
-    return normalized ? normalized.toLowerCase() : null;
-  }
-
-  private ensureNonNegativeNumber(value: number, fieldName: string): number {
-    if (!Number.isFinite(value) || value < 0) {
-      throw new BadRequestException(
-        `${fieldName} must be a non-negative number`,
-      );
-    }
-
-    return value;
-  }
-
-  private ensurePositiveNumber(value: number, fieldName: string): number {
-    if (!Number.isFinite(value) || value <= 0) {
-      throw new BadRequestException(`${fieldName} must be greater than zero`);
-    }
-
-    return value;
-  }
-
-  private ensurePercentage(value: number, fieldName: string): number {
-    if (!Number.isFinite(value) || value < 0 || value > 100) {
-      throw new BadRequestException(`${fieldName} must be between 0 and 100`);
-    }
-
-    return value;
-  }
-
-  private roundMoney(value: number): number {
-    return Math.round((value + Number.EPSILON) * 100) / 100;
-  }
-
-  private roundNumber(value: number, decimalPlaces: number): number {
-    const factor = 10 ** decimalPlaces;
-
-    return Math.round((value + Number.EPSILON) * factor) / factor;
-  }
-
-  private validateOrderDates(
-    orderDate: string,
-    expectedDeliveryDate: string | null | undefined,
-  ): void {
-    const parsedOrderDate = new Date(`${orderDate}T00:00:00Z`);
-
-    if (Number.isNaN(parsedOrderDate.getTime())) {
-      throw new BadRequestException('Order date is invalid');
-    }
-
-    if (!expectedDeliveryDate) {
-      return;
-    }
-
-    const parsedDeliveryDate = new Date(`${expectedDeliveryDate}T00:00:00Z`);
-
-    if (Number.isNaN(parsedDeliveryDate.getTime())) {
-      throw new BadRequestException('Expected delivery date is invalid');
-    }
-
-    if (parsedDeliveryDate < parsedOrderDate) {
-      throw new BadRequestException(
-        'Expected delivery date cannot be before the order date',
-      );
-    }
-  }
-  private async findCustomerEntity(
-    customerId: string,
-    companyId: string,
-  ): Promise<CustomerEntity> {
     const customer = await this.customerRepository.findOne({
       where: {
-        id: customerId,
+        id: dto.customerId,
         companyId,
-        deletedAt: IsNull(),
       },
     });
 
     if (!customer) {
-      throw new NotFoundException('Customer not found');
+      throw new NotFoundException('Customer not found.');
     }
 
-    return customer;
+    const warehouse = await this.warehouseRepository.findOne({
+      where: {
+        id: dto.warehouseId,
+        companyId,
+      },
+    });
+
+    if (!warehouse) {
+      throw new NotFoundException('Warehouse not found.');
+    }
+
+    if (
+      dto.expectedDeliveryDate &&
+      new Date(dto.expectedDeliveryDate).getTime() <
+        new Date(dto.orderDate).getTime()
+    ) {
+      throw new BadRequestException(
+        'Expected delivery date cannot be earlier than order date.',
+      );
+    }
+
+    if (dto.salesQuotationId) {
+      const quotation = await this.quotationRepository.findOne({
+        where: {
+          id: dto.salesQuotationId,
+          companyId,
+          customerId: dto.customerId,
+        },
+        relations: { items: true },
+      });
+
+      if (!quotation) {
+        throw new NotFoundException(
+          'Sales quotation not found.',
+        );
+      }
+
+      if (quotation.status !== SalesQuotationStatus.Accepted) {
+        throw new ConflictException(
+          'Only accepted sales quotations can be converted to sales orders.',
+        );
+      }
+
+      for (const line of dto.items) {
+        if (!line.salesQuotationItemId) {
+          continue;
+        }
+
+        const quotationItem = quotation.items.find(
+          (item) => item.id === line.salesQuotationItemId,
+        );
+
+        if (!quotationItem) {
+          throw new BadRequestException(
+            `Sales quotation item ${line.salesQuotationItemId} is invalid.`,
+          );
+        }
+
+        if (quotationItem.itemId !== line.itemId) {
+          throw new BadRequestException(
+            'Sales quotation item does not match the selected item.',
+          );
+        }
+
+        if (Number(line.quantity) > Number(quotationItem.quantity)) {
+          throw new BadRequestException(
+            'Sales order quantity cannot exceed quotation quantity.',
+          );
+        }
+      }
+    }
+
+    for (const line of dto.items) {
+      const item = await this.itemRepository.findOne({
+        where: {
+          id: line.itemId,
+          companyId,
+        },
+      });
+
+      if (!item) {
+        throw new NotFoundException(
+          `Item ${line.itemId} not found.`,
+        );
+      }
+    }
+  }
+
+  private async getEntity(
+    id: string,
+    companyId: string,
+  ): Promise<SalesOrderEntity> {
+    const order = await this.salesOrderRepository.findOne({
+      where: { id, companyId },
+      relations: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Sales order not found.');
+    }
+
+    return order;
+  }
+
+  private ensureDraft(order: SalesOrderEntity): void {
+    if (order.status !== SalesOrderStatus.Draft) {
+      throw new ConflictException(
+        'Only draft sales orders can be modified.',
+      );
+    }
+  }
+
+  private ensureUniqueItems(itemIds: string[]): void {
+    if (new Set(itemIds).size !== itemIds.length) {
+      throw new BadRequestException(
+        'Duplicate items are not allowed.',
+      );
+    }
+  }
+
+  private calculateLine(
+    quantity: number,
+    unitPrice: number,
+    discountPercent: number,
+    taxPercent: number,
+  ): Pick<
+    SalesOrderItemEntity,
+    'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
+  > {
+    const lineSubtotal = this.round(quantity * unitPrice);
+    const discountAmount = this.round(
+      lineSubtotal * (discountPercent / 100),
+    );
+    const taxableAmount = this.round(
+      lineSubtotal - discountAmount,
+    );
+    const taxAmount = this.round(
+      taxableAmount * (taxPercent / 100),
+    );
+    const lineTotal = this.round(taxableAmount + taxAmount);
+
+    return {
+      lineSubtotal,
+      discountAmount,
+      taxAmount,
+      lineTotal,
+    };
+  }
+
+  private calculateOrderTotals(order: SalesOrderEntity): void {
+    order.subtotal = this.round(
+      order.items.reduce(
+        (sum, item) => sum + Number(item.lineSubtotal),
+        0,
+      ),
+    );
+
+    order.discountTotal = this.round(
+      order.items.reduce(
+        (sum, item) => sum + Number(item.discountAmount),
+        0,
+      ),
+    );
+
+    order.taxTotal = this.round(
+      order.items.reduce(
+        (sum, item) => sum + Number(item.taxAmount),
+        0,
+      ),
+    );
+
+    order.shippingTotal = this.round(
+      Number(order.shippingTotal ?? 0),
+    );
+
+    order.grandTotal = this.round(
+      order.subtotal -
+        order.discountTotal +
+        order.taxTotal +
+        order.shippingTotal,
+    );
+  }
+
+  private async generateOrderNumber(
+    companyId: string,
+    orderDate: string,
+  ): Promise<string> {
+    const year = new Date(orderDate).getUTCFullYear();
+    const prefix = `SO-${year}-`;
+
+    const latest = await this.salesOrderRepository
+      .createQueryBuilder('salesOrder')
+      .withDeleted()
+      .select(
+        'salesOrder.order_number',
+        'orderNumber',
+      )
+      .where('salesOrder.company_id = :companyId', {
+        companyId,
+      })
+      .andWhere(
+        'salesOrder.order_number LIKE :prefix',
+        { prefix: `${prefix}%` },
+      )
+      .orderBy('salesOrder.order_number', 'DESC')
+      .getRawOne<{ orderNumber?: string }>();
+
+    const current = latest?.orderNumber
+      ? Number(latest.orderNumber.replace(prefix, ''))
+      : 0;
+
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
+  }
+
+  private optional(value?: string): string | null {
+    const normalized = value?.trim();
+    return normalized ? normalized : null;
+  }
+
+  private round(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+  }
+
+  private toItemResponse(
+    item: SalesOrderItemEntity,
+  ): SalesOrderItemResponseDto {
+    return {
+      id: item.id,
+      itemId: item.itemId,
+      salesQuotationItemId: item.salesQuotationItemId,
+      description: item.description,
+      quantity: Number(item.quantity),
+      deliveredQuantity: Number(item.deliveredQuantity),
+      unitPrice: Number(item.unitPrice),
+      discountPercent: Number(item.discountPercent),
+      taxPercent: Number(item.taxPercent),
+      lineSubtotal: Number(item.lineSubtotal),
+      discountAmount: Number(item.discountAmount),
+      taxAmount: Number(item.taxAmount),
+      lineTotal: Number(item.lineTotal),
+    };
+  }
+
+  private toResponse(
+    order: SalesOrderEntity,
+  ): SalesOrderResponseDto {
+    return {
+      id: order.id,
+      companyId: order.companyId,
+      customerId: order.customerId,
+      warehouseId: order.warehouseId,
+      salesQuotationId: order.salesQuotationId,
+      orderNumber: order.orderNumber,
+      orderDate: order.orderDate,
+      expectedDeliveryDate: order.expectedDeliveryDate,
+      status: order.status,
+      currency: order.currency,
+      subtotal: Number(order.subtotal),
+      discountTotal: Number(order.discountTotal),
+      taxTotal: Number(order.taxTotal),
+      shippingTotal: Number(order.shippingTotal),
+      grandTotal: Number(order.grandTotal),
+      customerReference: order.customerReference,
+      shippingAddress: order.shippingAddress,
+      notes: order.notes,
+      items: (order.items ?? []).map((item) =>
+        this.toItemResponse(item),
+      ),
+      createdBy: order.createdBy,
+      updatedBy: order.updatedBy,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      deletedAt: order.deletedAt,
+    };
   }
 }

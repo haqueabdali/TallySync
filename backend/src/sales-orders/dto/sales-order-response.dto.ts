@@ -1,168 +1,146 @@
-import {
-  SalesOrderStatus,
-  SalesOrderSyncStatus,
-} from '../entities/sales-order.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class CustomerResponseDto {
-  id: string;
-
-  companyId: string;
-
-  name: string;
-
-  email: string | null;
-
-  phone: string | null;
-
-  address: string | null;
-
-  tallyLedgerName: string | null;
-
-  creditLimit: number;
-
-  isActive: boolean;
-
-  createdAt: Date;
-
-  updatedAt: Date;
-}
-
-export class PaginatedCustomersResponseDto {
-  data: CustomerResponseDto[];
-
-  page: number;
-
-  limit: number;
-
-  total: number;
-
-  totalPages: number;
-}
-
-export class SalesOrderCustomerSummaryDto {
-  id: string;
-
-  name: string;
-
-  email: string | null;
-
-  phone: string | null;
-
-  tallyLedgerName: string | null;
-}
+import { SalesOrderStatus } from '../enums/sales-order-status.enum';
 
 export class SalesOrderItemResponseDto {
-  id: string;
+  @ApiProperty()
+  id!: string;
 
-  itemId: string;
+  @ApiProperty()
+  itemId!: string;
 
-  itemName: string;
+  @ApiProperty({ required: false, nullable: true })
+  salesQuotationItemId!: string | null;
 
-  sku: string | null;
+  @ApiProperty({ required: false, nullable: true })
+  description!: string | null;
 
-  quantity: number;
+  @ApiProperty()
+  quantity!: number;
 
-  unit: string;
+  @ApiProperty()
+  deliveredQuantity!: number;
 
-  unitPrice: number;
+  @ApiProperty()
+  unitPrice!: number;
 
-  discountPercent: number;
+  @ApiProperty()
+  discountPercent!: number;
 
-  taxPercent: number;
+  @ApiProperty()
+  taxPercent!: number;
 
-  lineSubtotal: number;
+  @ApiProperty()
+  lineSubtotal!: number;
 
-  lineDiscount: number;
+  @ApiProperty()
+  discountAmount!: number;
 
-  lineTax: number;
+  @ApiProperty()
+  taxAmount!: number;
 
-  lineTotal: number;
+  @ApiProperty()
+  lineTotal!: number;
 }
 
 export class SalesOrderResponseDto {
-  id: string;
+  @ApiProperty()
+  id!: string;
 
-  companyId: string;
+  @ApiProperty()
+  companyId!: string;
 
-  customerId: string;
+  @ApiProperty()
+  customerId!: string;
 
-  createdBy: string;
+  @ApiProperty()
+  warehouseId!: string;
 
-  orderNumber: string;
+  @ApiProperty({ required: false, nullable: true })
+  salesQuotationId!: string | null;
 
-  orderDate: string;
+  @ApiProperty()
+  orderNumber!: string;
 
-  expectedDeliveryDate: string | null;
+  @ApiProperty()
+  orderDate!: string;
 
-  status: SalesOrderStatus;
+  @ApiProperty({ required: false, nullable: true })
+  expectedDeliveryDate!: string | null;
 
-  subtotal: number;
+  @ApiProperty({ enum: SalesOrderStatus })
+  status!: SalesOrderStatus;
 
-  taxTotal: number;
+  @ApiProperty()
+  currency!: string;
 
-  discountTotal: number;
+  @ApiProperty()
+  subtotal!: number;
 
-  grandTotal: number;
+  @ApiProperty()
+  discountTotal!: number;
 
-  notes: string | null;
+  @ApiProperty()
+  taxTotal!: number;
 
-  approvalRequired: boolean;
+  @ApiProperty()
+  shippingTotal!: number;
 
-  approvedBy: string | null;
+  @ApiProperty()
+  grandTotal!: number;
 
-  approvedAt: Date | null;
+  @ApiProperty({ required: false, nullable: true })
+  customerReference!: string | null;
 
-  rejectionReason: string | null;
+  @ApiProperty({ required: false, nullable: true })
+  shippingAddress!: string | null;
 
-  syncStatus: SalesOrderSyncStatus;
+  @ApiProperty({ required: false, nullable: true })
+  notes!: string | null;
 
-  lastSyncedAt: Date | null;
+  @ApiProperty({ type: SalesOrderItemResponseDto, isArray: true })
+  items!: SalesOrderItemResponseDto[];
 
-  customer: SalesOrderCustomerSummaryDto;
+  @ApiProperty({ required: false, nullable: true })
+  createdBy!: string | null;
 
-  items: SalesOrderItemResponseDto[];
+  @ApiProperty({ required: false, nullable: true })
+  updatedBy!: string | null;
 
-  createdAt: Date;
+  @ApiProperty()
+  createdAt!: Date;
 
-  updatedAt: Date;
+  @ApiProperty()
+  updatedAt!: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  deletedAt!: Date | null;
+}
+
+export class SalesOrderPaginationMetaDto {
+  @ApiProperty()
+  page!: number;
+
+  @ApiProperty()
+  limit!: number;
+
+  @ApiProperty()
+  total!: number;
+
+  @ApiProperty()
+  totalPages!: number;
+
+  @ApiProperty()
+  hasNextPage!: boolean;
+
+  @ApiProperty()
+  hasPreviousPage!: boolean;
 }
 
 export class PaginatedSalesOrdersResponseDto {
-  data: SalesOrderResponseDto[];
+  @ApiProperty({ type: SalesOrderResponseDto, isArray: true })
+  data!: SalesOrderResponseDto[];
 
-  page: number;
-
-  limit: number;
-
-  total: number;
-
-  totalPages: number;
-}
-
-export class SalesOrderSummaryResponseDto {
-  totalOrders: number;
-
-  draftOrders: number;
-
-  submittedOrders: number;
-
-  approvedOrders: number;
-
-  rejectedOrders: number;
-
-  fulfilledOrders: number;
-
-  cancelledOrders: number;
-
-  pendingSyncOrders: number;
-
-  syncedOrders: number;
-
-  failedSyncOrders: number;
-
-  totalSalesValue: number;
-}
-
-export class MessageResponseDto {
-  message: string;
+  @ApiProperty({ type: SalesOrderPaginationMetaDto })
+  meta!: SalesOrderPaginationMetaDto;
 }

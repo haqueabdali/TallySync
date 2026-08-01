@@ -20,6 +20,13 @@ import { WarehousesModule } from './warehouses/warehouses.module';
 import { ItemsModule } from './items/items.module';
 import { CustomersModule } from './customers/customers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+import { GoodsReceiptsModule } from './goods-receipts/goods-receipts.module';
+import { PurchaseInvoicesModule } from './purchase-invoices/purchase-invoices.module';
+import { SupplierPaymentsModule } from './supplier-payments/supplier-payments.module';
+import { PurchaseReturnsModule } from './purchase-returns/purchase-returns.module';
+import { SalesQuotationsModule } from './sales-quotations/sales-quotations.module';
+import { DeliveryNotesModule } from './delivery-notes/delivery-notes.module';
+import { SalesInvoicesModule } from './sales-invoices/sales-invoices.module';
 
 @Module({
   imports: [
@@ -83,6 +90,14 @@ import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
     ItemsModule,
     CustomersModule,
     PurchaseOrdersModule,
+    GoodsReceiptsModule,
+    PurchaseInvoicesModule,
+    SupplierPaymentsModule,
+    PurchaseReturnsModule,
+    SalesQuotationsModule,
+    DeliveryNotesModule,
+    SalesInvoicesModule,
+
   ],
 
   controllers: [AppController],

@@ -17,6 +17,11 @@ import { CustomerEntity } from '../sales-orders/entities/customer.entity';
 import { SalesOrderEntity } from '../sales-orders/entities/sales-order.entity';
 import { SalesOrderItemEntity } from '../sales-orders/entities/sales-order-item.entity';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
+import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
+import { DeliveryNoteEntity } from '../delivery-notes/entities/delivery-note.entity';
+import { DeliveryNoteItemEntity } from '../delivery-notes/entities/delivery-note-item.entity';
+import { SalesInvoiceEntity } from '../sales-invoices/entities/sales-invoice.entity';
+import { SalesInvoiceItemEntity } from '../sales-invoices/entities/sales-invoice-item.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -54,6 +59,12 @@ export default new DataSource({
     SalesOrderEntity,
     SalesOrderItemEntity,
     SupplierEntity,
+    WarehouseEntity,
+    DeliveryNoteEntity,
+    DeliveryNoteItemEntity,
+    SalesInvoiceEntity,
+    SalesInvoiceItemEntity,
+  
   ],
 
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],

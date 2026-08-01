@@ -54,6 +54,13 @@ export class ItemEntity {
   @Column({ name: 'hsn_code', type: 'varchar', length: 50, nullable: true }) hsnCode!: string | null;
   @Column({ name: 'tally_stock_item_id', type: 'varchar', length: 150, nullable: true })
   tallyStockItemId!: string | null;
+  @Column({
+  name: 'tally_item_name',
+  type: 'varchar',
+  length: 200,
+  nullable: true,
+})
+tallyItemName!: string | null;
   @Column({ name: 'sync_status', type: 'enum', enum: ItemSyncStatus, enumName: 'items_sync_status_enum', default: ItemSyncStatus.PENDING })
   syncStatus!: ItemSyncStatus;
   @Column({ name: 'sync_error', type: 'text', nullable: true }) syncError!: string | null;

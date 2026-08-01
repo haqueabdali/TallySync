@@ -350,9 +350,7 @@ export class MobileService {
       ({ product, productData, quantity, unitPrice, lineSubtotal }) =>
         this.salesOrderItemRepository.create({
           salesOrderId: savedOrder.id,
-          salesOrder: savedOrder,
           itemId: product.id,
-          item: product,
           itemName: product.name,
           sku: productData.sku ?? null,
           quantity,

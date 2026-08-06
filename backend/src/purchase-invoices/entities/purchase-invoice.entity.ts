@@ -4,13 +4,18 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { GoodsReceipt } from '../../goods-receipts/entities/goods-receipt.entity';
+import { PurchaseOrderEntity } from '../../purchase-orders/entities/purchase-order.entity';
+import { SupplierEntity } from '../../suppliers/entities/supplier.entity';
 import { PurchaseInvoiceStatus } from '../enums/purchase-invoice-status.enum';
-import { PurchaseInvoiceItem } from './purchase-invoice-item.entity';
+import { PurchaseInvoiceItemEntity } from './purchase-invoice-item.entity';
 
 const decimalTransformer = {
   to(value: number | null | undefined): number | null {
@@ -26,11 +31,16 @@ const decimalTransformer = {
 @Index('IDX_purchase_invoices_supplier', ['supplierId'])
 @Index('IDX_purchase_invoices_purchase_order', ['purchaseOrderId'])
 @Index('IDX_purchase_invoices_goods_receipt', ['goodsReceiptId'])
-@Index('UQ_purchase_invoices_company_number', ['companyId', 'invoiceNumber'], {
-  unique: true,
-  where: '"deleted_at" IS NULL',
-})
-export class PurchaseInvoice {
+@Index('IDX_purchase_invoices_status', ['companyId', 'status'])
+@Index(
+  'UQ_purchase_invoices_company_number',
+  ['companyId', 'invoiceNumber'],
+  {
+    unique: true,
+    where: '"deleted_at" IS NULL',
+  },
+)
+export class PurchaseInvoiceEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -40,19 +50,52 @@ export class PurchaseInvoice {
   @Column({ name: 'supplier_id', type: 'uuid' })
   supplierId!: string;
 
-  @Column({ name: 'purchase_order_id', type: 'uuid', nullable: true })
+  @ManyToOne(() => SupplierEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'supplier_id' })
+  supplier!: SupplierEntity;
+
+  @Column({
+    name: 'purchase_order_id',
+    type: 'uuid',
+    nullable: true,
+  })
   purchaseOrderId!: string | null;
 
-  @Column({ name: 'goods_receipt_id', type: 'uuid', nullable: true })
+  @ManyToOne(() => PurchaseOrderEntity, {
+    nullable: true,
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'purchase_order_id' })
+  purchaseOrder!: PurchaseOrderEntity | null;
+
+  @Column({
+    name: 'goods_receipt_id',
+    type: 'uuid',
+    nullable: true,
+  })
   goodsReceiptId!: string | null;
 
-  @Column({ name: 'invoice_number', type: 'varchar', length: 50 })
+  @ManyToOne(() => GoodsReceipt, {
+    nullable: true,
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'goods_receipt_id' })
+  goodsReceipt!: GoodsReceipt | null;
+
+  @Column({
+    name: 'invoice_number',
+    type: 'varchar',
+    length: 50,
+  })
   invoiceNumber!: string;
 
   @Column({
     name: 'supplier_invoice_number',
     type: 'varchar',
-    length: 100,
+    length: 120,
     nullable: true,
   })
   supplierInvoiceNumber!: string | null;
@@ -60,7 +103,11 @@ export class PurchaseInvoice {
   @Column({ name: 'invoice_date', type: 'date' })
   invoiceDate!: string;
 
-  @Column({ name: 'due_date', type: 'date', nullable: true })
+  @Column({
+    name: 'due_date',
+    type: 'date',
+    nullable: true,
+  })
   dueDate!: string | null;
 
   @Column({
@@ -70,7 +117,11 @@ export class PurchaseInvoice {
   })
   status!: PurchaseInvoiceStatus;
 
-  @Column({ type: 'varchar', length: 3, default: 'EUR' })
+  @Column({
+    type: 'varchar',
+    length: 3,
+    default: 'EUR',
+  })
   currency!: string;
 
   @Column({
@@ -103,6 +154,16 @@ export class PurchaseInvoice {
   taxTotal!: number;
 
   @Column({
+    name: 'shipping_total',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: decimalTransformer,
+  })
+  shippingTotal!: number;
+
+  @Column({
     name: 'grand_total',
     type: 'decimal',
     precision: 18,
@@ -132,6 +193,13 @@ export class PurchaseInvoice {
   })
   balanceDue!: number;
 
+  @Column({
+    name: 'billing_address',
+    type: 'text',
+    nullable: true,
+  })
+  billingAddress!: string | null;
+
   @Column({ type: 'text', nullable: true })
   notes!: string | null;
 
@@ -141,15 +209,27 @@ export class PurchaseInvoice {
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy!: string | null;
 
+  @Column({ name: 'posted_by', type: 'uuid', nullable: true })
+  postedBy!: string | null;
+
+  @Column({ name: 'posted_at', type: 'timestamptz', nullable: true })
+  postedAt!: Date | null;
+
+  @Column({ name: 'cancelled_by', type: 'uuid', nullable: true })
+  cancelledBy!: string | null;
+
+  @Column({ name: 'cancelled_at', type: 'timestamptz', nullable: true })
+  cancelledAt!: Date | null;
+
   @OneToMany(
-    () => PurchaseInvoiceItem,
+    () => PurchaseInvoiceItemEntity,
     (item) => item.purchaseInvoice,
     {
       cascade: ['insert', 'update'],
       eager: true,
     },
   )
-  items!: PurchaseInvoiceItem[];
+  items!: PurchaseInvoiceItemEntity[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -157,6 +237,10 @@ export class PurchaseInvoice {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   deletedAt!: Date | null;
 }

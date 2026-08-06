@@ -1,0 +1,14 @@
+export enum JournalEntrySourceType {
+  MANUAL = 'manual',
+  SALES_INVOICE = 'sales_invoice',
+  CUSTOMER_PAYMENT = 'customer_payment',
+  SALES_RETURN = 'sales_return',
+  GOODS_RECEIPT = 'goods_receipt',
+  PURCHASE_INVOICE = 'purchase_invoice',
+  PURCHASE_RETURN = 'purchase_return',
+  SUPPLIER_PAYMENT = 'supplier_payment',
+  LANDED_COST = 'landed_cost',
+  INVENTORY_ADJUSTMENT = 'inventory_adjustment',
+  OPENING_BALANCE = 'opening_balance',
+  OTHER = 'other',
+}

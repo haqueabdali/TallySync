@@ -21,12 +21,43 @@ import { ItemsModule } from './items/items.module';
 import { CustomersModule } from './customers/customers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { GoodsReceiptsModule } from './goods-receipts/goods-receipts.module';
-import { PurchaseInvoicesModule } from './purchase-invoices/purchase-invoices.module';
 import { SupplierPaymentsModule } from './supplier-payments/supplier-payments.module';
 import { PurchaseReturnsModule } from './purchase-returns/purchase-returns.module';
 import { SalesQuotationsModule } from './sales-quotations/sales-quotations.module';
 import { DeliveryNotesModule } from './delivery-notes/delivery-notes.module';
 import { SalesInvoicesModule } from './sales-invoices/sales-invoices.module';
+import { CustomerPaymentsModule } from './customer-payments/customer-payments.module';
+import { SalesReturnsModule } from './sales-returns/sales-returns.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { JournalEntriesModule } from './journal-entries/journal-entries.module';
+import { GeneralLedgerModule } from './general-ledger/general-ledger.module';
+import { AccountingSettingsModule } from './accounting-settings/accounting-settings.module';
+import { AccountingEngineModule } from './accounting-engine/accounting-engine.module';
+import { PurchaseInvoicesModule } from './purchase-invoices/purchase-invoices.module';
+import { LandedCostsModule } from './landed-costs/landed-costs.module';
+import { InventoryCostEngineModule } from './inventory-cost-engine/inventory-cost-engine.module';
+import { MovingAverageCostingModule } from './inventory-cost-engine/moving-average/moving-average-costing.module';
+import { StockLedgerModule } from './stock-ledger/stock-ledger.module';
+import { InventoryValuationModule } from './inventory-valuation/inventory-valuation.module';
+import { InventoryAgingModule } from './inventory-aging/inventory-aging.module';
+import { ManufacturingMrpModule } from './manufacturing-mrp/manufacturing-mrp.module';
+import { BillOfMaterialsModule } from './bill-of-materials/bill-of-materials.module';
+import { ProductionOrdersModule } from './production-orders/production-orders.module';
+import { MaterialConsumptionModule } from './material-consumption/material-consumption.module';
+import { FinishedGoodsModule } from './finished-goods/finished-goods.module';
+import { AssetManagementModule } from './asset-management/asset-management.module';
+import { DepreciationModule } from './depreciation/depreciation.module';
+import { BankReconciliationModule } from './bank-reconciliation/bank-reconciliation.module';
+import { VatEngineModule } from './vat-engine/vat-engine.module';
+import { CashFlowModule } from './cash-flow/cash-flow.module';
+import { ProfitAndLossModule } from './profit-and-loss/profit-and-loss.module';
+import { BalanceSheetModule } from './balance-sheet/balance-sheet.module';
+import { AgedReceivablesModule } from './aged-receivables/aged-receivables.module';
+import { ManagementDashboardModule } from './management-dashboard/management-dashboard.module';
+import { AgedPayablesModule } from './aged-payables/aged-payables.module';
+import { TrialBalanceModule } from './trial-balance/trial-balance.module';
+import { CustomerStatementsModule } from './customer-statements/customer-statements.module';
+import { SupplierStatementsModule } from './supplier-statements/supplier-statements.module';
 
 @Module({
   imports: [
@@ -91,12 +122,44 @@ import { SalesInvoicesModule } from './sales-invoices/sales-invoices.module';
     CustomersModule,
     PurchaseOrdersModule,
     GoodsReceiptsModule,
-    PurchaseInvoicesModule,
     SupplierPaymentsModule,
     PurchaseReturnsModule,
     SalesQuotationsModule,
     DeliveryNotesModule,
     SalesInvoicesModule,
+    CustomerPaymentsModule,
+    SalesReturnsModule,
+    AccountsModule,
+    JournalEntriesModule,
+    GeneralLedgerModule,
+    AccountingSettingsModule,
+    AccountingEngineModule,
+    PurchaseInvoicesModule,
+    LandedCostsModule,
+    InventoryCostEngineModule,
+    MovingAverageCostingModule,
+    StockLedgerModule,
+    InventoryValuationModule,
+    InventoryAgingModule,
+    ManufacturingMrpModule,
+    BillOfMaterialsModule,
+    ProductionOrdersModule,
+    MaterialConsumptionModule,
+    FinishedGoodsModule,
+    AssetManagementModule,
+    DepreciationModule,
+    BankReconciliationModule,
+    VatEngineModule,
+    CashFlowModule,
+    ProfitAndLossModule,
+    BalanceSheetModule,
+    AgedReceivablesModule,
+    ManagementDashboardModule,
+    AgedPayablesModule,
+    TrialBalanceModule,
+    CustomerStatementsModule,
+    SupplierStatementsModule,
+  
 
   ],
 

@@ -15,8 +15,6 @@ import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.
 import { GoodsReceipt } from '../goods-receipts/entities/goods-receipt.entity';
 import { GoodsReceiptStatus } from '../goods-receipts/enums/goods-receipt-status.enum';
 import { ItemEntity } from '../items/entities/item.entity';
-import { PurchaseInvoiceItem } from '../purchase-invoices/entities/purchase-invoice-item.entity';
-import { PurchaseInvoice } from '../purchase-invoices/entities/purchase-invoice.entity';
 import { PurchaseInvoiceStatus } from '../purchase-invoices/enums/purchase-invoice-status.enum';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
@@ -31,6 +29,9 @@ import { UpdatePurchaseReturnDto } from './dto/update-purchase-return.dto';
 import { PurchaseReturnItem } from './entities/purchase-return-item.entity';
 import { PurchaseReturn } from './entities/purchase-return.entity';
 import { PurchaseReturnStatus } from './enums/purchase-return-status.enum';
+import { PurchaseInvoiceItemEntity } from '../purchase-invoices/entities/purchase-invoice-item.entity';
+import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
+
 
 @Injectable()
 export class PurchaseReturnsService {
@@ -50,11 +51,11 @@ export class PurchaseReturnsService {
     @InjectRepository(WarehouseEntity)
     private readonly warehouseRepository: Repository<WarehouseEntity>,
 
-    @InjectRepository(PurchaseInvoice)
-    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoice>,
+    @InjectRepository(PurchaseInvoiceEntity)
+    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoiceEntity>,
 
-    @InjectRepository(PurchaseInvoiceItem)
-    private readonly purchaseInvoiceItemRepository: Repository<PurchaseInvoiceItem>,
+    @InjectRepository(PurchaseInvoiceItemEntity)
+    private readonly purchaseInvoiceItemRepository: Repository<PurchaseInvoiceItemEntity>,
 
     @InjectRepository(GoodsReceipt)
     private readonly goodsReceiptRepository: Repository<GoodsReceipt>,

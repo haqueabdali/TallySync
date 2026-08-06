@@ -8,7 +8,7 @@ import {
   ValueTransformer,
 } from 'typeorm';
 
-import { ItemEntity } from '../../items/entities/item.entity';
+import { ItemEntity } from '../../inventory/entities/item.entity';
 import { GoodsReceipt } from './goods-receipt.entity';
 
 const decimalTransformer: ValueTransformer = {

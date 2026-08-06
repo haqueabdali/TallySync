@@ -7,12 +7,13 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { PurchaseReturn } from './purchase-return.entity';
+import type { PurchaseReturn } from './purchase-return.entity';
 
 const decimalTransformer = {
   to(value: number | null | undefined): number | null {
     return value ?? null;
   },
+
   from(value: string | number | null): number | null {
     return value === null ? null : Number(value);
   },
@@ -25,13 +26,23 @@ export class PurchaseReturnItem {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'purchase_return_id', type: 'uuid' })
+  @Column({
+    name: 'purchase_return_id',
+    type: 'uuid',
+  })
   purchaseReturnId!: string;
 
+  /*
+   * The relation uses a string target and a type-only import. This keeps
+   * TypeORM metadata while removing the runtime circular module import.
+   */
   @ManyToOne(
-    () => PurchaseReturn,
-    (purchaseReturn) => purchaseReturn.items,
-    { onDelete: 'CASCADE' },
+    'PurchaseReturn',
+    'items',
+    {
+      nullable: false,
+      onDelete: 'CASCADE',
+    },
   )
   @JoinColumn({ name: 'purchase_return_id' })
   purchaseReturn!: PurchaseReturn;
@@ -39,13 +50,25 @@ export class PurchaseReturnItem {
   @Column({ name: 'item_id', type: 'uuid' })
   itemId!: string;
 
-  @Column({ name: 'purchase_invoice_item_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'purchase_invoice_item_id',
+    type: 'uuid',
+    nullable: true,
+  })
   purchaseInvoiceItemId!: string | null;
 
-  @Column({ name: 'goods_receipt_item_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'goods_receipt_item_id',
+    type: 'uuid',
+    nullable: true,
+  })
   goodsReceiptItemId!: string | null;
 
-  @Column({ type: 'varchar', length: 250, nullable: true })
+  @Column({
+    type: 'varchar',
+    length: 250,
+    nullable: true,
+  })
   description!: string | null;
 
   @Column({

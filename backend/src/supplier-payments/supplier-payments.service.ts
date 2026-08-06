@@ -11,7 +11,7 @@ import {
   Repository,
 } from 'typeorm';
 
-import { PurchaseInvoice } from '../purchase-invoices/entities/purchase-invoice.entity';
+import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
 import { PurchaseInvoiceStatus } from '../purchase-invoices/enums/purchase-invoice-status.enum';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 import { CreateSupplierPaymentDto } from './dto/create-supplier-payment.dto';
@@ -41,8 +41,8 @@ export class SupplierPaymentsService {
     @InjectRepository(SupplierEntity)
     private readonly supplierRepository: Repository<SupplierEntity>,
 
-    @InjectRepository(PurchaseInvoice)
-    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoice>,
+    @InjectRepository(PurchaseInvoiceEntity)
+    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoiceEntity>,
   ) {}
 
   async create(
@@ -334,7 +334,7 @@ export class SupplierPaymentsService {
   ): Promise<SupplierPaymentResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const paymentRepository = manager.getRepository(SupplierPayment);
-      const invoiceRepository = manager.getRepository(PurchaseInvoice);
+      const invoiceRepository = manager.getRepository(PurchaseInvoiceEntity);
       const supplierRepository = manager.getRepository(SupplierEntity);
 
       const payment = await paymentRepository.findOne({
@@ -434,7 +434,7 @@ export class SupplierPaymentsService {
   ): Promise<SupplierPaymentResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const paymentRepository = manager.getRepository(SupplierPayment);
-      const invoiceRepository = manager.getRepository(PurchaseInvoice);
+      const invoiceRepository = manager.getRepository(PurchaseInvoiceEntity);
       const supplierRepository = manager.getRepository(SupplierEntity);
 
       const payment = await paymentRepository.findOne({
@@ -674,41 +674,55 @@ export class SupplierPaymentsService {
     return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
-  private toAllocationResponse(
-    allocation: SupplierPaymentAllocation,
-  ): SupplierPaymentAllocationResponseDto {
-    return {
-      id: allocation.id,
-      purchaseInvoiceId: allocation.purchaseInvoiceId,
-      allocatedAmount: Number(allocation.allocatedAmount),
-    };
-  }
+ private toAllocationResponse(
+  allocation: SupplierPaymentAllocation,
+): SupplierPaymentAllocationResponseDto {
+  return {
+    id: allocation.id,
+    purchaseInvoiceId: allocation.purchaseInvoiceId,
+    allocatedAmount: Number(allocation.allocatedAmount),
+    invoiceBalanceBefore: Number(
+      allocation.invoiceBalanceBefore ?? 0,
+    ),
+    invoiceBalanceAfter: Number(
+      allocation.invoiceBalanceAfter ?? 0,
+    ),
+  };
+}
 
-  private toResponse(
-    payment: SupplierPayment,
-  ): SupplierPaymentResponseDto {
-    return {
-      id: payment.id,
-      companyId: payment.companyId,
-      supplierId: payment.supplierId,
-      paymentNumber: payment.paymentNumber,
-      paymentDate: payment.paymentDate,
-      paymentMethod: payment.paymentMethod,
-      currency: payment.currency,
-      amount: Number(payment.amount),
-      allocatedAmount: Number(payment.allocatedAmount),
-      unallocatedAmount: Number(payment.unallocatedAmount),
-      referenceNumber: payment.referenceNumber,
-      notes: payment.notes,
-      status: payment.status,
-      allocations: (payment.allocations ?? []).map((allocation) =>
+private toResponse(
+  payment: SupplierPayment,
+): SupplierPaymentResponseDto {
+  return {
+    id: payment.id,
+    companyId: payment.companyId,
+    supplierId: payment.supplierId,
+    paymentNumber: payment.paymentNumber,
+    paymentDate: payment.paymentDate,
+    paymentMethod: payment.paymentMethod,
+    status: payment.status,
+    currency: payment.currency,
+    amount: Number(payment.amount),
+    allocatedAmount: Number(payment.allocatedAmount),
+    unallocatedAmount: Number(payment.unallocatedAmount),
+    referenceNumber: payment.referenceNumber,
+    bankAccountName: payment.bankAccountName,
+    chequeNumber: payment.chequeNumber,
+    chequeDate: payment.chequeDate,
+    notes: payment.notes,
+    allocations: (payment.allocations ?? []).map(
+      (allocation) =>
         this.toAllocationResponse(allocation),
-      ),
-      createdBy: payment.createdBy,
-      updatedBy: payment.updatedBy,
-      createdAt: payment.createdAt,
-      updatedAt: payment.updatedAt,
-      deletedAt: payment.deletedAt,
-    };
-  }
+    ),
+    createdBy: payment.createdBy,
+    updatedBy: payment.updatedBy,
+    postedBy: payment.postedBy,
+    postedAt: payment.postedAt,
+    cancelledBy: payment.cancelledBy,
+    cancelledAt: payment.cancelledAt,
+    createdAt: payment.createdAt,
+    updatedAt: payment.updatedAt,
+    deletedAt: payment.deletedAt,
+  };
+}
 }

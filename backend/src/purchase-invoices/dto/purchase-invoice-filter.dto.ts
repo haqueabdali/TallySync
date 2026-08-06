@@ -1,17 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsEnum,
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
-
+import { IsDateString, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 import { PurchaseInvoiceStatus } from '../enums/purchase-invoice-status.enum';
 
 export const PURCHASE_INVOICE_SORT_FIELDS = [
@@ -28,14 +17,14 @@ export type PurchaseInvoiceSortField =
   (typeof PURCHASE_INVOICE_SORT_FIELDS)[number];
 
 export class PurchaseInvoiceFilterDto {
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page = 1;
 
-  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ default: 20 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -78,10 +67,17 @@ export class PurchaseInvoiceFilterDto {
   @IsDateString()
   dateTo?: string;
 
-  @ApiPropertyOptional({
-    enum: PURCHASE_INVOICE_SORT_FIELDS,
-    default: 'createdAt',
-  })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  dueDateFrom?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  dueDateTo?: string;
+
+  @ApiPropertyOptional({ enum: PURCHASE_INVOICE_SORT_FIELDS, default: 'createdAt' })
   @IsOptional()
   @IsIn(PURCHASE_INVOICE_SORT_FIELDS)
   sortBy: PurchaseInvoiceSortField = 'createdAt';

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { PurchaseInvoice } from '../purchase-invoices/entities/purchase-invoice.entity';
+import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 import { SupplierPaymentAllocation } from './entities/supplier-payment-allocation.entity';
 import { SupplierPayment } from './entities/supplier-payment.entity';
@@ -14,7 +14,7 @@ import { SupplierPaymentsService } from './supplier-payments.service';
       SupplierPayment,
       SupplierPaymentAllocation,
       SupplierEntity,
-      PurchaseInvoice,
+      PurchaseInvoiceEntity,
     ]),
   ],
   controllers: [SupplierPaymentsController],

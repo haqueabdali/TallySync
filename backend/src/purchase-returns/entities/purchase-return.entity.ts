@@ -10,12 +10,13 @@ import {
 } from 'typeorm';
 
 import { PurchaseReturnStatus } from '../enums/purchase-return-status.enum';
-import { PurchaseReturnItem } from './purchase-return-item.entity';
+import type { PurchaseReturnItem } from './purchase-return-item.entity';
 
 const decimalTransformer = {
   to(value: number | null | undefined): number | null {
     return value ?? null;
   },
+
   from(value: string | number | null): number | null {
     return value === null ? null : Number(value);
   },
@@ -26,10 +27,14 @@ const decimalTransformer = {
 @Index('IDX_purchase_returns_supplier', ['supplierId'])
 @Index('IDX_purchase_returns_warehouse', ['warehouseId'])
 @Index('IDX_purchase_returns_purchase_invoice', ['purchaseInvoiceId'])
-@Index('UQ_purchase_returns_company_number', ['companyId', 'returnNumber'], {
-  unique: true,
-  where: '"deleted_at" IS NULL',
-})
+@Index(
+  'UQ_purchase_returns_company_number',
+  ['companyId', 'returnNumber'],
+  {
+    unique: true,
+    where: '"deleted_at" IS NULL',
+  },
+)
 export class PurchaseReturn {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -43,13 +48,25 @@ export class PurchaseReturn {
   @Column({ name: 'warehouse_id', type: 'uuid' })
   warehouseId!: string;
 
-  @Column({ name: 'purchase_invoice_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'purchase_invoice_id',
+    type: 'uuid',
+    nullable: true,
+  })
   purchaseInvoiceId!: string | null;
 
-  @Column({ name: 'goods_receipt_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'goods_receipt_id',
+    type: 'uuid',
+    nullable: true,
+  })
   goodsReceiptId!: string | null;
 
-  @Column({ name: 'return_number', type: 'varchar', length: 50 })
+  @Column({
+    name: 'return_number',
+    type: 'varchar',
+    length: 50,
+  })
   returnNumber!: string;
 
   @Column({ name: 'return_date', type: 'date' })
@@ -62,7 +79,11 @@ export class PurchaseReturn {
   })
   status!: PurchaseReturnStatus;
 
-  @Column({ type: 'varchar', length: 3, default: 'EUR' })
+  @Column({
+    type: 'varchar',
+    length: 3,
+    default: 'EUR',
+  })
   currency!: string;
 
   @Column({
@@ -110,15 +131,27 @@ export class PurchaseReturn {
   @Column({ type: 'text', nullable: true })
   notes!: string | null;
 
-  @Column({ name: 'created_by', type: 'uuid', nullable: true })
+  @Column({
+    name: 'created_by',
+    type: 'uuid',
+    nullable: true,
+  })
   createdBy!: string | null;
 
-  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
+  @Column({
+    name: 'updated_by',
+    type: 'uuid',
+    nullable: true,
+  })
   updatedBy!: string | null;
 
+  /*
+   * String-based relation targets avoid loading the two entity modules
+   * recursively while decorators are being evaluated by Jest/Nest.
+   */
   @OneToMany(
-    () => PurchaseReturnItem,
-    (item) => item.purchaseReturn,
+    'PurchaseReturnItem',
+    'purchaseReturn',
     {
       cascade: ['insert', 'update'],
       eager: true,
@@ -126,12 +159,22 @@ export class PurchaseReturn {
   )
   items!: PurchaseReturnItem[];
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+  })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamptz',
+  })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   deletedAt!: Date | null;
 }

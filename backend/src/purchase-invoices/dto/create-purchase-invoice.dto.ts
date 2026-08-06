@@ -1,17 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  ArrayMinSize,
-  IsArray,
-  IsDateString,
-  IsOptional,
-  IsString,
-  IsUUID,
-  Length,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-
+import { ArrayMinSize, IsArray, IsDateString, IsNumber, IsOptional, IsString, IsUUID, Length, MaxLength, Min, ValidateNested } from 'class-validator';
 import { PurchaseInvoiceItemDto } from './purchase-invoice-item.dto';
 
 export class CreatePurchaseInvoiceDto {
@@ -29,26 +18,39 @@ export class CreatePurchaseInvoiceDto {
   @IsUUID()
   goodsReceiptId?: string;
 
-  @ApiPropertyOptional({ example: 'SUP-INV-2026-001' })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(120)
   supplierInvoiceNumber?: string;
 
-  @ApiProperty({ example: '2026-07-31' })
+  @ApiProperty({ example: '2026-08-02' })
   @IsDateString()
   invoiceDate!: string;
 
-  @ApiPropertyOptional({ example: '2026-08-30' })
+  @ApiPropertyOptional({ example: '2026-09-01' })
   @IsOptional()
   @IsDateString()
   dueDate?: string;
 
-  @ApiPropertyOptional({ example: 'EUR', minLength: 3, maxLength: 3 })
+  @ApiPropertyOptional({ example: 'EUR' })
   @IsOptional()
   @IsString()
   @Length(3, 3)
   currency?: string;
+
+  @ApiPropertyOptional({ minimum: 0, default: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  shippingTotal?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(3000)
+  billingAddress?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

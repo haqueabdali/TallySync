@@ -22,8 +22,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const TEST_DATE = new Date('2026-01-01T00:00:00.000Z');
-
 const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
@@ -36,13 +34,10 @@ const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   resetTokenHash: null,
   resetTokenExpiresAt: null,
   lastLoginAt: null,
-  createdAt: TEST_DATE,
-  updatedAt: TEST_DATE,
+  createdAt: new Date(),
+  updatedAt: new Date(),
   deletedAt: null,
-  role: {
-    id: 'role-uuid-1',
-    name: 'sales_rep',
-  } as any,
+  role: { id: 'role-uuid-1', name: 'sales_rep' } as any,
   refreshTokens: [],
   ...overrides,
 });
@@ -84,7 +79,6 @@ const mockJwtService = () => ({
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 900,
   }),
-  verifyAsync: jest.fn(),
 });
 
 const mockConfigService = () => ({
@@ -120,7 +114,7 @@ describe('AuthService', () => {
     jwtService = module.get(JwtService);
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => jest.clearAllMocks());
 
   // ── login() ────────────────────────────────────────────────────────────────
 
@@ -191,9 +185,12 @@ describe('AuthService', () => {
       const result = await service.refreshToken(dto);
 
       expect(result.accessToken).toBe('mock.access.token');
-      expect(refreshTokenRepo.update).toHaveBeenCalledWith('token-uuid-1', {
-        isRevoked: true,
-      });
+     expect(refreshTokenRepo.update).toHaveBeenCalledWith(
+  'token-uuid-1',
+  {
+    isRevoked: true,
+  },
+);
     });
 
     it('throws UnauthorizedException when token not found', async () => {
@@ -242,13 +239,15 @@ describe('AuthService', () => {
 
       expect(result.message).toContain('Logged out');
       expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-        {
-          userId: 'user-uuid-1',
-          tokenHash: expect.any(String),
-          isRevoked: false,
-        },
-        { isRevoked: true },
-      );
+  {
+    userId: 'user-uuid-1',
+    tokenHash: expect.any(String),
+    isRevoked: false,
+  },
+  {
+    isRevoked: true,
+  },
+);
     });
 
     it('succeeds gracefully even if the token is not found', async () => {
@@ -261,7 +260,9 @@ describe('AuthService', () => {
           tokenHash: expect.any(String),
           isRevoked: false,
         },
-        { isRevoked: true },
+        {
+          isRevoked: true,
+        },
       );
     });
 
@@ -277,7 +278,9 @@ describe('AuthService', () => {
           tokenHash: expect.any(String),
           isRevoked: false,
         },
-        { isRevoked: true },
+        {
+          isRevoked: true,
+        },
       );
     });
   });

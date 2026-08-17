@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
+import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 import { SupplierPaymentAllocation } from './entities/supplier-payment-allocation.entity';
 import { SupplierPayment } from './entities/supplier-payment.entity';
 import { SupplierPaymentsService } from './supplier-payments.service';
-import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
-
 
 describe('SupplierPaymentsService', () => {
   let service: SupplierPaymentsService;
@@ -20,6 +22,19 @@ describe('SupplierPaymentsService', () => {
     delete: jest.fn(),
     softRemove: jest.fn(),
     createQueryBuilder: jest.fn(),
+  };
+
+  const settingsRepositoryMock = {
+    ...repositoryMock,
+    findOne: jest.fn().mockResolvedValue({
+      autoPostSupplierPayments: true,
+    }),
+  };
+
+  const accountingEngineMock = {
+    postSupplierPayment: jest
+      .fn()
+      .mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -57,12 +72,26 @@ describe('SupplierPaymentsService', () => {
             ),
             useValue: repositoryMock,
           },
+          {
+            provide: getRepositoryToken(
+              AccountingSettingsEntity,
+            ),
+            useValue:
+              settingsRepositoryMock,
+          },
+          {
+            provide:
+              AccountingEngineService,
+            useValue:
+              accountingEngineMock,
+          },
         ],
       }).compile();
 
-    service = module.get<SupplierPaymentsService>(
-      SupplierPaymentsService,
-    );
+    service =
+      module.get<SupplierPaymentsService>(
+        SupplierPaymentsService,
+      );
   });
 
   afterEach(() => {

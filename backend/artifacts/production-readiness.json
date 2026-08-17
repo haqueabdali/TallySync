@@ -1,0 +1,174 @@
+{
+  "generatedAt": "2026-08-08T23:14:43.689Z",
+  "database": "tallysync_e2e_test",
+  "dockerDeferred": true,
+  "steps": [
+    {
+      "id": "build",
+      "label": "TypeScript / Nest build",
+      "group": "build",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 2,
+      "command": "npm.cmd run build",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "security",
+      "label": "Security audit",
+      "group": "security",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 1,
+      "command": "npm.cmd run audit:security",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "entity-schema",
+      "label": "Entity ↔ DB schema audit",
+      "group": "schema",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 1,
+      "command": "npm.cmd run audit:entity-schema",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "accounting-idempotency",
+      "label": "Accounting source idempotency",
+      "group": "schema",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 1,
+      "command": "npm.cmd run audit:accounting-idempotency",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "manufacturing-fixes",
+      "label": "Manufacturing fix analyzer",
+      "group": "manufacturing",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 1,
+      "command": "npm.cmd run audit:manufacturing:fixes",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "manufacturing-contract",
+      "label": "Manufacturing contract report",
+      "group": "manufacturing",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd run audit:manufacturing:contract",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "unit-tests",
+      "label": "Full unit test suite",
+      "group": "unit",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd test -- --runInBand",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "sales-to-cash",
+      "label": "Sales-to-Cash E2E",
+      "group": "commercial-e2e",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd run test:e2e:business",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "procure-to-pay",
+      "label": "Procure-to-Pay E2E",
+      "group": "commercial-e2e",
+      "status": "failed",
+      "required": true,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd run test:e2e:procure",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "manufacturing-e2e",
+      "label": "Manufacturing E2E",
+      "group": "manufacturing",
+      "status": "failed",
+      "required": false,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd run test:e2e:manufacturing",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    },
+    {
+      "id": "manufacturing-release",
+      "label": "Manufacturing release gate",
+      "group": "manufacturing",
+      "status": "failed",
+      "required": false,
+      "exitCode": null,
+      "durationMs": 0,
+      "command": "npm.cmd run audit:manufacturing:release",
+      "outputTail": "spawnSync npm.cmd EINVAL"
+    }
+  ],
+  "groups": {
+    "build": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "score": 0
+    },
+    "security": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "score": 0
+    },
+    "schema": {
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "score": 0
+    },
+    "manufacturing": {
+      "passed": 0,
+      "failed": 4,
+      "skipped": 0,
+      "score": 0
+    },
+    "unit": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "score": 0
+    },
+    "commercial-e2e": {
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "score": 0
+    }
+  },
+  "overall": {
+    "requiredPassed": 0,
+    "requiredFailed": 9,
+    "optionalPassed": 0,
+    "optionalFailed": 2,
+    "score": 0,
+    "productionReady": false
+  }
+}

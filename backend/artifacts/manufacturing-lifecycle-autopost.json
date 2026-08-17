@@ -1,0 +1,26 @@
+[
+  {
+    "severity": "INFO",
+    "label": "Material Consumption",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "detail": "Lifecycle method detected: create() at line 27."
+  },
+  {
+    "severity": "INFO",
+    "label": "Material Consumption",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "detail": "Create retry protection uses the consumptionNumber business key."
+  },
+  {
+    "severity": "INFO",
+    "label": "Production Completion",
+    "file": "src/production-orders/production-orders.service.ts",
+    "detail": "Lifecycle method detected: complete() at line 608."
+  },
+  {
+    "severity": "INFO",
+    "label": "Production Variance",
+    "file": "src/production-variance/production-variance.service.ts",
+    "detail": "Lifecycle method detected: post() at line 281."
+  }
+]

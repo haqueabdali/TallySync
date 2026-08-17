@@ -5,7 +5,9 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { PreviewSalesVoucherDto } from './dto/preview-sales-voucher.dto';
 import { TallySyncService } from './tally-sync.service';
@@ -14,6 +16,7 @@ import { TallyMasterService } from './tally-master.service';
 import { TallyRetryService } from './tally-retry.service';
 
 @Controller('tally')
+@UseGuards(JwtAuthGuard)
 export class TallySyncController {
   constructor(
     private readonly tallySyncService: TallySyncService,

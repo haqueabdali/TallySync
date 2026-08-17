@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 import { AccountEntity } from '../accounts/entities/account.entity';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 import { AccountStatus } from '../accounts/enums/account-status.enum';
 import { CustomerPaymentEntity } from '../customer-payments/entities/customer-payment.entity';
 import { JournalEntryEntity } from '../journal-entries/entities/journal-entry.entity';
@@ -30,6 +31,14 @@ import { SalesInvoicePostingRule } from './posting-rules/sales-invoice.rule';
 import { SalesReturnPostingRule } from './posting-rules/sales-return.rule';
 import { SupplierPaymentPostingRule } from './posting-rules/supplier-payment.rule';
 import { LandedCostPostingRule } from './posting-rules/landed-cost.rule';
+import { MaterialConsumptionEntity } from '../material-consumption/entities/material-consumption.entity';
+import { ProductionOrderEntity } from '../production-orders/entities/production-order.entity';
+import { ProductionVarianceEntity } from '../production-variance/entities/production-variance.entity';
+
+import { MaterialConsumptionPostingRule } from './posting-rules/material-consumption.rule';
+import { ProductionCompletionPostingRule } from './posting-rules/production-completion.rule';
+import { ProductionVariancePostingRule } from './posting-rules/production-variance.rule';
+
 
 
 @Injectable()
@@ -41,6 +50,11 @@ export class AccountingEngineService {
     @InjectRepository(AccountEntity)
     private readonly accountRepository: Repository<AccountEntity>,
 
+    @InjectRepository(AccountingSettingsEntity)
+    private readonly accountingSettingsRepository: Repository<AccountingSettingsEntity>,
+    private readonly materialConsumptionPostingRule:MaterialConsumptionPostingRule,
+    private readonly productionCompletionPostingRule:ProductionCompletionPostingRule,
+    private readonly productionVariancePostingRule:ProductionVariancePostingRule,
     private readonly journalEntriesService: JournalEntriesService,
     private readonly salesInvoicePostingRule: SalesInvoicePostingRule,
     private readonly customerPaymentPostingRule: CustomerPaymentPostingRule,
@@ -184,6 +198,38 @@ export class AccountingEngineService {
     };
   }
 
+  async autoPostSalesInvoice(
+    invoiceId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<PostingResultResponseDto | null> {
+    const settings = await this.accountingSettingsRepository.findOne({
+      where: { companyId },
+    });
+
+    if (!settings?.autoPostSalesInvoices) {
+      return null;
+    }
+
+    return this.postSalesInvoice(invoiceId, companyId, userId);
+  }
+
+  async autoPostCustomerPayment(
+    paymentId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<PostingResultResponseDto | null> {
+    const settings = await this.accountingSettingsRepository.findOne({
+      where: { companyId },
+    });
+
+    if (!settings?.autoPostCustomerPayments) {
+      return null;
+    }
+
+    return this.postCustomerPayment(paymentId, companyId, userId);
+  }
+
   async postSalesInvoice(
     invoiceId: string,
     companyId: string,
@@ -198,6 +244,54 @@ export class AccountingEngineService {
       userId,
     );
   }
+
+  async postMaterialConsumption(
+  consumptionId: string,
+  companyId: string,
+  userId: string,
+): Promise<PostingResultResponseDto> {
+  return this.post(
+    {
+      sourceType:
+        JournalEntrySourceType.MATERIAL_CONSUMPTION,
+      sourceId: consumptionId,
+    },
+    companyId,
+    userId,
+  );
+}
+
+async postProductionCompletion(
+  productionOrderId: string,
+  companyId: string,
+  userId: string,
+): Promise<PostingResultResponseDto> {
+  return this.post(
+    {
+      sourceType:
+        JournalEntrySourceType.PRODUCTION_COMPLETION,
+      sourceId: productionOrderId,
+    },
+    companyId,
+    userId,
+  );
+}
+
+async postProductionVariance(
+  varianceId: string,
+  companyId: string,
+  userId: string,
+): Promise<PostingResultResponseDto> {
+  return this.post(
+    {
+      sourceType:
+        JournalEntrySourceType.PRODUCTION_VARIANCE,
+      sourceId: varianceId,
+    },
+    companyId,
+    userId,
+  );
+}
 
   async postCustomerPayment(
     paymentId: string,
@@ -267,70 +361,44 @@ export class AccountingEngineService {
     companyId: string,
   ): Promise<PostingDocument> {
     switch (sourceType) {
-      case JournalEntrySourceType.SALES_INVOICE: {
-        const source: SalesInvoiceEntity =
-          await this.salesInvoicePostingRule.load(
-            sourceId,
-            companyId,
-          );
+      case JournalEntrySourceType.MATERIAL_CONSUMPTION: {
+  const source: MaterialConsumptionEntity =
+    await this.materialConsumptionPostingRule.load(
+      sourceId,
+      companyId,
+    );
 
-        return this.salesInvoicePostingRule.build(
-          source,
-          companyId,
-        );
-      }
+  return this.materialConsumptionPostingRule.build(
+    source,
+    companyId,
+  );
+}
 
-      case JournalEntrySourceType.CUSTOMER_PAYMENT: {
-        const source: CustomerPaymentEntity =
-          await this.customerPaymentPostingRule.load(
-            sourceId,
-            companyId,
-          );
+case JournalEntrySourceType.PRODUCTION_COMPLETION: {
+  const source: ProductionOrderEntity =
+    await this.productionCompletionPostingRule.load(
+      sourceId,
+      companyId,
+    );
 
-        return this.customerPaymentPostingRule.build(
-          source,
-          companyId,
-        );
-      }
+  return this.productionCompletionPostingRule.build(
+    source,
+    companyId,
+  );
+}
 
-      case JournalEntrySourceType.SALES_RETURN: {
-        const source: SalesReturnEntity =
-          await this.salesReturnPostingRule.load(
-            sourceId,
-            companyId,
-          );
+case JournalEntrySourceType.PRODUCTION_VARIANCE: {
+  const source: ProductionVarianceEntity =
+    await this.productionVariancePostingRule.load(
+      sourceId,
+      companyId,
+    );
 
-        return this.salesReturnPostingRule.build(
-          source,
-          companyId,
-        );
-      }
-
-      case JournalEntrySourceType.SUPPLIER_PAYMENT: {
-        const source: SupplierPayment =
-          await this.supplierPaymentPostingRule.load(
-            sourceId,
-            companyId,
-          );
-
-        return this.supplierPaymentPostingRule.build(
-          source,
-          companyId,
-        );
-      }
-
-      case JournalEntrySourceType.PURCHASE_INVOICE: {
-        const source: PurchaseInvoiceEntity =
-          await this.purchaseInvoicePostingRule.load(
-            sourceId,
-            companyId,
-          );
-
-        return this.purchaseInvoicePostingRule.build(
-          source,
-          companyId,
-        );
-      }
+  return this.productionVariancePostingRule.build(
+    source,
+    companyId,
+  );
+}
 
       default:
         throw new BadRequestException(

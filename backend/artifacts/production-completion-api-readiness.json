@@ -1,0 +1,10 @@
+[
+  {
+    "severity": "INFO",
+    "detail": "Production completion HTTP route detected."
+  },
+  {
+    "severity": "INFO",
+    "detail": "Controller delegates production completion to the injected service complete() method."
+  }
+]

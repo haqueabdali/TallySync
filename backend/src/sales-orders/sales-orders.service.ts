@@ -610,7 +610,12 @@ export class SalesOrdersService {
     taxPercent: number,
   ): Pick<
     SalesOrderItemEntity,
-    'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
+    | 'lineSubtotal'
+    | 'lineDiscount'
+    | 'lineTax'
+    | 'discountAmount'
+    | 'taxAmount'
+    | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitPrice);
     const discountAmount = this.round(
@@ -626,6 +631,13 @@ export class SalesOrdersService {
 
     return {
       lineSubtotal,
+
+      // `lineDiscount` / `lineTax` are legacy persisted aliases that
+      // still exist in the sales_order_items table and entity.
+      // Keep them synchronized with the canonical amount fields.
+      lineDiscount: discountAmount,
+      lineTax: taxAmount,
+
       discountAmount,
       taxAmount,
       lineTotal,

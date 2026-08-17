@@ -6,13 +6,16 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { CreateMobileSalesOrderDto } from './dto/create-mobile-sales-order.dto';
 import { MobileSalesOrderQueryDto } from './dto/mobile-sales-order-query.dto';
 import { MobileService } from './mobile.service';
 
 @Controller('mobile')
+@UseGuards(JwtAuthGuard)
 export class MobileController {
   constructor(private readonly mobileService: MobileService) {}
 

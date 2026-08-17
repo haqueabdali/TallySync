@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
   ValueTransformer,
 } from 'typeorm';
+
 import { CategoryEntity } from './category.entity';
 
 export enum InventorySyncStatus {
@@ -20,47 +21,91 @@ export enum InventorySyncStatus {
 }
 
 const numericTransformer: ValueTransformer = {
-  to: (value: number | null | undefined) => value,
-  from: (value: string | number | null) =>
+  to: (
+    value: number | null | undefined,
+  ): number | null | undefined => value,
+  from: (
+    value: string | number | null,
+  ): number | null =>
     value === null ? null : Number(value),
 };
 
+/**
+ * Compatibility entity for the legacy Inventory module.
+ *
+ * IMPORTANT:
+ * This entity intentionally keeps legacy TypeScript property names such as
+ * `salePrice`, `stockQty`, and `reorderLevel`, but maps them onto the same
+ * PostgreSQL columns used by src/items/entities/item.entity.ts.
+ *
+ * This allows older inventory/manufacturing/delivery services to work against
+ * the canonical `items` table without maintaining a second physical schema.
+ */
 @Entity('items')
-@Index('idx_items_company_id', ['companyId'])
-@Index('idx_items_category_id', ['categoryId'])
-@Index('idx_items_company_name', ['companyId', 'name'])
-@Index('uq_items_company_sku', ['companyId', 'sku'], {
-  unique: true,
-  where: '"sku" IS NOT NULL AND "deleted_at" IS NULL',
-})
-@Check('chk_items_sale_price_non_negative', '"sale_price" >= 0')
-@Check('chk_items_purchase_price_non_negative', '"purchase_price" >= 0')
-@Check('chk_items_stock_qty_non_negative', '"stock_qty" >= 0')
-@Check('chk_items_reorder_level_non_negative', '"reorder_level" >= 0')
+@Index('idx_inventory_items_company_id', [
+  'companyId',
+])
+@Index('idx_inventory_items_category_id', [
+  'categoryId',
+])
+@Check(
+  'chk_inventory_items_selling_price_non_negative',
+  '"selling_price" >= 0',
+)
+@Check(
+  'chk_inventory_items_purchase_price_non_negative',
+  '"purchase_price" >= 0',
+)
+@Check(
+  'chk_inventory_items_current_stock_non_negative',
+  '"current_stock" >= 0',
+)
+@Check(
+  'chk_inventory_items_minimum_stock_non_negative',
+  '"minimum_stock" >= 0',
+)
 export class ItemEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'company_id', type: 'uuid' })
+  @Column({
+    name: 'company_id',
+    type: 'uuid',
+  })
   companyId!: string;
 
-  @Column({ name: 'category_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'category_id',
+    type: 'uuid',
+    nullable: true,
+  })
   categoryId!: string | null;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({
+    type: 'varchar',
+    length: 200,
+  })
   name!: string;
 
-  @Column({ type: 'varchar', length: 128, nullable: true })
-  sku!: string | null;
+ @Column({
+  type: 'varchar',
+  length: 128,
+  nullable: true,
+})
+sku!: string | null;
 
-  @Column({ type: 'varchar', length: 32, default: 'Nos' })
+  @Column({
+    type: 'varchar',
+    length: 30,
+    default: 'PCS',
+  })
   unit!: string;
 
   @Column({
-    name: 'sale_price',
-    type: 'numeric',
-    precision: 15,
-    scale: 4,
+    name: 'selling_price',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
     default: 0,
     transformer: numericTransformer,
   })
@@ -68,62 +113,87 @@ export class ItemEntity {
 
   @Column({
     name: 'purchase_price',
-    type: 'numeric',
-    precision: 15,
-    scale: 4,
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
     default: 0,
     transformer: numericTransformer,
   })
   purchasePrice!: number;
 
   @Column({
-    name: 'stock_qty',
-    type: 'numeric',
-    precision: 15,
-    scale: 4,
+    name: 'current_stock',
+    type: 'decimal',
+    precision: 18,
+    scale: 3,
     default: 0,
     transformer: numericTransformer,
   })
   stockQty!: number;
 
   @Column({
-    name: 'reorder_level',
-    type: 'numeric',
-    precision: 15,
-    scale: 4,
+    name: 'minimum_stock',
+    type: 'decimal',
+    precision: 18,
+    scale: 3,
     default: 0,
     transformer: numericTransformer,
   })
   reorderLevel!: number;
 
-  @Column({ name: 'tally_item_name', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'tally_item_name',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   tallyItemName!: string | null;
 
   @Column({
     name: 'sync_status',
     type: 'enum',
     enum: InventorySyncStatus,
-    enumName: 'inventory_sync_status_enum',
+    enumName: 'items_sync_status_enum',
     default: InventorySyncStatus.PENDING,
   })
   syncStatus!: InventorySyncStatus;
 
-  @Column({ name: 'last_synced_at', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'last_synced_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   lastSyncedAt!: Date | null;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+  })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamptz',
+  })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   deletedAt!: Date | null;
 
-  @ManyToOne(() => CategoryEntity, (category) => category.items, {
-    nullable: true,
-    onDelete: 'SET NULL',
+  @ManyToOne(
+    () => CategoryEntity,
+    (category) => category.items,
+    {
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+  )
+  @JoinColumn({
+    name: 'category_id',
   })
-  @JoinColumn({ name: 'category_id' })
   category!: CategoryEntity | null;
 }

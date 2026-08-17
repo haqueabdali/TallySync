@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.entity';
 import { GoodsReceipt } from '../goods-receipts/entities/goods-receipt.entity';
 import { ItemEntity } from '../inventory/entities/item.entity';
@@ -24,6 +26,19 @@ describe('PurchaseInvoicesService', () => {
     delete: jest.fn(),
     softRemove: jest.fn(),
     createQueryBuilder: jest.fn(),
+  };
+
+  const accountingEngineMock = {
+    postPurchaseInvoice: jest
+      .fn()
+      .mockResolvedValue(undefined),
+  };
+
+  const settingsRepositoryMock = {
+    ...repositoryMock,
+    findOne: jest.fn().mockResolvedValue({
+      autoPostPurchaseInvoices: true,
+    }),
   };
 
   beforeEach(async () => {
@@ -85,12 +100,26 @@ describe('PurchaseInvoicesService', () => {
             ),
             useValue: repositoryMock,
           },
+          {
+            provide: getRepositoryToken(
+              AccountingSettingsEntity,
+            ),
+            useValue:
+              settingsRepositoryMock,
+          },
+          {
+            provide:
+              AccountingEngineService,
+            useValue:
+              accountingEngineMock,
+          },
         ],
       }).compile();
 
-    service = module.get<PurchaseInvoicesService>(
-      PurchaseInvoicesService,
-    );
+    service =
+      module.get<PurchaseInvoicesService>(
+        PurchaseInvoicesService,
+      );
   });
 
   afterEach(() => {

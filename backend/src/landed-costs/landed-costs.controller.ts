@@ -9,7 +9,9 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -32,6 +34,7 @@ import { LandedCostsService } from './landed-costs.service';
 @ApiTags('Landed Costs')
 @ApiBearerAuth()
 @Controller('landed-costs')
+@UseGuards(JwtAuthGuard)
 export class LandedCostsController {
   constructor(
     private readonly landedCostsService: LandedCostsService,

@@ -1,0 +1,1592 @@
+{
+  "generatedAt": "2026-08-09T08:23:35.869Z",
+  "entities": [
+    {
+      "file": "src/material-consumption/entities/material-consumption-line.entity.ts",
+      "className": "MaterialConsumptionLineEntity",
+      "table": "material_consumption_lines",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "consumptionId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_id"
+        },
+        {
+          "name": "productionOrderComponentId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_component_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "unitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "unit_cost"
+        },
+        {
+          "name": "totalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_cost"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    {
+      "file": "src/material-consumption/entities/material-consumption.entity.ts",
+      "className": "MaterialConsumptionEntity",
+      "table": "material_consumptions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "consumptionNumber",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_number"
+        },
+        {
+          "name": "productionOrderId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "consumptionDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_date"
+        },
+        {
+          "name": "status",
+          "type": "MaterialConsumptionStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "reversedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "reversed_at"
+        },
+        {
+          "name": "reversedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "reversed_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    {
+      "file": "src/production-orders/entities/production-order-component.entity.ts",
+      "className": "ProductionOrderComponentEntity",
+      "table": "production_order_components",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "productionOrderId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_id"
+        },
+        {
+          "name": "componentItemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "component_item_id"
+        },
+        {
+          "name": "bomQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "bom_quantity"
+        },
+        {
+          "name": "scrapPercentage",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "scrap_percentage"
+        },
+        {
+          "name": "requiredQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "required_quantity"
+        },
+        {
+          "name": "consumedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "consumed_quantity"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    {
+      "file": "src/production-orders/entities/production-order.entity.ts",
+      "className": "ProductionOrderEntity",
+      "table": "production_orders",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "orderNumber",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "order_number"
+        },
+        {
+          "name": "billOfMaterialId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "bill_of_material_id"
+        },
+        {
+          "name": "finishedItemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "finished_item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "status",
+          "type": "ProductionOrderStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "plannedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "planned_quantity"
+        },
+        {
+          "name": "completedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "completed_quantity"
+        },
+        {
+          "name": "plannedStartDate",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "planned_start_date"
+        },
+        {
+          "name": "plannedEndDate",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "planned_end_date"
+        },
+        {
+          "name": "actualStartDate",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "actual_start_date"
+        },
+        {
+          "name": "actualEndDate",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "actual_end_date"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "updatedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "updated_by"
+        },
+        {
+          "name": "actualMaterialCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_material_cost"
+        },
+        {
+          "name": "actualLaborCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_labor_cost"
+        },
+        {
+          "name": "actualOverheadCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_overhead_cost"
+        },
+        {
+          "name": "actualTotalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_total_cost"
+        },
+        {
+          "name": "totalVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_variance"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        },
+        {
+          "name": "deletedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "deleted_at"
+        }
+      ]
+    },
+    {
+      "file": "src/production-variance/entities/production-variance-line.entity.ts",
+      "className": "ProductionVarianceLineEntity",
+      "table": "production_variance_lines",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "productionVarianceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_variance_id"
+        },
+        {
+          "name": "productionOrderComponentId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_component_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "requiredQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "required_quantity"
+        },
+        {
+          "name": "consumedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "consumed_quantity"
+        },
+        {
+          "name": "quantityVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "quantity_variance"
+        },
+        {
+          "name": "actualCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_cost"
+        }
+      ]
+    },
+    {
+      "file": "src/production-variance/entities/production-variance-settings.entity.ts",
+      "className": "ProductionVarianceSettingsEntity",
+      "table": "production_variance_settings",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "favorableVarianceAccountId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "favorable_variance_account_id"
+        },
+        {
+          "name": "unfavorableVarianceAccountId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "unfavorable_variance_account_id"
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "updatedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "updated_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    {
+      "file": "src/production-variance/entities/production-variance.entity.ts",
+      "className": "ProductionVarianceEntity",
+      "table": "production_variances",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "productionOrderId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_id"
+        },
+        {
+          "name": "varianceDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "variance_date"
+        },
+        {
+          "name": "materialCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "material_cost"
+        },
+        {
+          "name": "finishedGoodsCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "finished_goods_cost"
+        },
+        {
+          "name": "wipVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "wip_variance"
+        },
+        {
+          "name": "status",
+          "type": "ProductionVarianceStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "journalEntryId",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "journal_entry_id"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "totalVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_variance"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    {
+      "file": "src/costing-variance/entities/production-cost-analysis.entity.ts",
+      "className": "ProductionCostAnalysisEntity",
+      "table": "production_cost_analyses",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "productionReferenceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_reference_id"
+        },
+        {
+          "name": "analysisNumber",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "analysis_number"
+        },
+        {
+          "name": "analysisDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "analysis_date"
+        },
+        {
+          "name": "finishedItemId",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "finished_item_id"
+        },
+        {
+          "name": "plannedOutputQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "planned_output_quantity"
+        },
+        {
+          "name": "actualOutputQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_output_quantity"
+        },
+        {
+          "name": "standardConversionCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "standard_conversion_cost"
+        },
+        {
+          "name": "actualConversionCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_conversion_cost"
+        },
+        {
+          "name": "standardOverheadCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "standard_overhead_cost"
+        },
+        {
+          "name": "actualOverheadCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_overhead_cost"
+        },
+        {
+          "name": "revenueAmount",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "revenue_amount"
+        },
+        {
+          "name": "status",
+          "type": "CostingAnalysisStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "finalizedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "finalized_at"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "updatedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "updated_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        },
+        {
+          "name": "deletedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "deleted_at"
+        }
+      ]
+    },
+    {
+      "file": "src/costing-variance/entities/production-cost-material-line.entity.ts",
+      "className": "ProductionCostMaterialLineEntity",
+      "table": "production_cost_material_lines",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "analysisId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "analysis_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "standardQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "standard_quantity"
+        },
+        {
+          "name": "actualQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_quantity"
+        },
+        {
+          "name": "standardUnitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "standard_unit_cost"
+        },
+        {
+          "name": "actualUnitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_unit_cost"
+        },
+        {
+          "name": "description",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    {
+      "file": "src/inventory-cost-engine/entities/inventory-cost-balance.entity.ts",
+      "className": "InventoryCostBalanceEntity",
+      "table": "inventory_cost_balances",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "averageUnitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "average_unit_cost"
+        },
+        {
+          "name": "inventoryValue",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "inventory_value"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    {
+      "file": "src/inventory-cost-engine/entities/inventory-cost-transaction.entity.ts",
+      "className": "InventoryCostTransactionEntity",
+      "table": "inventory_cost_transactions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "transactionDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "transaction_date"
+        },
+        {
+          "name": "transactionType",
+          "type": "InventoryCostTransactionType",
+          "nullable": false,
+          "databaseName": "transaction_type"
+        },
+        {
+          "name": "sourceType",
+          "type": "InventoryCostSourceType",
+          "nullable": false,
+          "databaseName": "source_type"
+        },
+        {
+          "name": "sourceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "source_id"
+        },
+        {
+          "name": "sourceLineId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "source_line_id"
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "unitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "unit_cost"
+        },
+        {
+          "name": "totalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_cost"
+        },
+        {
+          "name": "quantityAfter",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "quantity_after"
+        },
+        {
+          "name": "averageUnitCostAfter",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "average_unit_cost_after"
+        },
+        {
+          "name": "inventoryValueAfter",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "inventory_value_after"
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    {
+      "file": "src/inventory-cost-engine/fifo/entities/fifo-cost-allocation.entity.ts",
+      "className": "FifoCostAllocationEntity",
+      "table": "fifo_cost_allocations",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "costLayerId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "cost_layer_id"
+        },
+        {
+          "name": "issueSourceType",
+          "type": "InventoryCostSourceType",
+          "nullable": false,
+          "databaseName": "issue_source_type"
+        },
+        {
+          "name": "issueSourceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "issue_source_id"
+        },
+        {
+          "name": "issueSourceLineId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "issue_source_line_id"
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "unitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "unit_cost"
+        },
+        {
+          "name": "totalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_cost"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    {
+      "file": "src/inventory-cost-engine/fifo/entities/fifo-cost-layer.entity.ts",
+      "className": "FifoCostLayerEntity",
+      "table": "fifo_cost_layers",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "receivedDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "received_date"
+        },
+        {
+          "name": "sourceType",
+          "type": "InventoryCostSourceType",
+          "nullable": false,
+          "databaseName": "source_type"
+        },
+        {
+          "name": "sourceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "source_id"
+        },
+        {
+          "name": "sourceLineId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "source_line_id"
+        },
+        {
+          "name": "originalQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "original_quantity"
+        },
+        {
+          "name": "remainingQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "remaining_quantity"
+        },
+        {
+          "name": "unitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "unit_cost"
+        },
+        {
+          "name": "originalValue",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "original_value"
+        },
+        {
+          "name": "remainingValue",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "remaining_value"
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    }
+  ],
+  "contract": {
+    "materialConsumption": {
+      "file": "src/material-consumption/entities/material-consumption.entity.ts",
+      "className": "MaterialConsumptionEntity",
+      "table": "material_consumptions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "consumptionNumber",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_number"
+        },
+        {
+          "name": "productionOrderId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "consumptionDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_date"
+        },
+        {
+          "name": "status",
+          "type": "MaterialConsumptionStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "reversedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "reversed_at"
+        },
+        {
+          "name": "reversedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "reversed_by"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        }
+      ]
+    },
+    "materialConsumptionLine": {
+      "file": "src/material-consumption/entities/material-consumption-line.entity.ts",
+      "className": "MaterialConsumptionLineEntity",
+      "table": "material_consumption_lines",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "consumptionId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "consumption_id"
+        },
+        {
+          "name": "productionOrderComponentId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_component_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "unitCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "unit_cost"
+        },
+        {
+          "name": "totalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_cost"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    "productionOrder": {
+      "file": "src/production-orders/entities/production-order.entity.ts",
+      "className": "ProductionOrderEntity",
+      "table": "production_orders",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "orderNumber",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "order_number"
+        },
+        {
+          "name": "billOfMaterialId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "bill_of_material_id"
+        },
+        {
+          "name": "finishedItemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "finished_item_id"
+        },
+        {
+          "name": "warehouseId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "warehouse_id"
+        },
+        {
+          "name": "status",
+          "type": "ProductionOrderStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "plannedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "planned_quantity"
+        },
+        {
+          "name": "completedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "completed_quantity"
+        },
+        {
+          "name": "plannedStartDate",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "planned_start_date"
+        },
+        {
+          "name": "plannedEndDate",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "planned_end_date"
+        },
+        {
+          "name": "actualStartDate",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "actual_start_date"
+        },
+        {
+          "name": "actualEndDate",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "actual_end_date"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "updatedBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "updated_by"
+        },
+        {
+          "name": "actualMaterialCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_material_cost"
+        },
+        {
+          "name": "actualLaborCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_labor_cost"
+        },
+        {
+          "name": "actualOverheadCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_overhead_cost"
+        },
+        {
+          "name": "actualTotalCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_total_cost"
+        },
+        {
+          "name": "totalVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_variance"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        },
+        {
+          "name": "updatedAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "updated_at"
+        },
+        {
+          "name": "deletedAt",
+          "type": "Date | null",
+          "nullable": true,
+          "databaseName": "deleted_at"
+        }
+      ]
+    },
+    "productionVariance": {
+      "file": "src/production-variance/entities/production-variance.entity.ts",
+      "className": "ProductionVarianceEntity",
+      "table": "production_variances",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "company_id"
+        },
+        {
+          "name": "productionOrderId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_id"
+        },
+        {
+          "name": "varianceDate",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "variance_date"
+        },
+        {
+          "name": "materialCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "material_cost"
+        },
+        {
+          "name": "finishedGoodsCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "finished_goods_cost"
+        },
+        {
+          "name": "wipVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "wip_variance"
+        },
+        {
+          "name": "status",
+          "type": "ProductionVarianceStatus",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "journalEntryId",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "journal_entry_id"
+        },
+        {
+          "name": "notes",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": null
+        },
+        {
+          "name": "createdBy",
+          "type": "string | null",
+          "nullable": true,
+          "databaseName": "created_by"
+        },
+        {
+          "name": "totalVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "total_variance"
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "nullable": false,
+          "databaseName": "created_at"
+        }
+      ]
+    },
+    "productionVarianceLine": {
+      "file": "src/production-variance/entities/production-variance-line.entity.ts",
+      "className": "ProductionVarianceLineEntity",
+      "table": "production_variance_lines",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false,
+          "databaseName": null
+        },
+        {
+          "name": "productionVarianceId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_variance_id"
+        },
+        {
+          "name": "productionOrderComponentId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "production_order_component_id"
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "nullable": false,
+          "databaseName": "item_id"
+        },
+        {
+          "name": "requiredQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "required_quantity"
+        },
+        {
+          "name": "consumedQuantity",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "consumed_quantity"
+        },
+        {
+          "name": "quantityVariance",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "quantity_variance"
+        },
+        {
+          "name": "actualCost",
+          "type": "number",
+          "nullable": false,
+          "databaseName": "actual_cost"
+        }
+      ]
+    }
+  },
+  "detectedFields": {
+    "materialConsumption": {
+      "id": "id",
+      "companyId": "companyId",
+      "status": "status",
+      "documentNumber": "consumptionNumber",
+      "productionOrderId": "productionOrderId",
+      "totalCost": null
+    },
+    "materialConsumptionLine": {
+      "quantity": "quantity",
+      "unitCost": "unitCost",
+      "lineCost": "totalCost",
+      "itemId": "itemId"
+    },
+    "productionOrder": {
+      "id": "id",
+      "companyId": "companyId",
+      "status": "status",
+      "orderNumber": "orderNumber",
+      "itemId": "finishedItemId",
+      "completedQuantity": "completedQuantity",
+      "actualMaterialCost": "actualMaterialCost",
+      "actualLaborCost": "actualLaborCost",
+      "actualOverheadCost": "actualOverheadCost",
+      "actualTotalCost": "actualTotalCost"
+    },
+    "productionVariance": {
+      "id": "id",
+      "companyId": "companyId",
+      "status": "status",
+      "productionOrderId": "productionOrderId",
+      "varianceNumber": null,
+      "totalVariance": "totalVariance"
+    }
+  },
+  "findings": []
+}

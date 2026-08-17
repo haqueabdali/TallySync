@@ -151,12 +151,6 @@ export class SalesInvoicePostingRule
       );
     }
 
-    if (!settings.autoPostSalesInvoices) {
-      throw new ConflictException(
-        'Automatic posting for sales invoices is disabled.',
-      );
-    }
-
     return settings;
   }
 

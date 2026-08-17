@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AccountingEngineModule } from '../accounting-engine/accounting-engine.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CustomerEntity } from '../customers/entities/customer.entity';
@@ -14,6 +15,7 @@ import { SalesInvoicesService } from './sales-invoices.service';
 
 @Module({
   imports: [
+    AccountingEngineModule,
     TypeOrmModule.forFeature([
       SalesInvoiceEntity,
       SalesInvoiceItemEntity,

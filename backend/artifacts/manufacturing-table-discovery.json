@@ -1,0 +1,238 @@
+{
+  "generatedAt": "2026-08-10T22:08:51.269Z",
+  "connectedDatabase": "tallysync_e2e_test",
+  "entities": [
+    {
+      "file": "src/bill-of-materials/entities/bill-of-material.entity.ts",
+      "exists": true,
+      "tableName": "bills_of_material",
+      "tablePresent": true
+    },
+    {
+      "file": "src/bill-of-materials/entities/bill-of-material-component.entity.ts",
+      "exists": true,
+      "tableName": "bill_of_material_components",
+      "tablePresent": true
+    },
+    {
+      "file": "src/manufacturing-wip-accounting/entities/wip-posting.entity.ts",
+      "exists": true,
+      "tableName": "manufacturing_wip_postings",
+      "tablePresent": true
+    },
+    {
+      "file": "src/manufacturing-wip-accounting/entities/wip-accounting-settings.entity.ts",
+      "exists": true,
+      "tableName": "manufacturing_wip_accounting_settings",
+      "tablePresent": true
+    }
+  ],
+  "tables": [
+    {
+      "table_name": "bill_of_material_components"
+    },
+    {
+      "table_name": "bills_of_material"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings"
+    },
+    {
+      "table_name": "manufacturing_wip_postings"
+    },
+    {
+      "table_name": "material_consumption_lines"
+    },
+    {
+      "table_name": "material_consumptions"
+    },
+    {
+      "table_name": "production_cost_analyses"
+    },
+    {
+      "table_name": "production_cost_material_lines"
+    },
+    {
+      "table_name": "production_order_components"
+    },
+    {
+      "table_name": "production_orders"
+    },
+    {
+      "table_name": "production_schedules"
+    },
+    {
+      "table_name": "production_variance_lines"
+    },
+    {
+      "table_name": "production_variance_settings"
+    },
+    {
+      "table_name": "production_variances"
+    }
+  ],
+  "migrations": [
+    {
+      "id": 29,
+      "timestamp": "1787600000000",
+      "name": "CreateBillOfMaterials1787600000000"
+    },
+    {
+      "id": 30,
+      "timestamp": "1787601000000",
+      "name": "CreateProductionOrders1787601000000"
+    },
+    {
+      "id": 31,
+      "timestamp": "1787602000000",
+      "name": "CreateMaterialConsumptions1787602000000"
+    },
+    {
+      "id": 41,
+      "timestamp": "1787612000000",
+      "name": "CreateManufacturingWipAccounting1787612000000"
+    },
+    {
+      "id": 42,
+      "timestamp": "1787613000000",
+      "name": "CreateProductionVariance1787613000000"
+    },
+    {
+      "id": 47,
+      "timestamp": "1787618000000",
+      "name": "CreateProductionSchedules1787618000000"
+    },
+    {
+      "id": 63,
+      "timestamp": "1788100000000",
+      "name": "AddManufacturingAccountingFoundation1788100000000"
+    },
+    {
+      "id": 64,
+      "timestamp": "1788110000000",
+      "name": "AddManufacturingActualCostContracts1788110000000"
+    }
+  ],
+  "foreignKeys": [
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "FK_bom_component_bom",
+      "definition": "FOREIGN KEY (bill_of_material_id) REFERENCES bills_of_material(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "FK_bom_component_item",
+      "definition": "FOREIGN KEY (component_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "bills_of_material",
+      "constraint_name": "FK_bom_finished_item",
+      "definition": "FOREIGN KEY (finished_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "constraint_name": "FK_manufacturing_wip_settings_account",
+      "definition": "FOREIGN KEY (wip_account_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "FK_manufacturing_wip_postings_journal",
+      "definition": "FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "FK_manufacturing_wip_postings_order",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_component",
+      "definition": "FOREIGN KEY (production_order_component_id) REFERENCES production_order_components(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_consumption",
+      "definition": "FOREIGN KEY (consumption_id) REFERENCES material_consumptions(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_item",
+      "definition": "FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "FK_material_consumptions_production_order",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "FK_material_consumptions_warehouse",
+      "definition": "FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_cost_material_lines",
+      "constraint_name": "FK_production_cost_material_lines_analysis",
+      "definition": "FOREIGN KEY (analysis_id) REFERENCES production_cost_analyses(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "FK_production_order_components_item",
+      "definition": "FOREIGN KEY (component_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "FK_production_order_components_order",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_bom",
+      "definition": "FOREIGN KEY (bill_of_material_id) REFERENCES bills_of_material(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_finished_item",
+      "definition": "FOREIGN KEY (finished_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_warehouse",
+      "definition": "FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_component",
+      "definition": "FOREIGN KEY (production_order_component_id) REFERENCES production_order_components(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_item",
+      "definition": "FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_variance",
+      "definition": "FOREIGN KEY (production_variance_id) REFERENCES production_variances(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "production_variance_settings",
+      "constraint_name": "FK_production_variance_settings_favorable",
+      "definition": "FOREIGN KEY (favorable_variance_account_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_settings",
+      "constraint_name": "FK_production_variance_settings_unfavorable",
+      "definition": "FOREIGN KEY (unfavorable_variance_account_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "FK_production_variances_journal",
+      "definition": "FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "FK_production_variances_order",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    }
+  ]
+}

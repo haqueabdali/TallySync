@@ -1,37 +1,38 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from './users.service';
 import { UserEntity, UserStatus } from './entities/user.entity';
 import { RoleEntity } from './entities/role.entity';
-import { AuditLogEntity, AuditAction } from './entities/audit-log.entity';
+import { AuditAction, AuditLogEntity } from './entities/audit-log.entity';
+import type { AssignCompanyDto } from './dto/assign-company.dto';
+import type { AssignRoleDto } from './dto/assign-role.dto';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import type { AuditContext } from './interfaces/audit-context.interface';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AssignRoleDto } from './dto/assign-role.dto';
-import { AssignCompanyDto } from './dto/assign-company.dto';
-import { AuditContext } from './interfaces/audit-context.interface';
-
-// ── Factories ─────────────────────────────────────────────────────────────────
-
-const makeRole = (overrides: Partial<RoleEntity> = {}): RoleEntity => ({
+const makeRole = (
+  overrides: Partial<RoleEntity> = {},
+): RoleEntity => ({
   id: 'role-uuid-1',
   name: 'sales_rep',
   description: null,
   isSystem: false,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   users: [],
   ...overrides,
 });
 
-const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
+const makeUser = (
+  overrides: Partial<UserEntity> = {},
+): UserEntity => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
   roleId: 'role-uuid-1',
@@ -41,8 +42,8 @@ const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   phone: null,
   status: UserStatus.ACTIVE,
   lastLoginAt: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   deletedAt: null,
   role: makeRole(),
   ...overrides,
@@ -61,69 +62,86 @@ const makeAuditLog = (
   newValues: null,
   ipAddress: null,
   userAgent: null,
-  createdAt: new Date(),
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
   actor: null,
   ...overrides,
 });
 
-const mockAuditCtx: AuditContext = {
+const auditContext: AuditContext = {
   actorId: 'actor-uuid-1',
   companyId: 'company-uuid-1',
   ipAddress: '127.0.0.1',
   userAgent: 'jest',
 };
 
-// ── Repository Mocks ──────────────────────────────────────────────────────────
-
-const mockUserRepo = () => ({
+const createUserRepositoryMock = () => ({
   findOne: jest.fn(),
   findAndCount: jest.fn(),
   count: jest.fn(),
-  create: jest.fn((dto) => ({ ...dto })),
-  save: jest.fn(),
+  create: jest.fn((value: Partial<UserEntity>) => value as UserEntity),
+  save: jest.fn(async (value: UserEntity) => value),
   softDelete: jest.fn(),
 });
 
-const mockRoleRepo = () => ({
+const createRoleRepositoryMock = () => ({
   findOne: jest.fn(),
 });
 
-const mockAuditRepo = () => ({
+const createAuditRepositoryMock = () => ({
   findAndCount: jest.fn(),
-  create: jest.fn((dto) => ({ ...dto })),
-  save: jest.fn(),
+  create: jest.fn(
+    (value: Partial<AuditLogEntity>) => value as AuditLogEntity,
+  ),
+  save: jest.fn(async (value: AuditLogEntity) => value),
 });
-
-// ── Test Suite ────────────────────────────────────────────────────────────────
 
 describe('UsersService', () => {
   let service: UsersService;
-  let userRepo: ReturnType<typeof mockUserRepo>;
-  let roleRepo: ReturnType<typeof mockRoleRepo>;
-  let auditRepo: ReturnType<typeof mockAuditRepo>;
+  let userRepository: ReturnType<
+    typeof createUserRepositoryMock
+  >;
+  let roleRepository: ReturnType<
+    typeof createRoleRepositoryMock
+  >;
+  let auditRepository: ReturnType<
+    typeof createAuditRepositoryMock
+  >;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
-        { provide: getRepositoryToken(RoleEntity), useFactory: mockRoleRepo },
-        {
-          provide: getRepositoryToken(AuditLogEntity),
-          useFactory: mockAuditRepo,
-        },
-      ],
-    }).compile();
+    const module: TestingModule =
+      await Test.createTestingModule({
+        providers: [
+          UsersService,
+          {
+            provide: getRepositoryToken(UserEntity),
+            useFactory: createUserRepositoryMock,
+          },
+          {
+            provide: getRepositoryToken(RoleEntity),
+            useFactory: createRoleRepositoryMock,
+          },
+          {
+            provide: getRepositoryToken(AuditLogEntity),
+            useFactory: createAuditRepositoryMock,
+          },
+        ],
+      }).compile();
 
     service = module.get<UsersService>(UsersService);
-    userRepo = module.get(getRepositoryToken(UserEntity));
-    roleRepo = module.get(getRepositoryToken(RoleEntity));
-    auditRepo = module.get(getRepositoryToken(AuditLogEntity));
+    userRepository = module.get(
+      getRepositoryToken(UserEntity),
+    );
+    roleRepository = module.get(
+      getRepositoryToken(RoleEntity),
+    );
+    auditRepository = module.get(
+      getRepositoryToken(AuditLogEntity),
+    );
   });
 
-  afterEach(() => jest.clearAllMocks());
-
-  // ── createUser() ───────────────────────────────────────────────────────────
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   describe('createUser()', () => {
     const dto: CreateUserDto = {
@@ -134,97 +152,152 @@ describe('UsersService', () => {
       password: 'ValidPass1!',
     };
 
-    beforeEach(() => {
-      userRepo.findOne.mockResolvedValueOnce(null); // email unique check
-      roleRepo.findOne.mockResolvedValue(makeRole());
-      userRepo.create.mockReturnValue(makeUser({ email: 'new@example.com' }));
-      userRepo.save.mockResolvedValue(makeUser({ email: 'new@example.com' }));
-      userRepo.findOne.mockResolvedValue(
-        makeUser({ email: 'new@example.com' }),
-      ); // reload
-      auditRepo.create.mockReturnValue(makeAuditLog());
-      auditRepo.save.mockResolvedValue(makeAuditLog());
-    });
+    it('creates a user and writes a CREATE audit log', async () => {
+      const role = makeRole();
+      const saved = makeUser({
+        id: 'new-user-id',
+        email: dto.email,
+        fullName: dto.fullName,
+        role,
+      });
 
-    it('creates a user and returns a sanitized response', async () => {
-      const result = await service.createUser(dto, mockAuditCtx);
+      userRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(saved);
+      roleRepository.findOne.mockResolvedValue(role);
+      userRepository.create.mockReturnValue(saved);
+      userRepository.save.mockResolvedValue(saved);
 
-      expect(userRepo.save).toHaveBeenCalledTimes(1);
-      expect(auditRepo.save).toHaveBeenCalledTimes(1);
+      const result = await service.createUser(
+        dto,
+        auditContext,
+      );
+
       expect(result).toBeDefined();
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
+      expect(auditRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.CREATE,
+          entityType: 'user',
+          entityId: saved.id,
+          companyId: auditContext.companyId,
+          userId: auditContext.actorId,
+        }),
+      );
     });
 
-    it('hashes the password before persisting (never stores plain text)', async () => {
-      userRepo.findOne.mockResolvedValueOnce(null);
-      roleRepo.findOne.mockResolvedValue(makeRole());
-      let capturedEntity: Partial<UserEntity> = {};
-      userRepo.create.mockImplementation((e) => {
-        capturedEntity = e;
-        return e;
-      });
-      userRepo.save.mockResolvedValue({
-        ...capturedEntity,
-        id: 'new-id',
-        role: makeRole(),
-      });
-      userRepo.findOne.mockResolvedValue(makeUser());
+    it('hashes the password before persisting', async () => {
+      const role = makeRole();
+      let captured:
+        | Partial<UserEntity>
+        | undefined;
 
-      await service.createUser(dto, mockAuditCtx);
+      userRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+      roleRepository.findOne.mockResolvedValue(role);
 
-      expect(capturedEntity.passwordHash).toBeDefined();
-      expect(capturedEntity.passwordHash).not.toBe(dto.password);
-      const isHashed = await bcrypt.compare(
+      userRepository.create.mockImplementation(
+        (value: Partial<UserEntity>) => {
+          captured = value;
+          return value as UserEntity;
+        },
+      );
+
+      userRepository.save.mockImplementation(
+        async (value: UserEntity) =>
+          makeUser({
+            ...value,
+            id: 'new-user-id',
+            role,
+          }),
+      );
+
+      await service.createUser(dto, auditContext);
+
+      expect(captured?.passwordHash).toBeDefined();
+      expect(captured?.passwordHash).not.toBe(dto.password);
+
+      const matches = await bcrypt.compare(
         dto.password,
-        capturedEntity.passwordHash!,
+        captured?.passwordHash ?? '',
       );
-      expect(isHashed).toBe(true);
+
+      expect(matches).toBe(true);
     });
 
-    it('throws ConflictException when email is already registered', async () => {
-      userRepo.findOne.mockReset();
-
-      userRepo.findOne.mockResolvedValue(makeUser());
-
-      await expect(service.createUser(dto, mockAuditCtx)).rejects.toThrow(
-        ConflictException,
+    it('throws ConflictException for duplicate email', async () => {
+      userRepository.findOne.mockResolvedValueOnce(
+        makeUser({ email: dto.email }),
       );
+
+      await expect(
+        service.createUser(dto, auditContext),
+      ).rejects.toThrow(ConflictException);
+
+      expect(roleRepository.findOne).not.toHaveBeenCalled();
+      expect(userRepository.save).not.toHaveBeenCalled();
     });
 
-    it('throws NotFoundException when roleId does not exist', async () => {
-      userRepo.findOne.mockResolvedValueOnce(null); // email unique
-      roleRepo.findOne.mockResolvedValue(null); // role not found
-      await expect(service.createUser(dto, mockAuditCtx)).rejects.toThrow(
-        NotFoundException,
-      );
+    it('throws NotFoundException for missing role', async () => {
+      userRepository.findOne.mockResolvedValueOnce(null);
+      roleRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.createUser(dto, auditContext),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(userRepository.save).not.toHaveBeenCalled();
     });
   });
 
-  // ── listUsers() ────────────────────────────────────────────────────────────
-
   describe('listUsers()', () => {
-    it('returns a paginated list of users', async () => {
-      userRepo.findAndCount.mockResolvedValue([[makeUser()], 1]);
+    it('returns paginated users', async () => {
+      userRepository.findAndCount.mockResolvedValue([
+        [makeUser()],
+        1,
+      ]);
 
-      const result = await service.listUsers({ page: 1, limit: 10 });
+      const result = await service.listUsers({
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result.meta.total).toBe(1);
-      expect(result.meta.totalPages).toBe(1);
+      expect(result.meta).toEqual({
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
       expect(result.data).toHaveLength(1);
     });
 
-    it('builds a search filter when the search parameter is provided', async () => {
-      userRepo.findAndCount.mockResolvedValue([[], 0]);
+    it('builds two search conditions', async () => {
+      userRepository.findAndCount.mockResolvedValue([[], 0]);
 
-      await service.listUsers({ search: 'Alice', page: 1, limit: 10 });
+      await service.listUsers({
+        search: 'Alice',
+        page: 1,
+        limit: 10,
+      });
 
-      const [callArgs] = userRepo.findAndCount.mock.calls[0];
-      // Should have two where clauses — one for fullName, one for email
-      expect(Array.isArray(callArgs.where)).toBe(true);
-      expect((callArgs.where as unknown[]).length).toBe(2);
+      const options =
+        userRepository.findAndCount.mock.calls[0]?.[0];
+
+      expect(options).toBeDefined();
+      expect(Array.isArray(options?.where)).toBe(true);
+
+      if (!Array.isArray(options?.where)) {
+        throw new Error(
+          'Expected listUsers where option to be an array',
+        );
+      }
+
+      expect(options.where).toHaveLength(2);
     });
 
-    it('applies companyId and status filters', async () => {
-      userRepo.findAndCount.mockResolvedValue([[], 0]);
+    it('applies company and status filters', async () => {
+      userRepository.findAndCount.mockResolvedValue([[], 0]);
 
       await service.listUsers({
         companyId: 'company-uuid-1',
@@ -233,195 +306,307 @@ describe('UsersService', () => {
         limit: 10,
       });
 
-      const [callArgs] = userRepo.findAndCount.mock.calls[0];
-      const whereClause = (callArgs.where as Record<string, unknown>[])[0];
-      expect(whereClause['companyId']).toBe('company-uuid-1');
-      expect(whereClause['status']).toBe(UserStatus.ACTIVE);
+      const options =
+        userRepository.findAndCount.mock.calls[0]?.[0];
+
+      expect(options).toBeDefined();
+
+      if (!Array.isArray(options?.where)) {
+        throw new Error(
+          'Expected listUsers where option to be an array',
+        );
+      }
+
+      expect(options.where[0]).toEqual(
+        expect.objectContaining({
+          companyId: 'company-uuid-1',
+          status: UserStatus.ACTIVE,
+        }),
+      );
     });
   });
-
-  // ── getUserById() ──────────────────────────────────────────────────────────
 
   describe('getUserById()', () => {
     it('returns a user when found', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      const result = await service.getUserById('user-uuid-1');
-      expect(result).toBeDefined();
+      userRepository.findOne.mockResolvedValue(makeUser());
+
+      await expect(
+        service.getUserById('user-uuid-1'),
+      ).resolves.toBeDefined();
     });
 
-    it('throws NotFoundException when user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
-      await expect(service.getUserById('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.getUserById('missing-user'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
-
-  // ── updateUser() ───────────────────────────────────────────────────────────
 
   describe('updateUser()', () => {
-    const dto: UpdateUserDto = { fullName: 'Updated Name', phone: '555-1234' };
+    const dto: UpdateUserDto = {
+      fullName: 'Updated Name',
+      phone: '555-1234',
+    };
 
-    it('applies partial updates and writes an audit log', async () => {
+    it('updates and writes UPDATE audit action', async () => {
       const user = makeUser();
-      userRepo.findOne.mockResolvedValue(user);
-      userRepo.save.mockResolvedValue({ ...user, ...dto });
-      auditRepo.create.mockReturnValue(makeAuditLog());
-      auditRepo.save.mockResolvedValue(makeAuditLog());
+      const updated = {
+        ...user,
+        ...dto,
+      };
 
-      const result = await service.updateUser('user-uuid-1', dto, mockAuditCtx);
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.save.mockResolvedValue(updated);
 
-      expect(userRepo.save).toHaveBeenCalledTimes(1);
-      expect(auditRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ action: AuditAction.UPDATE }),
+      const result = await service.updateUser(
+        user.id,
+        dto,
+        auditContext,
       );
+
       expect(result).toBeDefined();
+      expect(auditRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.UPDATE,
+          entityId: user.id,
+        }),
+      );
     });
 
-    it('throws NotFoundException when user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
       await expect(
-        service.updateUser('non-existent', dto, mockAuditCtx),
+        service.updateUser(
+          'missing-user',
+          dto,
+          auditContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
-
-  // ── deleteUser() ───────────────────────────────────────────────────────────
 
   describe('deleteUser()', () => {
-    it('soft-deletes the user and writes an audit log', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      userRepo.softDelete.mockResolvedValue({ affected: 1 });
-      auditRepo.create.mockReturnValue(makeAuditLog());
-      auditRepo.save.mockResolvedValue(makeAuditLog());
+    it('soft deletes and writes DELETE audit action', async () => {
+      const user = makeUser();
 
-      await service.deleteUser('user-uuid-1', mockAuditCtx);
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.softDelete.mockResolvedValue({
+        affected: 1,
+        raw: [],
+      });
 
-      expect(userRepo.softDelete).toHaveBeenCalledWith('user-uuid-1');
-      expect(auditRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ action: AuditAction.DELETE }),
+      await service.deleteUser(
+        user.id,
+        auditContext,
       );
-    });
 
-    it('throws ForbiddenException when actor tries to delete themselves', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser({ id: 'actor-uuid-1' }));
-      await expect(
-        service.deleteUser('actor-uuid-1', {
-          ...mockAuditCtx,
-          actorId: 'actor-uuid-1',
+      expect(userRepository.softDelete).toHaveBeenCalledWith(
+        user.id,
+      );
+      expect(auditRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.DELETE,
+          entityId: user.id,
         }),
-      ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('throws ForbiddenException when deleting the last active admin', async () => {
-      userRepo.findOne.mockResolvedValue(
-        makeUser({ role: makeRole({ name: 'admin', isSystem: true }) }),
       );
-      userRepo.count.mockResolvedValue(1); // only one admin left
+    });
+
+    it('prevents actor deleting themselves', async () => {
+      userRepository.findOne.mockResolvedValue(
+        makeUser({ id: auditContext.actorId }),
+      );
 
       await expect(
-        service.deleteUser('user-uuid-1', mockAuditCtx),
+        service.deleteUser(
+          auditContext.actorId,
+          auditContext,
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('throws NotFoundException when user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+    it('prevents deleting last active admin', async () => {
+      userRepository.findOne.mockResolvedValue(
+        makeUser({
+          role: makeRole({
+            name: 'admin',
+            isSystem: true,
+          }),
+        }),
+      );
+      userRepository.count.mockResolvedValue(1);
+
       await expect(
-        service.deleteUser('non-existent', mockAuditCtx),
+        service.deleteUser(
+          'user-uuid-1',
+          auditContext,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.deleteUser(
+          'missing-user',
+          auditContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
-
-  // ── assignRole() ───────────────────────────────────────────────────────────
 
   describe('assignRole()', () => {
-    const dto: AssignRoleDto = { roleId: 'role-uuid-2' };
-    const newRole = makeRole({ id: 'role-uuid-2', name: 'company_owner' });
+    const dto: AssignRoleDto = {
+      roleId: 'role-uuid-2',
+    };
 
-    it('assigns the new role and writes an audit log', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      roleRepo.findOne.mockResolvedValue(newRole);
-      userRepo.save.mockResolvedValue({
-        ...makeUser(),
-        roleId: 'role-uuid-2',
-        role: newRole,
+    it('assigns role and writes ASSIGN_ROLE audit action', async () => {
+      const existing = makeUser();
+      const role = makeRole({
+        id: dto.roleId,
+        name: 'company_owner',
       });
-      auditRepo.create.mockReturnValue(makeAuditLog());
-      auditRepo.save.mockResolvedValue(makeAuditLog());
+      const updated = makeUser({
+        roleId: dto.roleId,
+        role,
+      });
 
-      const result = await service.assignRole('user-uuid-1', dto, mockAuditCtx);
+      userRepository.findOne
+        .mockResolvedValueOnce(existing)
+        .mockResolvedValueOnce(updated);
+      roleRepository.findOne.mockResolvedValue(role);
+      userRepository.save.mockResolvedValue(updated);
 
-      expect(userRepo.save).toHaveBeenCalledTimes(1);
-      expect(auditRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ action: AuditAction.ASSIGN_ROLE }),
+      const result = await service.assignRole(
+        existing.id,
+        dto,
+        auditContext,
       );
+
       expect(result).toBeDefined();
+      expect(auditRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.ASSIGN_ROLE,
+          entityId: existing.id,
+          oldValues: {
+            roleId: 'role-uuid-1',
+          },
+          newValues: {
+            roleId: dto.roleId,
+            roleName: role.name,
+          },
+        }),
+      );
     });
 
-    it('throws NotFoundException when user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
       await expect(
-        service.assignRole('non-existent', dto, mockAuditCtx),
+        service.assignRole(
+          'missing-user',
+          dto,
+          auditContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('throws NotFoundException when roleId does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      roleRepo.findOne.mockResolvedValue(null);
+    it('throws when role is missing', async () => {
+      userRepository.findOne.mockResolvedValue(makeUser());
+      roleRepository.findOne.mockResolvedValue(null);
+
       await expect(
-        service.assignRole('user-uuid-1', dto, mockAuditCtx),
+        service.assignRole(
+          'user-uuid-1',
+          dto,
+          auditContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
-
-  // ── assignCompany() ────────────────────────────────────────────────────────
 
   describe('assignCompany()', () => {
-    const dto: AssignCompanyDto = { companyId: 'company-uuid-2' };
+    const dto: AssignCompanyDto = {
+      companyId: 'company-uuid-2',
+    };
 
-    it('assigns the company and writes an audit log', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      userRepo.save.mockResolvedValue({
-        ...makeUser(),
-        companyId: 'company-uuid-2',
+    it('assigns company and writes ASSIGN_COMPANY audit action', async () => {
+      const existing = makeUser();
+      const updated = makeUser({
+        companyId: dto.companyId,
       });
-      auditRepo.create.mockReturnValue(makeAuditLog());
-      auditRepo.save.mockResolvedValue(makeAuditLog());
 
-      await service.assignCompany('user-uuid-1', dto, mockAuditCtx);
+      userRepository.findOne.mockResolvedValue(existing);
+      userRepository.save.mockResolvedValue(updated);
 
-      expect(auditRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ action: AuditAction.ASSIGN_COMPANY }),
+      await service.assignCompany(
+        existing.id,
+        dto,
+        auditContext,
+      );
+
+      expect(auditRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.ASSIGN_COMPANY,
+          entityId: existing.id,
+          oldValues: {
+            companyId: 'company-uuid-1',
+          },
+          newValues: {
+            companyId: dto.companyId,
+          },
+        }),
       );
     });
 
-    it('throws NotFoundException when user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
       await expect(
-        service.assignCompany('non-existent', dto, mockAuditCtx),
+        service.assignCompany(
+          'missing-user',
+          dto,
+          auditContext,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
-  // ── getUserActivity() ──────────────────────────────────────────────────────
-
   describe('getUserActivity()', () => {
-    it('returns paginated audit logs for the user', async () => {
-      userRepo.findOne.mockResolvedValue(makeUser());
-      auditRepo.findAndCount.mockResolvedValue([[makeAuditLog()], 1]);
+    it('returns paginated audit logs', async () => {
+      userRepository.findOne.mockResolvedValue(makeUser());
+      auditRepository.findAndCount.mockResolvedValue([
+        [makeAuditLog()],
+        1,
+      ]);
 
-      const result = await service.getUserActivity('user-uuid-1', 1, 20);
+      const result = await service.getUserActivity(
+        'user-uuid-1',
+        1,
+        20,
+      );
 
       expect(result.data).toHaveLength(1);
-      expect(result.meta.total).toBe(1);
-      expect(result.data[0].action).toBe(AuditAction.CREATE);
+      expect(result.data[0]?.action).toBe(
+        AuditAction.CREATE,
+      );
+      expect(result.meta).toEqual({
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
     });
 
-    it('throws NotFoundException when the user does not exist', async () => {
-      userRepo.findOne.mockResolvedValue(null);
-      await expect(service.getUserActivity('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+    it('throws when user is missing', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.getUserActivity('missing-user'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -1,0 +1,1279 @@
+[
+  {
+    "file": "src/production-orders/production-orders.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 45,
+        "parameters": [
+          "@Body()\n    dto:\n      CreateProductionOrderDto",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "findAll",
+        "line": 69,
+        "parameters": [
+          "@Query()\n    filter:\n      ProductionOrderFilterDto",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<PaginatedProductionOrdersResponseDto>"
+      },
+      {
+        "name": "findOne",
+        "line": 92,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "update",
+        "line": 117,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Body()\n    dto:\n      UpdateProductionOrderDto",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "release",
+        "line": 147,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "start",
+        "line": 173,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "complete",
+        "line": 199,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "cancel",
+        "line": 225,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "remove",
+        "line": 251,
+        "parameters": [
+          "@Param(\n      'id',\n      ParseUUIDPipe,\n    )\n    id: string",
+          "@Req()\n    request:\n      AuthenticatedProductionOrderRequest"
+        ],
+        "returnType": "Promise<{\n    message: string;\n  }>"
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Production Orders')",
+      "@ApiBearerAuth()",
+      "@Controller('production-orders')",
+      "@UseGuards(JwtAuthGuard)",
+      "create: @Post()",
+      "create: @ApiOperation({\n    summary:\n      'Create a draft production order from an active BOM',\n  })",
+      "create: @ApiCreatedResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "findAll: @Get()",
+      "findAll: @ApiOperation({\n    summary:\n      'List production orders',\n  })",
+      "findAll: @ApiOkResponse({\n    type:\n      PaginatedProductionOrdersResponseDto,\n  })",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOperation({\n    summary:\n      'Get a production order',\n  })",
+      "findOne: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "update: @Patch(':id')",
+      "update: @ApiOperation({\n    summary:\n      'Update a draft production order',\n  })",
+      "update: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "release: @Post(':id/release')",
+      "release: @ApiOperation({\n    summary:\n      'Release a draft production order',\n  })",
+      "release: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "start: @Post(':id/start')",
+      "start: @ApiOperation({\n    summary:\n      'Start a released production order',\n  })",
+      "start: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "complete: @Post(':id/complete')",
+      "complete: @ApiOperation({\n    summary:\n      'Complete an in-progress production order',\n  })",
+      "complete: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "cancel: @Post(':id/cancel')",
+      "cancel: @ApiOperation({\n    summary:\n      'Cancel a draft or released production order',\n  })",
+      "cancel: @ApiOkResponse({\n    type:\n      ProductionOrderResponseDto,\n  })",
+      "remove: @Delete(':id')",
+      "remove: @ApiOperation({\n    summary:\n      'Soft-delete a draft production order',\n  })",
+      "remove: @ApiOkResponse()"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "kind": "service",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 52,
+        "parameters": [
+          "dto: CreateProductionOrderDto",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "findAll",
+        "line": 191,
+        "parameters": [
+          "filter: ProductionOrderFilterDto",
+          "companyId: string"
+        ],
+        "returnType": "Promise<PaginatedProductionOrdersResponseDto>"
+      },
+      {
+        "name": "findOne",
+        "line": 319,
+        "parameters": [
+          "id: string",
+          "companyId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "update",
+        "line": 360,
+        "parameters": [
+          "id: string",
+          "dto: UpdateProductionOrderDto",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "release",
+        "line": 528,
+        "parameters": [
+          "id: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "start",
+        "line": 567,
+        "parameters": [
+          "id: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "complete",
+        "line": 608,
+        "parameters": [
+          "id: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "cancel",
+        "line": 787,
+        "parameters": [
+          "id: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<ProductionOrderResponseDto>"
+      },
+      {
+        "name": "remove",
+        "line": 830,
+        "parameters": [
+          "id: string",
+          "companyId: string"
+        ],
+        "returnType": "Promise<{\n    message: string;\n  }>"
+      },
+      {
+        "name": "autoPostProductionCompletionIfEnabled",
+        "line": 861,
+        "parameters": [
+          "sourceId: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<void>"
+      },
+      {
+        "name": "getEntity",
+        "line": 888,
+        "parameters": [
+          "id: string",
+          "companyId: string"
+        ],
+        "returnType": "Promise<ProductionOrderEntity>"
+      },
+      {
+        "name": "getActiveBom",
+        "line": 909,
+        "parameters": [
+          "id: string",
+          "companyId: string"
+        ],
+        "returnType": "Promise<BillOfMaterialEntity>"
+      },
+      {
+        "name": "getWarehouse",
+        "line": 945,
+        "parameters": [
+          "id: string",
+          "companyId: string"
+        ],
+        "returnType": "Promise<WarehouseEntity>"
+      },
+      {
+        "name": "validateDates",
+        "line": 968,
+        "parameters": [
+          "start?: string",
+          "end?: string"
+        ],
+        "returnType": "void"
+      },
+      {
+        "name": "roundQuantity",
+        "line": 983,
+        "parameters": [
+          "value: number"
+        ],
+        "returnType": "number"
+      },
+      {
+        "name": "roundMoney",
+        "line": 998,
+        "parameters": [
+          "value: number"
+        ],
+        "returnType": "number"
+      },
+      {
+        "name": "toResponse",
+        "line": 1012,
+        "parameters": [
+          "entity: ProductionOrderEntity"
+        ],
+        "returnType": "ProductionOrderResponseDto"
+      }
+    ]
+  },
+  {
+    "file": "src/production-orders/dto/create-production-order.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiProperty({ minLength: 1, maxLength: 50 })\n  @IsString()\n  @Length(1, 50)\n  orderNumber!: string;",
+      "@ApiProperty({ format: 'uuid' })\n  @IsUUID()\n  billOfMaterialId!: string;",
+      "@ApiProperty({ format: 'uuid' })\n  @IsUUID()\n  warehouseId!: string;",
+      "@ApiProperty({ minimum: 0.000001 })\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 6 })\n  @Min(0.000001)\n  plannedQuantity!: number;",
+      "@ApiPropertyOptional({ format: 'date' })\n  @IsOptional()\n  @IsDateString()\n  plannedStartDate?: string;",
+      "@ApiPropertyOptional({ format: 'date' })\n  @IsOptional()\n  @IsDateString()\n  plannedEndDate?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsString()\n  notes?: string;"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 16,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: CreateMaterialConsumptionDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findAll",
+        "line": 22,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Query() filter: MaterialConsumptionFilterDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findOne",
+        "line": 28,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', new ParseUUIDPipe()) id: string"
+        ],
+        "returnType": null
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Material Consumption')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('material-consumptions')",
+      "create: @Post()",
+      "create: @ApiCreatedResponse({ description: 'Material consumption posted.' })",
+      "findAll: @Get()",
+      "findAll: @ApiOkResponse({ description: 'Paginated material consumptions.' })",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOkResponse({ description: 'Material consumption details.' })"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "kind": "service",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 27,
+        "parameters": [
+          "companyId: string",
+          "userId: string",
+          "dto: CreateMaterialConsumptionDto"
+        ],
+        "returnType": "Promise<MaterialConsumptionEntity>"
+      },
+      {
+        "name": "findAll",
+        "line": 37,
+        "parameters": [
+          "companyId: string",
+          "filter: MaterialConsumptionFilterDto"
+        ],
+        "returnType": "Promise<{\n    data: MaterialConsumptionEntity[];\n    total: number;\n    page: number;\n    limit: number;\n  }>"
+      },
+      {
+        "name": "findOne",
+        "line": 63,
+        "parameters": [
+          "companyId: string",
+          "id: string"
+        ],
+        "returnType": "Promise<MaterialConsumptionEntity>"
+      },
+      {
+        "name": "autoPostMaterialConsumptionIfEnabled",
+        "line": 71,
+        "parameters": [
+          "sourceId: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<void>"
+      },
+      {
+        "name": "createWithManager",
+        "line": 89,
+        "parameters": [
+          "manager: EntityManager",
+          "companyId: string",
+          "userId: string",
+          "dto: CreateMaterialConsumptionDto"
+        ],
+        "returnType": "Promise<MaterialConsumptionEntity>"
+      },
+      {
+        "name": "assertUniqueComponentLines",
+        "line": 176,
+        "parameters": [
+          "dto: CreateMaterialConsumptionDto"
+        ],
+        "returnType": "void"
+      },
+      {
+        "name": "round6",
+        "line": 183,
+        "parameters": [
+          "value: number"
+        ],
+        "returnType": "number"
+      }
+    ]
+  },
+  {
+    "file": "src/material-consumption/dto/create-material-consumption.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiProperty({ maxLength: 50 })\n  @IsString()\n  @MaxLength(50)\n  consumptionNumber!: string;",
+      "@ApiProperty({ format: 'uuid' })\n  @IsUUID()\n  productionOrderId!: string;",
+      "@ApiProperty({ example: '2026-08-05' })\n  @IsDateString()\n  consumptionDate!: string;",
+      "@ApiPropertyOptional({ maxLength: 2000 })\n  @IsOptional()\n  @IsString()\n  @MaxLength(2000)\n  notes?: string;",
+      "@ApiProperty({ type: [CreateMaterialConsumptionLineDto] })\n  @IsArray()\n  @ArrayMinSize(1)\n  @ValidateNested({ each: true })\n  @Type(() => CreateMaterialConsumptionLineDto)\n  lines!: CreateMaterialConsumptionLineDto[];"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "getSettings",
+        "line": 17,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "upsertSettings",
+        "line": 20,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: UpsertProductionVarianceSettingsDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "calculate",
+        "line": 25,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('productionOrderId', ParseUUIDPipe) productionOrderId: string",
+          "@Body() dto: CalculateProductionVarianceDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "post",
+        "line": 34,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "list",
+        "line": 39,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Query() filter: ProductionVarianceFilterDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findOne",
+        "line": 44,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": null
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Production Variance')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('production-variances')",
+      "getSettings: @Get('settings')",
+      "getSettings: @ApiOkResponse()",
+      "upsertSettings: @Put('settings')",
+      "upsertSettings: @ApiOkResponse()",
+      "calculate: @Post('production-orders/:productionOrderId/calculate')",
+      "calculate: @ApiOperation({ summary: 'Calculate usage and WIP variance for a completed production order' })",
+      "calculate: @ApiCreatedResponse()",
+      "post: @Post(':id/post')",
+      "post: @ApiOkResponse()",
+      "list: @Get()",
+      "list: @ApiOkResponse()",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOkResponse()"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "kind": "service",
+    "exists": true,
+    "methods": [
+      {
+        "name": "getSettings",
+        "line": 67,
+        "parameters": [
+          "companyId: string"
+        ],
+        "returnType": "Promise<ProductionVarianceSettingsEntity>"
+      },
+      {
+        "name": "upsertSettings",
+        "line": 88,
+        "parameters": [
+          "companyId: string",
+          "userId: string",
+          "dto: UpsertProductionVarianceSettingsDto"
+        ],
+        "returnType": "Promise<ProductionVarianceSettingsEntity>"
+      },
+      {
+        "name": "calculate",
+        "line": 141,
+        "parameters": [
+          "companyId: string",
+          "userId: string",
+          "productionOrderId: string",
+          "dto: CalculateProductionVarianceDto"
+        ],
+        "returnType": "Promise<ProductionVarianceEntity>"
+      },
+      {
+        "name": "post",
+        "line": 281,
+        "parameters": [
+          "companyId: string",
+          "userId: string",
+          "id: string"
+        ],
+        "returnType": "Promise<ProductionVarianceEntity>"
+      },
+      {
+        "name": "findOne",
+        "line": 381,
+        "parameters": [
+          "companyId: string",
+          "id: string"
+        ],
+        "returnType": "Promise<ProductionVarianceEntity>"
+      },
+      {
+        "name": "list",
+        "line": 411,
+        "parameters": [
+          "companyId: string",
+          "filter: ProductionVarianceFilterDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "autoPostProductionVarianceIfEnabled",
+        "line": 460,
+        "parameters": [
+          "sourceId: string",
+          "companyId: string",
+          "userId: string"
+        ],
+        "returnType": "Promise<void>"
+      },
+      {
+        "name": "getWipCosts",
+        "line": 487,
+        "parameters": [
+          "companyId: string",
+          "productionOrderId: string"
+        ],
+        "returnType": "Promise<{\n    materialCost: number;\n    finishedGoodsCost: number;\n  }>"
+      },
+      {
+        "name": "getComponentActualCosts",
+        "line": 547,
+        "parameters": [
+          "productionOrderId: string"
+        ],
+        "returnType": "Promise<\n    Map<string, number>\n  >"
+      },
+      {
+        "name": "validateAccount",
+        "line": 598,
+        "parameters": [
+          "companyId: string",
+          "accountId: string",
+          "type: AccountType",
+          "label: string"
+        ],
+        "returnType": "Promise<void>"
+      },
+      {
+        "name": "money",
+        "line": 630,
+        "parameters": [
+          "value: number"
+        ],
+        "returnType": "number"
+      },
+      {
+        "name": "quantity",
+        "line": 644,
+        "parameters": [
+          "value: number"
+        ],
+        "returnType": "number"
+      },
+      {
+        "name": "isUniqueViolation",
+        "line": 659,
+        "parameters": [
+          "error: unknown"
+        ],
+        "returnType": "boolean"
+      }
+    ]
+  },
+  {
+    "file": "src/production-variance/dto/calculate-production-variance.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiPropertyOptional({ example: '2026-08-31' }) @IsOptional() @IsDateString() varianceDate?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) notes?: string;"
+    ]
+  },
+  {
+    "file": "src/bill-of-materials/bill-of-materials.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 40,
+        "parameters": [
+          "@Body() dto: CreateBillOfMaterialDto",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<BillOfMaterialResponseDto>"
+      },
+      {
+        "name": "findAll",
+        "line": 47,
+        "parameters": [
+          "@Query() filter: BillOfMaterialFilterDto",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<PaginatedBillsOfMaterialResponseDto>"
+      },
+      {
+        "name": "findOne",
+        "line": 54,
+        "parameters": [
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<BillOfMaterialResponseDto>"
+      },
+      {
+        "name": "update",
+        "line": 61,
+        "parameters": [
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Body() dto: UpdateBillOfMaterialDto",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<BillOfMaterialResponseDto>"
+      },
+      {
+        "name": "activate",
+        "line": 68,
+        "parameters": [
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<BillOfMaterialResponseDto>"
+      },
+      {
+        "name": "deactivate",
+        "line": 75,
+        "parameters": [
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<BillOfMaterialResponseDto>"
+      },
+      {
+        "name": "remove",
+        "line": 82,
+        "parameters": [
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Req() request: AuthenticatedBillOfMaterialRequest"
+        ],
+        "returnType": "Promise<{ message: string }>"
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Bill of Materials')",
+      "@ApiBearerAuth()",
+      "@Controller('bill-of-materials')",
+      "@UseGuards(JwtAuthGuard)",
+      "create: @Post()",
+      "create: @ApiOperation({ summary: 'Create a draft bill of materials' })",
+      "create: @ApiCreatedResponse({ type: BillOfMaterialResponseDto })",
+      "findAll: @Get()",
+      "findAll: @ApiOperation({ summary: 'List bills of material' })",
+      "findAll: @ApiOkResponse({ type: PaginatedBillsOfMaterialResponseDto })",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOperation({ summary: 'Get a bill of materials' })",
+      "findOne: @ApiOkResponse({ type: BillOfMaterialResponseDto })",
+      "update: @Patch(':id')",
+      "update: @ApiOperation({ summary: 'Update a draft bill of materials' })",
+      "update: @ApiOkResponse({ type: BillOfMaterialResponseDto })",
+      "activate: @Post(':id/activate')",
+      "activate: @ApiOperation({ summary: 'Activate a bill of materials' })",
+      "activate: @ApiOkResponse({ type: BillOfMaterialResponseDto })",
+      "deactivate: @Post(':id/deactivate')",
+      "deactivate: @ApiOperation({ summary: 'Deactivate a bill of materials' })",
+      "deactivate: @ApiOkResponse({ type: BillOfMaterialResponseDto })",
+      "remove: @Delete(':id')",
+      "remove: @ApiOperation({ summary: 'Soft-delete a non-active bill of materials' })",
+      "remove: @ApiOkResponse()"
+    ]
+  },
+  {
+    "file": "src/bill-of-materials/dto/create-bill-of-material.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiProperty({ format: 'uuid' })\n  @IsUUID()\n  componentItemId!: string;",
+      "@ApiProperty({ minimum: 0.000001 })\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 6 })\n  @Min(0.000001)\n  quantity!: number;",
+      "@ApiPropertyOptional({ minimum: 0, maximum: 100, default: 0 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 4 })\n  @Min(0)\n  @Max(100)\n  scrapPercentage?: number;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsString()\n  notes?: string;",
+      "@ApiProperty({ format: 'uuid' })\n  @IsUUID()\n  finishedItemId!: string;",
+      "@ApiProperty({ minLength: 1, maxLength: 50 })\n  @IsString()\n  @Length(1, 50)\n  code!: string;",
+      "@ApiProperty({ minLength: 1, maxLength: 255 })\n  @IsString()\n  @Length(1, 255)\n  name!: string;",
+      "@ApiPropertyOptional({ minimum: 1, default: 1 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsInt()\n  @Min(1)\n  version?: number;",
+      "@ApiProperty({ minimum: 0.000001 })\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 6 })\n  @Min(0.000001)\n  outputQuantity!: number;",
+      "@ApiPropertyOptional({ format: 'date' })\n  @IsOptional()\n  @IsDateString()\n  effectiveFrom?: string;",
+      "@ApiPropertyOptional({ format: 'date' })\n  @IsOptional()\n  @IsDateString()\n  effectiveTo?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsString()\n  notes?: string;",
+      "@ApiProperty({ type: [CreateBillOfMaterialComponentDto] })\n  @IsArray()\n  @ArrayMinSize(1)\n  @ValidateNested({ each: true })\n  @Type(() => CreateBillOfMaterialComponentDto)\n  components!: CreateBillOfMaterialComponentDto[];"
+    ]
+  },
+  {
+    "file": "src/accounts/accounts.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 43,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: CreateAccountDto"
+        ],
+        "returnType": "Promise<AccountResponseDto>"
+      },
+      {
+        "name": "findAll",
+        "line": 57,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Query() filter: AccountFilterDto"
+        ],
+        "returnType": "Promise<PaginatedAccountsResponseDto>"
+      },
+      {
+        "name": "findTree",
+        "line": 70,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": "Promise<AccountTreeNodeResponseDto[]>"
+      },
+      {
+        "name": "seedDefaultAccounts",
+        "line": 84,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": "Promise<AccountResponseDto[]>"
+      },
+      {
+        "name": "findOne",
+        "line": 99,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": "Promise<AccountResponseDto>"
+      },
+      {
+        "name": "update",
+        "line": 112,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Body() dto: UpdateAccountDto"
+        ],
+        "returnType": "Promise<AccountResponseDto>"
+      },
+      {
+        "name": "activate",
+        "line": 128,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": "Promise<AccountResponseDto>"
+      },
+      {
+        "name": "deactivate",
+        "line": 142,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": "Promise<AccountResponseDto>"
+      },
+      {
+        "name": "remove",
+        "line": 156,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": "Promise<{ message: string }>"
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Accounts')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('accounts')",
+      "create: @Post()",
+      "create: @ApiOperation({ summary: 'Create an account' })",
+      "create: @ApiCreatedResponse({ type: AccountResponseDto })",
+      "findAll: @Get()",
+      "findAll: @ApiOperation({ summary: 'List chart of accounts' })",
+      "findAll: @ApiOkResponse({ type: PaginatedAccountsResponseDto })",
+      "findTree: @Get('tree')",
+      "findTree: @ApiOperation({ summary: 'Get chart of accounts tree' })",
+      "findTree: @ApiOkResponse({\n    type: AccountTreeNodeResponseDto,\n    isArray: true,\n  })",
+      "seedDefaultAccounts: @Post('seed-default')",
+      "seedDefaultAccounts: @ApiOperation({ summary: 'Create the default chart of accounts' })",
+      "seedDefaultAccounts: @ApiCreatedResponse({\n    type: AccountResponseDto,\n    isArray: true,\n  })",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOperation({ summary: 'Get account details' })",
+      "findOne: @ApiOkResponse({ type: AccountResponseDto })",
+      "update: @Patch(':id')",
+      "update: @ApiOperation({ summary: 'Update an account' })",
+      "update: @ApiOkResponse({ type: AccountResponseDto })",
+      "activate: @Post(':id/activate')",
+      "activate: @ApiOperation({ summary: 'Activate an account' })",
+      "activate: @ApiOkResponse({ type: AccountResponseDto })",
+      "deactivate: @Post(':id/deactivate')",
+      "deactivate: @ApiOperation({ summary: 'Deactivate an account' })",
+      "deactivate: @ApiOkResponse({ type: AccountResponseDto })",
+      "remove: @Delete(':id')",
+      "remove: @ApiOperation({ summary: 'Delete an account' })"
+    ]
+  },
+  {
+    "file": "src/accounts/dto/create-account.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiProperty({ example: '1000' })\n  @IsString()\n  @MaxLength(30)\n  code!: string;",
+      "@ApiProperty({ example: 'Cash' })\n  @IsString()\n  @MaxLength(180)\n  name!: string;",
+      "@ApiProperty({ enum: AccountType })\n  @IsEnum(AccountType)\n  type!: AccountType;",
+      "@ApiProperty({ enum: AccountNormalBalance })\n  @IsEnum(AccountNormalBalance)\n  normalBalance!: AccountNormalBalance;",
+      "@ApiPropertyOptional({ enum: AccountStatus })\n  @IsOptional()\n  @IsEnum(AccountStatus)\n  status?: AccountStatus;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  parentId?: string;",
+      "@ApiPropertyOptional({ default: false })\n  @IsOptional()\n  @IsBoolean()\n  isGroup?: boolean;",
+      "@ApiPropertyOptional({ default: false })\n  @IsOptional()\n  @IsBoolean()\n  isSystemAccount?: boolean;",
+      "@ApiPropertyOptional({ default: true })\n  @IsOptional()\n  @IsBoolean()\n  allowManualEntry?: boolean;",
+      "@ApiPropertyOptional({ example: 'EUR' })\n  @IsOptional()\n  @IsString()\n  @Length(3, 3)\n  currency?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsString()\n  @MaxLength(2000)\n  description?: string;"
+    ]
+  },
+  {
+    "file": "src/accounting-settings/accounting-settings.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "get",
+        "line": 39,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": "Promise<AccountingSettingsResponseDto>"
+      },
+      {
+        "name": "update",
+        "line": 50,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: UpdateAccountingSettingsDto"
+        ],
+        "returnType": "Promise<AccountingSettingsResponseDto>"
+      },
+      {
+        "name": "seedDefaults",
+        "line": 64,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: SeedAccountingSettingsDto"
+        ],
+        "returnType": "Promise<AccountingSettingsResponseDto>"
+      },
+      {
+        "name": "validate",
+        "line": 80,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": "Promise<AccountingSettingsValidationResponseDto>"
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Accounting Settings')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('accounting-settings')",
+      "get: @Get()",
+      "get: @ApiOperation({ summary: 'Get company accounting settings' })",
+      "get: @ApiOkResponse({ type: AccountingSettingsResponseDto })",
+      "update: @Put()",
+      "update: @ApiOperation({ summary: 'Create or update accounting settings' })",
+      "update: @ApiOkResponse({ type: AccountingSettingsResponseDto })",
+      "seedDefaults: @Post('seed-defaults')",
+      "seedDefaults: @ApiOperation({\n    summary: 'Create default accounting settings from chart of accounts',\n  })",
+      "seedDefaults: @ApiCreatedResponse({ type: AccountingSettingsResponseDto })",
+      "validate: @Get('validate')",
+      "validate: @ApiOperation({\n    summary: 'Validate accounting settings and account mappings',\n  })",
+      "validate: @ApiOkResponse({\n    type: AccountingSettingsValidationResponseDto,\n  })"
+    ]
+  },
+  {
+    "file": "src/accounting-settings/dto/update-accounting-settings.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  accountsReceivableAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  accountsPayableAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  salesRevenueAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  salesReturnsAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  outputTaxAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  inputTaxAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  inventoryAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  costOfGoodsSoldAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  cashAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  bankAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  cardClearingAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  goodsReceivedNotInvoicedAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  purchaseExpenseAccountId?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsUUID()\n  roundingDifferenceAccountId?: string;",
+      "@ApiPropertyOptional({\n    example: 'EUR',\n    minLength: 3,\n    maxLength: 3,\n  })\n  @IsOptional()\n  @IsString()\n  @Length(3, 3)\n  defaultCurrency?: string;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsBoolean()\n  autoPostSalesInvoices?: boolean;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsBoolean()\n  autoPostCustomerPayments?: boolean;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsBoolean()\n  autoPostSalesReturns?: boolean;",
+      "@ApiPropertyOptional()\n  @IsOptional()\n  @IsBoolean()\n  autoPostGoodsReceipts?: boolean;"
+    ]
+  },
+  {
+    "file": "src/items/items.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 38,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Body() dto: CreateItemDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findAll",
+        "line": 55,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Query() filter: ItemFilterDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findLowStock",
+        "line": 77,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findOutOfStock",
+        "line": 89,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findBySku",
+        "line": 101,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('sku') sku: string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findByBarcode",
+        "line": 115,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('barcode') barcode: string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findOne",
+        "line": 129,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "update",
+        "line": 143,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Body() dto: UpdateItemDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "updateStatus",
+        "line": 159,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string",
+          "@Body() dto: UpdateItemStatusDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "restore",
+        "line": 175,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "remove",
+        "line": 189,
+        "parameters": [
+          "@Req() request: AuthenticatedRequest",
+          "@Param('id', ParseUUIDPipe) id: string"
+        ],
+        "returnType": null
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Items')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('items')",
+      "create: @Post()",
+      "create: @ApiOperation({\r\n    summary: 'Create a new item',\r\n  })",
+      "create: @ApiCreatedResponse({\r\n    description: 'Item created successfully',\r\n  })",
+      "findAll: @Get()",
+      "findAll: @ApiOperation({\r\n    summary:\r\n      'List items with pagination, search and filters',\r\n  })",
+      "findAll: @ApiOkResponse({\r\n    description: 'Paginated item list',\r\n  })",
+      "findLowStock: @Get('low-stock')",
+      "findLowStock: @ApiOperation({\r\n    summary: 'List low-stock items',\r\n  })",
+      "findOutOfStock: @Get('out-of-stock')",
+      "findOutOfStock: @ApiOperation({\r\n    summary: 'List out-of-stock items',\r\n  })",
+      "findBySku: @Get('sku/:sku')",
+      "findBySku: @ApiOperation({\r\n    summary: 'Find an item by SKU',\r\n  })",
+      "findByBarcode: @Get('barcode/:barcode')",
+      "findByBarcode: @ApiOperation({\r\n    summary: 'Find an item by barcode',\r\n  })",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOperation({\r\n    summary: 'Get one item',\r\n  })",
+      "update: @Patch(':id')",
+      "update: @ApiOperation({\r\n    summary: 'Update an item',\r\n  })",
+      "updateStatus: @Patch(':id/status')",
+      "updateStatus: @ApiOperation({\r\n    summary: 'Activate or deactivate an item',\r\n  })",
+      "restore: @Patch(':id/restore')",
+      "restore: @ApiOperation({\r\n    summary: 'Restore a soft-deleted item',\r\n  })",
+      "remove: @Delete(':id')",
+      "remove: @ApiOperation({\r\n    summary: 'Soft-delete an item',\r\n  })"
+    ]
+  },
+  {
+    "file": "src/items/dto/create-item.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiPropertyOptional({ format: 'uuid' })\n  @IsOptional()\n  @IsUUID()\n  categoryId?: string;",
+      "@ApiProperty({ example: 'ITEM-0001', maxLength: 50 })\n  @IsString()\n  @Length(1, 50)\n  @Matches(/^[A-Za-z0-9._/-]+$/, {\n    message:\n      'sku may contain letters, numbers, dots, underscores, slashes and hyphens',\n  })\n  sku!: string;",
+      "@ApiPropertyOptional({ example: '8901234567890', maxLength: 100 })\n  @IsOptional()\n  @IsString()\n  @MaxLength(100)\n  barcode?: string;",
+      "@ApiProperty({ example: 'Wireless Keyboard', maxLength: 200 })\n  @IsString()\n  @Length(2, 200)\n  name!: string;",
+      "@ApiPropertyOptional({ maxLength: 2000 })\n  @IsOptional()\n  @IsString()\n  @MaxLength(2000)\n  description?: string;",
+      "@ApiPropertyOptional({ example: 'PCS', default: 'PCS', maxLength: 30 })\n  @IsOptional()\n  @IsString()\n  @Length(1, 30)\n  unit?: string;",
+      "@ApiPropertyOptional({ example: 20, default: 0, minimum: 0 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 2 })\n  @Min(0)\n  purchasePrice?: number;",
+      "@ApiPropertyOptional({ example: 29.99, default: 0, minimum: 0 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 2 })\n  @Min(0)\n  sellingPrice?: number;",
+      "@ApiPropertyOptional({ example: 22, default: 0, minimum: 0, maximum: 100 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 2 })\n  @Min(0)\n  @Max(100)\n  taxRate?: number;",
+      "@ApiPropertyOptional({ example: 100, default: 0, minimum: 0 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 3 })\n  @Min(0)\n  openingStock?: number;",
+      "@ApiPropertyOptional({ example: 10, default: 0, minimum: 0 })\n  @IsOptional()\n  @Type(() => Number)\n  @IsNumber({ maxDecimalPlaces: 3 })\n  @Min(0)\n  minimumStock?: number;",
+      "@ApiPropertyOptional({ example: true, default: true })\n  @IsOptional()\n  @IsBoolean()\n  trackInventory?: boolean;",
+      "@ApiPropertyOptional({ example: '84716040', maxLength: 50 })\n  @IsOptional()\n  @IsString()\n  @MaxLength(50)\n  hsnCode?: string;",
+      "@ApiPropertyOptional({ example: true, default: true })\n  @IsOptional()\n  @IsBoolean()\n  isActive?: boolean;"
+    ]
+  },
+  {
+    "file": "src/warehouses/warehouses.controller.ts",
+    "kind": "controller",
+    "exists": true,
+    "methods": [
+      {
+        "name": "create",
+        "line": 14,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Body() d:CreateWarehouseDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findAll",
+        "line": 15,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Query() f:WarehouseFilterDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findByCode",
+        "line": 16,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('code') c:string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "findOne",
+        "line": 17,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "update",
+        "line": 18,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string",
+          "@Body() d:UpdateWarehouseDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "status",
+        "line": 19,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string",
+          "@Body() d:UpdateWarehouseStatusDto"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "setDefault",
+        "line": 20,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "restore",
+        "line": 21,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string"
+        ],
+        "returnType": null
+      },
+      {
+        "name": "remove",
+        "line": 22,
+        "parameters": [
+          "@Req() r:AuthenticatedRequest",
+          "@Param('id',ParseUUIDPipe) id:string"
+        ],
+        "returnType": null
+      }
+    ],
+    "decorators": [
+      "@ApiTags('Warehouses')",
+      "@ApiBearerAuth()",
+      "@UseGuards(JwtAuthGuard)",
+      "@Controller('warehouses')",
+      "create: @Post()",
+      "create: @ApiOperation({summary:'Create a warehouse'})",
+      "create: @ApiCreatedResponse({type:WarehouseResponseDto})",
+      "findAll: @Get()",
+      "findAll: @ApiOperation({summary:'List warehouses'})",
+      "findAll: @ApiOkResponse({type:PaginatedWarehousesResponseDto})",
+      "findByCode: @Get('code/:code')",
+      "findByCode: @ApiOkResponse({type:WarehouseResponseDto})",
+      "findOne: @Get(':id')",
+      "findOne: @ApiOkResponse({type:WarehouseResponseDto})",
+      "update: @Patch(':id')",
+      "update: @ApiOkResponse({type:WarehouseResponseDto})",
+      "status: @Patch(':id/status')",
+      "status: @ApiOkResponse({type:WarehouseResponseDto})",
+      "setDefault: @Patch(':id/default')",
+      "setDefault: @ApiOkResponse({type:WarehouseResponseDto})",
+      "restore: @Patch(':id/restore')",
+      "restore: @ApiOkResponse({type:WarehouseResponseDto})",
+      "remove: @Delete(':id')"
+    ]
+  },
+  {
+    "file": "src/warehouses/dto/create-warehouse.dto.ts",
+    "kind": "dto",
+    "exists": true,
+    "fields": [
+      "@ApiProperty({ example: 'Main Warehouse' }) @IsString() @MaxLength(150) name!: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) description?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) contactPerson?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) phone?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(180) email?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) address?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) city?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) state?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) postalCode?: string;",
+      "@ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) country?: string;",
+      "@ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean() isDefault?: boolean;",
+      "@ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean() isActive?: boolean;"
+    ]
+  }
+]

@@ -1,0 +1,3930 @@
+{
+  "generatedAt": "2026-08-10T22:29:54.971Z",
+  "requestedDatabase": "tallysync_e2e_test",
+  "current": {
+    "database": "tallysync_e2e_test",
+    "schema": "public"
+  },
+  "missingTables": [],
+  "requiredFixtureFields": {
+    "companies": [
+      {
+        "table_name": "companies",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "companies",
+        "column_name": "tally_company_name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      }
+    ],
+    "users": [
+      {
+        "table_name": "users",
+        "column_name": "role_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "users",
+        "column_name": "email",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "users",
+        "column_name": "password_hash",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "users",
+        "column_name": "full_name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      }
+    ],
+    "accounts": [
+      {
+        "table_name": "accounts",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "accounts",
+        "column_name": "code",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "accounts",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "accounts",
+        "column_name": "type",
+        "is_nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "udt_name": "accounts_type_enum",
+        "column_default": null
+      },
+      {
+        "table_name": "accounts",
+        "column_name": "normal_balance",
+        "is_nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "udt_name": "accounts_normal_balance_enum",
+        "column_default": null
+      }
+    ],
+    "accounting_settings": [
+      {
+        "table_name": "accounting_settings",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      }
+    ],
+    "warehouses": [
+      {
+        "table_name": "warehouses",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "warehouses",
+        "column_name": "warehouse_code",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "warehouses",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      }
+    ],
+    "items": [
+      {
+        "table_name": "items",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "items",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      }
+    ],
+    "categories": [
+      {
+        "table_name": "categories",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "categories",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      }
+    ],
+    "bills_of_material": [
+      {
+        "table_name": "bills_of_material",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "bills_of_material",
+        "column_name": "finished_item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "bills_of_material",
+        "column_name": "code",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "bills_of_material",
+        "column_name": "name",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "bills_of_material",
+        "column_name": "output_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "bill_of_material_components": [
+      {
+        "table_name": "bill_of_material_components",
+        "column_name": "bill_of_material_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "bill_of_material_components",
+        "column_name": "component_item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "bill_of_material_components",
+        "column_name": "quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "production_orders": [
+      {
+        "table_name": "production_orders",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_orders",
+        "column_name": "order_number",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "production_orders",
+        "column_name": "bill_of_material_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_orders",
+        "column_name": "finished_item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_orders",
+        "column_name": "warehouse_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_orders",
+        "column_name": "planned_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "production_order_components": [
+      {
+        "table_name": "production_order_components",
+        "column_name": "production_order_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_order_components",
+        "column_name": "component_item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_order_components",
+        "column_name": "bom_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_order_components",
+        "column_name": "required_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "material_consumptions": [
+      {
+        "table_name": "material_consumptions",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumptions",
+        "column_name": "consumption_number",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumptions",
+        "column_name": "production_order_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumptions",
+        "column_name": "warehouse_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumptions",
+        "column_name": "consumption_date",
+        "is_nullable": "NO",
+        "data_type": "date",
+        "udt_name": "date",
+        "column_default": null
+      }
+    ],
+    "material_consumption_lines": [
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "consumption_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "production_order_component_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "unit_cost",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "material_consumption_lines",
+        "column_name": "total_cost",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "manufacturing_wip_accounting_settings": [
+      {
+        "table_name": "manufacturing_wip_accounting_settings",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_accounting_settings",
+        "column_name": "wip_account_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      }
+    ],
+    "manufacturing_wip_postings": [
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "production_order_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "posting_type",
+        "is_nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "udt_name": "manufacturing_wip_posting_type_enum",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "source_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "posting_date",
+        "is_nullable": "NO",
+        "data_type": "date",
+        "udt_name": "date",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "amount",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "manufacturing_wip_postings",
+        "column_name": "journal_entry_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      }
+    ],
+    "production_variances": [
+      {
+        "table_name": "production_variances",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variances",
+        "column_name": "production_order_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variances",
+        "column_name": "variance_date",
+        "is_nullable": "NO",
+        "data_type": "date",
+        "udt_name": "date",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variances",
+        "column_name": "material_cost",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variances",
+        "column_name": "finished_goods_cost",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variances",
+        "column_name": "wip_variance",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "production_variance_lines": [
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "production_variance_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "production_order_component_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "item_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "required_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "consumed_quantity",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "quantity_variance",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      },
+      {
+        "table_name": "production_variance_lines",
+        "column_name": "actual_cost",
+        "is_nullable": "NO",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "column_default": null
+      }
+    ],
+    "journal_entries": [
+      {
+        "table_name": "journal_entries",
+        "column_name": "company_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "journal_entries",
+        "column_name": "entry_number",
+        "is_nullable": "NO",
+        "data_type": "character varying",
+        "udt_name": "varchar",
+        "column_default": null
+      },
+      {
+        "table_name": "journal_entries",
+        "column_name": "entry_date",
+        "is_nullable": "NO",
+        "data_type": "date",
+        "udt_name": "date",
+        "column_default": null
+      }
+    ],
+    "journal_entry_lines": [
+      {
+        "table_name": "journal_entry_lines",
+        "column_name": "journal_entry_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      },
+      {
+        "table_name": "journal_entry_lines",
+        "column_name": "account_id",
+        "is_nullable": "NO",
+        "data_type": "uuid",
+        "udt_name": "uuid",
+        "column_default": null
+      }
+    ]
+  },
+  "columns": [
+    {
+      "table_name": "accounting_settings",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "accounts_receivable_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "accounts_payable_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "sales_revenue_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "sales_returns_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "output_tax_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "input_tax_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "inventory_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "cost_of_goods_sold_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "cash_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "bank_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "card_clearing_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "goods_received_not_invoiced_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "purchase_expense_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "rounding_difference_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "default_currency",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": "'EUR'::character varying"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_sales_invoices",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_customer_payments",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_sales_returns",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_goods_receipts",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_purchase_invoices",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_supplier_payments",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "purchase_returns_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_purchase_returns",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "raw_materials_inventory_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "work_in_progress_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "finished_goods_inventory_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "manufacturing_variance_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "direct_labor_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "manufacturing_overhead_account_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_material_consumption",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_production_completion",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounting_settings",
+      "column_name": "auto_post_production_variance",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "code",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "type",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "accounts_type_enum",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "normal_balance",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "accounts_normal_balance_enum",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "accounts_status_enum",
+      "column_default": "'active'::accounts_status_enum"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "parent_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "is_group",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "false"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "is_system_account",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "false"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "allow_manual_entry",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "currency",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": "'EUR'::character varying"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "accounts",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "bill_of_material_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "component_item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "scrap_percentage",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "finished_item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "code",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "column_default": "1"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "output_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "bill_of_material_status_enum",
+      "column_default": "'draft'::bill_of_material_status_enum"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "effective_from",
+      "is_nullable": "YES",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "effective_to",
+      "is_nullable": "YES",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "bills_of_material",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "categories",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "is_active",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "categories",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "categories",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "categories",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "tally_group",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "companies",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "email",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "phone",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "address",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "tax_number",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "is_active",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "companies",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "companies",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "companies",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "companies",
+      "column_name": "tally_company_name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "items",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "category_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "sku",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "unit",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": "'pcs'::character varying"
+    },
+    {
+      "table_name": "items",
+      "column_name": "purchase_price",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "selling_price",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "tax_percent",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "opening_stock",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "is_active",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "items",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "items",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "items",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "tally_item_name",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "barcode",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "tax_rate",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "current_stock",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "minimum_stock",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "items",
+      "column_name": "track_inventory",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "items",
+      "column_name": "hsn_code",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "tally_stock_item_id",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "sync_status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "items_sync_status_enum",
+      "column_default": "'pending'::items_sync_status_enum"
+    },
+    {
+      "table_name": "items",
+      "column_name": "sync_error",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "last_synced_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "entry_number",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "entry_date",
+      "is_nullable": "NO",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "journal_entries_status_enum",
+      "column_default": "'draft'::journal_entries_status_enum"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "source_type",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "journal_entries_source_type_enum",
+      "column_default": "'manual'::journal_entries_source_type_enum"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "source_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "reference_number",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "currency",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": "'EUR'::character varying"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "total_debit",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "total_credit",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "narration",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "posted_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "posted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "reversed_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "reversed_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "reversal_reason",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "reversal_entry_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "journal_entries",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "journal_entry_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "account_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "debit",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "credit",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "party_type",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "party_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "cost_center",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "wip_account_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "production_order_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "posting_type",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "manufacturing_wip_posting_type_enum",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "source_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "posting_date",
+      "is_nullable": "NO",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "amount",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "journal_entry_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "consumption_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "production_order_component_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "unit_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "total_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "consumption_number",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "production_order_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "warehouse_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "consumption_date",
+      "is_nullable": "NO",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "material_consumption_status_enum",
+      "column_default": "'posted'::material_consumption_status_enum"
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "reversed_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "reversed_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "material_consumptions",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "production_order_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "component_item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "bom_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "scrap_percentage",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "required_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "consumed_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_order_components",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "order_number",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "bill_of_material_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "finished_item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "warehouse_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "production_order_status_enum",
+      "column_default": "'draft'::production_order_status_enum"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "planned_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "completed_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "planned_start_date",
+      "is_nullable": "YES",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "planned_end_date",
+      "is_nullable": "YES",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_start_date",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_end_date",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_material_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_labor_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_overhead_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_orders",
+      "column_name": "actual_total_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "production_variance_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "production_order_component_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "item_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "required_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "consumed_quantity",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "quantity_variance",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variance_lines",
+      "column_name": "actual_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "production_order_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "variance_date",
+      "is_nullable": "NO",
+      "data_type": "date",
+      "udt_name": "date",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "material_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "finished_goods_cost",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "wip_variance",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "production_variance_status_enum",
+      "column_default": "'calculated'::production_variance_status_enum"
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "journal_entry_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "production_variances",
+      "column_name": "total_variance",
+      "is_nullable": "NO",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "column_default": "0"
+    },
+    {
+      "table_name": "users",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "company_id",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "role_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "email",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "password_hash",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "first_name",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "last_name",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "is_active",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "users",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "reset_token_hash",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "reset_token_expires_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "last_login_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "full_name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "phone",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "data_type": "USER-DEFINED",
+      "udt_name": "users_status_enum",
+      "column_default": "'active'::users_status_enum"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "company_id",
+      "is_nullable": "NO",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "warehouse_code",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "contact_person",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "phone",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "email",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "address",
+      "is_nullable": "YES",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "city",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "state",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "postal_code",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "country",
+      "is_nullable": "YES",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "is_default",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "false"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "is_active",
+      "is_nullable": "NO",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "column_default": null
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "warehouses",
+      "column_name": "deleted_at",
+      "is_nullable": "YES",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_accounts_payable",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (accounts_payable_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_accounts_receivable",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (accounts_receivable_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_bank",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (bank_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_card_clearing",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (card_clearing_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_cash",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (cash_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_cogs",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (cost_of_goods_sold_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_grni",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (goods_received_not_invoiced_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_input_tax",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (input_tax_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_inventory",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (inventory_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_output_tax",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (output_tax_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_purchase_expense",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (purchase_expense_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_rounding_difference",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (rounding_difference_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_sales_returns",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (sales_returns_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "FK_accounting_settings_sales_revenue",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (sales_revenue_account_id) REFERENCES accounts(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "accounting_settings",
+      "constraint_name": "PK_accounting_settings",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "accounts",
+      "constraint_name": "FK_accounts_parent",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (parent_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "accounts",
+      "constraint_name": "PK_accounts",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "FK_bom_component_bom",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (bill_of_material_id) REFERENCES bills_of_material(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "FK_bom_component_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (component_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "PK_bill_of_material_components",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "chk_bom_component_quantity_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((quantity > (0)::numeric))"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "chk_bom_component_scrap_percentage_range",
+      "constraint_type": "CHECK",
+      "definition": "CHECK (((scrap_percentage >= (0)::numeric) AND (scrap_percentage <= (100)::numeric)))"
+    },
+    {
+      "table_name": "bill_of_material_components",
+      "constraint_name": "uq_bom_component_item",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (bill_of_material_id, component_item_id)"
+    },
+    {
+      "table_name": "bills_of_material",
+      "constraint_name": "FK_bom_finished_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (finished_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "bills_of_material",
+      "constraint_name": "PK_bills_of_material",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "bills_of_material",
+      "constraint_name": "chk_bom_output_quantity_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((output_quantity > (0)::numeric))"
+    },
+    {
+      "table_name": "bills_of_material",
+      "constraint_name": "chk_bom_version_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "table_name": "categories",
+      "constraint_name": "FK_categories_company",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "categories",
+      "constraint_name": "PK_categories",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "companies",
+      "constraint_name": "PK_companies",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "CHK_items_purchase_price",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((purchase_price >= (0)::numeric))"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "CHK_items_selling_price",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((selling_price >= (0)::numeric))"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "CHK_items_tax_percent",
+      "constraint_type": "CHECK",
+      "definition": "CHECK (((tax_percent >= (0)::numeric) AND (tax_percent <= (100)::numeric)))"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "FK_items_category",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "FK_items_company",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "items",
+      "constraint_name": "PK_items",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "journal_entries",
+      "constraint_name": "CHK_journal_entries_balanced",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((total_debit = total_credit))"
+    },
+    {
+      "table_name": "journal_entries",
+      "constraint_name": "CHK_journal_entries_total_credit",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((total_credit >= (0)::numeric))"
+    },
+    {
+      "table_name": "journal_entries",
+      "constraint_name": "CHK_journal_entries_total_debit",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((total_debit >= (0)::numeric))"
+    },
+    {
+      "table_name": "journal_entries",
+      "constraint_name": "FK_journal_entries_reversal_entry",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (reversal_entry_id) REFERENCES journal_entries(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "journal_entries",
+      "constraint_name": "PK_journal_entries",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "constraint_name": "CHK_journal_entry_lines_amount",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((((debit > (0)::numeric) AND (credit = (0)::numeric)) OR ((credit > (0)::numeric) AND (debit = (0)::numeric))))"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "constraint_name": "CHK_journal_entry_lines_party",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((((party_type IS NULL) AND (party_id IS NULL)) OR ((party_type IS NOT NULL) AND (party_id IS NOT NULL))))"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "constraint_name": "FK_journal_entry_lines_account",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "constraint_name": "FK_journal_entry_lines_entry",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "journal_entry_lines",
+      "constraint_name": "PK_journal_entry_lines",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "constraint_name": "FK_manufacturing_wip_settings_account",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (wip_account_id) REFERENCES accounts(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "constraint_name": "PK_manufacturing_wip_accounting_settings",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "manufacturing_wip_accounting_settings",
+      "constraint_name": "UQ_manufacturing_wip_accounting_settings_company",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (company_id)"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "CHK_manufacturing_wip_postings_amount",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((amount > (0)::numeric))"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "FK_manufacturing_wip_postings_journal",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "FK_manufacturing_wip_postings_order",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "PK_manufacturing_wip_postings",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "manufacturing_wip_postings",
+      "constraint_name": "UQ_manufacturing_wip_postings_source",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (company_id, posting_type, source_id)"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "CHK_material_consumption_line_cost_non_negative",
+      "constraint_type": "CHECK",
+      "definition": "CHECK (((unit_cost >= (0)::numeric) AND (total_cost >= (0)::numeric)))"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "CHK_material_consumption_line_quantity_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((quantity > (0)::numeric))"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_component",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_component_id) REFERENCES production_order_components(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_consumption",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (consumption_id) REFERENCES material_consumptions(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "FK_material_consumption_lines_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "PK_material_consumption_lines",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "material_consumption_lines",
+      "constraint_name": "UQ_material_consumption_component",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (consumption_id, production_order_component_id)"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "FK_material_consumptions_production_order",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "FK_material_consumptions_warehouse",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "PK_material_consumptions",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "material_consumptions",
+      "constraint_name": "UQ_material_consumptions_company_number",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (company_id, consumption_number)"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "FK_production_order_components_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (component_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "FK_production_order_components_order",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "PK_production_order_components",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "UQ_production_order_component_item",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (production_order_id, component_item_id)"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "chk_production_order_component_consumed_non_negative",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((consumed_quantity >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_order_components",
+      "constraint_name": "chk_production_order_component_required_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((required_quantity > (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "CHK_production_orders_actual_labor_cost",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((actual_labor_cost >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "CHK_production_orders_actual_material_cost",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((actual_material_cost >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "CHK_production_orders_actual_overhead_cost",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((actual_overhead_cost >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "CHK_production_orders_actual_total_cost",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((actual_total_cost >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_bom",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (bill_of_material_id) REFERENCES bills_of_material(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_finished_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (finished_item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "FK_production_orders_warehouse",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "PK_production_orders",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "chk_production_orders_completed_quantity_non_negative",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((completed_quantity >= (0)::numeric))"
+    },
+    {
+      "table_name": "production_orders",
+      "constraint_name": "chk_production_orders_planned_quantity_positive",
+      "constraint_type": "CHECK",
+      "definition": "CHECK ((planned_quantity > (0)::numeric))"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_component",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_component_id) REFERENCES production_order_components(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_item",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "FK_production_variance_lines_variance",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_variance_id) REFERENCES production_variances(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "PK_production_variance_lines",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "production_variance_lines",
+      "constraint_name": "UQ_production_variance_line_component",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (production_variance_id, production_order_component_id)"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "CHK_production_variance_costs_non_negative",
+      "constraint_type": "CHECK",
+      "definition": "CHECK (((material_cost >= (0)::numeric) AND (finished_goods_cost >= (0)::numeric)))"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "FK_production_variances_journal",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "FK_production_variances_order",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (production_order_id) REFERENCES production_orders(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "PK_production_variances",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "production_variances",
+      "constraint_name": "UQ_production_variances_order",
+      "constraint_type": "UNIQUE",
+      "definition": "UNIQUE (company_id, production_order_id)"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "FK_users_company",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "FK_users_role",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "PK_users",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "warehouses",
+      "constraint_name": "FK_warehouses_company",
+      "constraint_type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE RESTRICT"
+    },
+    {
+      "table_name": "warehouses",
+      "constraint_name": "PK_warehouses",
+      "constraint_type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ],
+  "indexes": [
+    {
+      "tablename": "accounting_settings",
+      "indexname": "PK_accounting_settings",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_accounting_settings\" ON public.accounting_settings USING btree (id)"
+    },
+    {
+      "tablename": "accounting_settings",
+      "indexname": "UQ_accounting_settings_company",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_accounting_settings_company\" ON public.accounting_settings USING btree (company_id)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "IDX_accounts_company",
+      "indexdef": "CREATE INDEX \"IDX_accounts_company\" ON public.accounts USING btree (company_id)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "IDX_accounts_parent",
+      "indexdef": "CREATE INDEX \"IDX_accounts_parent\" ON public.accounts USING btree (parent_id)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "IDX_accounts_status",
+      "indexdef": "CREATE INDEX \"IDX_accounts_status\" ON public.accounts USING btree (company_id, status)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "IDX_accounts_type",
+      "indexdef": "CREATE INDEX \"IDX_accounts_type\" ON public.accounts USING btree (company_id, type)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "PK_accounts",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_accounts\" ON public.accounts USING btree (id)"
+    },
+    {
+      "tablename": "accounts",
+      "indexname": "UQ_accounts_company_code",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_accounts_company_code\" ON public.accounts USING btree (company_id, code) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "bill_of_material_components",
+      "indexname": "PK_bill_of_material_components",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_bill_of_material_components\" ON public.bill_of_material_components USING btree (id)"
+    },
+    {
+      "tablename": "bill_of_material_components",
+      "indexname": "idx_bom_component_bom_id",
+      "indexdef": "CREATE INDEX idx_bom_component_bom_id ON public.bill_of_material_components USING btree (bill_of_material_id)"
+    },
+    {
+      "tablename": "bill_of_material_components",
+      "indexname": "idx_bom_component_item_id",
+      "indexdef": "CREATE INDEX idx_bom_component_item_id ON public.bill_of_material_components USING btree (component_item_id)"
+    },
+    {
+      "tablename": "bill_of_material_components",
+      "indexname": "uq_bom_component_item",
+      "indexdef": "CREATE UNIQUE INDEX uq_bom_component_item ON public.bill_of_material_components USING btree (bill_of_material_id, component_item_id)"
+    },
+    {
+      "tablename": "bills_of_material",
+      "indexname": "PK_bills_of_material",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_bills_of_material\" ON public.bills_of_material USING btree (id)"
+    },
+    {
+      "tablename": "bills_of_material",
+      "indexname": "idx_bom_company_id",
+      "indexdef": "CREATE INDEX idx_bom_company_id ON public.bills_of_material USING btree (company_id)"
+    },
+    {
+      "tablename": "bills_of_material",
+      "indexname": "idx_bom_finished_item_id",
+      "indexdef": "CREATE INDEX idx_bom_finished_item_id ON public.bills_of_material USING btree (finished_item_id)"
+    },
+    {
+      "tablename": "bills_of_material",
+      "indexname": "uq_bom_active_finished_item",
+      "indexdef": "CREATE UNIQUE INDEX uq_bom_active_finished_item ON public.bills_of_material USING btree (company_id, finished_item_id) WHERE ((status = 'active'::bill_of_material_status_enum) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "bills_of_material",
+      "indexname": "uq_bom_company_code",
+      "indexdef": "CREATE UNIQUE INDEX uq_bom_company_code ON public.bills_of_material USING btree (company_id, code) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "categories",
+      "indexname": "PK_categories",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_categories\" ON public.categories USING btree (id)"
+    },
+    {
+      "tablename": "categories",
+      "indexname": "UQ_categories_company_name",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_categories_company_name\" ON public.categories USING btree (company_id, lower((name)::text)) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "companies",
+      "indexname": "PK_companies",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_companies\" ON public.companies USING btree (id)"
+    },
+    {
+      "tablename": "companies",
+      "indexname": "UQ_companies_email",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_companies_email\" ON public.companies USING btree (lower((email)::text)) WHERE ((email IS NOT NULL) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "items",
+      "indexname": "IDX_items_category_id",
+      "indexdef": "CREATE INDEX \"IDX_items_category_id\" ON public.items USING btree (category_id)"
+    },
+    {
+      "tablename": "items",
+      "indexname": "IDX_items_company_id",
+      "indexdef": "CREATE INDEX \"IDX_items_company_id\" ON public.items USING btree (company_id)"
+    },
+    {
+      "tablename": "items",
+      "indexname": "IDX_items_company_name",
+      "indexdef": "CREATE INDEX \"IDX_items_company_name\" ON public.items USING btree (company_id, name)"
+    },
+    {
+      "tablename": "items",
+      "indexname": "PK_items",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_items\" ON public.items USING btree (id)"
+    },
+    {
+      "tablename": "items",
+      "indexname": "UQ_items_company_barcode",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_items_company_barcode\" ON public.items USING btree (company_id, barcode) WHERE ((barcode IS NOT NULL) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "items",
+      "indexname": "UQ_items_company_sku",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_items_company_sku\" ON public.items USING btree (company_id, sku) WHERE ((sku IS NOT NULL) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "IDX_journal_entries_company",
+      "indexdef": "CREATE INDEX \"IDX_journal_entries_company\" ON public.journal_entries USING btree (company_id)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "IDX_journal_entries_entry_date",
+      "indexdef": "CREATE INDEX \"IDX_journal_entries_entry_date\" ON public.journal_entries USING btree (company_id, entry_date)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "IDX_journal_entries_source",
+      "indexdef": "CREATE INDEX \"IDX_journal_entries_source\" ON public.journal_entries USING btree (company_id, source_type, source_id)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "IDX_journal_entries_status",
+      "indexdef": "CREATE INDEX \"IDX_journal_entries_status\" ON public.journal_entries USING btree (company_id, status)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "PK_journal_entries",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_journal_entries\" ON public.journal_entries USING btree (id)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "UQ_journal_entries_company_number",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_journal_entries_company_number\" ON public.journal_entries USING btree (company_id, entry_number) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "journal_entries",
+      "indexname": "UQ_journal_entries_live_source",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_journal_entries_live_source\" ON public.journal_entries USING btree (company_id, source_type, source_id) WHERE ((source_id IS NOT NULL) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "journal_entry_lines",
+      "indexname": "IDX_journal_entry_lines_account",
+      "indexdef": "CREATE INDEX \"IDX_journal_entry_lines_account\" ON public.journal_entry_lines USING btree (account_id)"
+    },
+    {
+      "tablename": "journal_entry_lines",
+      "indexname": "IDX_journal_entry_lines_entry",
+      "indexdef": "CREATE INDEX \"IDX_journal_entry_lines_entry\" ON public.journal_entry_lines USING btree (journal_entry_id)"
+    },
+    {
+      "tablename": "journal_entry_lines",
+      "indexname": "IDX_journal_entry_lines_party",
+      "indexdef": "CREATE INDEX \"IDX_journal_entry_lines_party\" ON public.journal_entry_lines USING btree (party_type, party_id)"
+    },
+    {
+      "tablename": "journal_entry_lines",
+      "indexname": "PK_journal_entry_lines",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_journal_entry_lines\" ON public.journal_entry_lines USING btree (id)"
+    },
+    {
+      "tablename": "manufacturing_wip_accounting_settings",
+      "indexname": "PK_manufacturing_wip_accounting_settings",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_manufacturing_wip_accounting_settings\" ON public.manufacturing_wip_accounting_settings USING btree (id)"
+    },
+    {
+      "tablename": "manufacturing_wip_accounting_settings",
+      "indexname": "UQ_manufacturing_wip_accounting_settings_company",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_manufacturing_wip_accounting_settings_company\" ON public.manufacturing_wip_accounting_settings USING btree (company_id)"
+    },
+    {
+      "tablename": "manufacturing_wip_postings",
+      "indexname": "IDX_manufacturing_wip_postings_company",
+      "indexdef": "CREATE INDEX \"IDX_manufacturing_wip_postings_company\" ON public.manufacturing_wip_postings USING btree (company_id)"
+    },
+    {
+      "tablename": "manufacturing_wip_postings",
+      "indexname": "IDX_manufacturing_wip_postings_order",
+      "indexdef": "CREATE INDEX \"IDX_manufacturing_wip_postings_order\" ON public.manufacturing_wip_postings USING btree (production_order_id)"
+    },
+    {
+      "tablename": "manufacturing_wip_postings",
+      "indexname": "PK_manufacturing_wip_postings",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_manufacturing_wip_postings\" ON public.manufacturing_wip_postings USING btree (id)"
+    },
+    {
+      "tablename": "manufacturing_wip_postings",
+      "indexname": "UQ_manufacturing_wip_postings_source",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_manufacturing_wip_postings_source\" ON public.manufacturing_wip_postings USING btree (company_id, posting_type, source_id)"
+    },
+    {
+      "tablename": "material_consumption_lines",
+      "indexname": "PK_material_consumption_lines",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_material_consumption_lines\" ON public.material_consumption_lines USING btree (id)"
+    },
+    {
+      "tablename": "material_consumption_lines",
+      "indexname": "UQ_material_consumption_component",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_material_consumption_component\" ON public.material_consumption_lines USING btree (consumption_id, production_order_component_id)"
+    },
+    {
+      "tablename": "material_consumption_lines",
+      "indexname": "idx_material_consumption_lines_component_id",
+      "indexdef": "CREATE INDEX idx_material_consumption_lines_component_id ON public.material_consumption_lines USING btree (production_order_component_id)"
+    },
+    {
+      "tablename": "material_consumption_lines",
+      "indexname": "idx_material_consumption_lines_consumption_id",
+      "indexdef": "CREATE INDEX idx_material_consumption_lines_consumption_id ON public.material_consumption_lines USING btree (consumption_id)"
+    },
+    {
+      "tablename": "material_consumption_lines",
+      "indexname": "idx_material_consumption_lines_item_id",
+      "indexdef": "CREATE INDEX idx_material_consumption_lines_item_id ON public.material_consumption_lines USING btree (item_id)"
+    },
+    {
+      "tablename": "material_consumptions",
+      "indexname": "PK_material_consumptions",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_material_consumptions\" ON public.material_consumptions USING btree (id)"
+    },
+    {
+      "tablename": "material_consumptions",
+      "indexname": "UQ_material_consumptions_company_number",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_material_consumptions_company_number\" ON public.material_consumptions USING btree (company_id, consumption_number)"
+    },
+    {
+      "tablename": "material_consumptions",
+      "indexname": "idx_material_consumptions_company_id",
+      "indexdef": "CREATE INDEX idx_material_consumptions_company_id ON public.material_consumptions USING btree (company_id)"
+    },
+    {
+      "tablename": "material_consumptions",
+      "indexname": "idx_material_consumptions_production_order_id",
+      "indexdef": "CREATE INDEX idx_material_consumptions_production_order_id ON public.material_consumptions USING btree (production_order_id)"
+    },
+    {
+      "tablename": "material_consumptions",
+      "indexname": "idx_material_consumptions_warehouse_id",
+      "indexdef": "CREATE INDEX idx_material_consumptions_warehouse_id ON public.material_consumptions USING btree (warehouse_id)"
+    },
+    {
+      "tablename": "production_order_components",
+      "indexname": "PK_production_order_components",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_production_order_components\" ON public.production_order_components USING btree (id)"
+    },
+    {
+      "tablename": "production_order_components",
+      "indexname": "UQ_production_order_component_item",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_production_order_component_item\" ON public.production_order_components USING btree (production_order_id, component_item_id)"
+    },
+    {
+      "tablename": "production_order_components",
+      "indexname": "idx_production_order_components_item_id",
+      "indexdef": "CREATE INDEX idx_production_order_components_item_id ON public.production_order_components USING btree (component_item_id)"
+    },
+    {
+      "tablename": "production_order_components",
+      "indexname": "idx_production_order_components_order_id",
+      "indexdef": "CREATE INDEX idx_production_order_components_order_id ON public.production_order_components USING btree (production_order_id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "PK_production_orders",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_production_orders\" ON public.production_orders USING btree (id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "idx_production_orders_bom_id",
+      "indexdef": "CREATE INDEX idx_production_orders_bom_id ON public.production_orders USING btree (bill_of_material_id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "idx_production_orders_company_id",
+      "indexdef": "CREATE INDEX idx_production_orders_company_id ON public.production_orders USING btree (company_id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "idx_production_orders_finished_item_id",
+      "indexdef": "CREATE INDEX idx_production_orders_finished_item_id ON public.production_orders USING btree (finished_item_id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "idx_production_orders_status",
+      "indexdef": "CREATE INDEX idx_production_orders_status ON public.production_orders USING btree (status)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "idx_production_orders_warehouse_id",
+      "indexdef": "CREATE INDEX idx_production_orders_warehouse_id ON public.production_orders USING btree (warehouse_id)"
+    },
+    {
+      "tablename": "production_orders",
+      "indexname": "uq_production_orders_company_number",
+      "indexdef": "CREATE UNIQUE INDEX uq_production_orders_company_number ON public.production_orders USING btree (company_id, order_number) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "production_variance_lines",
+      "indexname": "PK_production_variance_lines",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_production_variance_lines\" ON public.production_variance_lines USING btree (id)"
+    },
+    {
+      "tablename": "production_variance_lines",
+      "indexname": "UQ_production_variance_line_component",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_production_variance_line_component\" ON public.production_variance_lines USING btree (production_variance_id, production_order_component_id)"
+    },
+    {
+      "tablename": "production_variances",
+      "indexname": "IDX_production_variances_company",
+      "indexdef": "CREATE INDEX \"IDX_production_variances_company\" ON public.production_variances USING btree (company_id)"
+    },
+    {
+      "tablename": "production_variances",
+      "indexname": "IDX_production_variances_status",
+      "indexdef": "CREATE INDEX \"IDX_production_variances_status\" ON public.production_variances USING btree (status)"
+    },
+    {
+      "tablename": "production_variances",
+      "indexname": "PK_production_variances",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_production_variances\" ON public.production_variances USING btree (id)"
+    },
+    {
+      "tablename": "production_variances",
+      "indexname": "UQ_production_variances_order",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_production_variances_order\" ON public.production_variances USING btree (company_id, production_order_id)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "IDX_users_company_id",
+      "indexdef": "CREATE INDEX \"IDX_users_company_id\" ON public.users USING btree (company_id)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "IDX_users_role_id",
+      "indexdef": "CREATE INDEX \"IDX_users_role_id\" ON public.users USING btree (role_id)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "PK_users",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_users\" ON public.users USING btree (id)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "UQ_users_company_email",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_users_company_email\" ON public.users USING btree (company_id, lower((email)::text)) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "idx_users_company_role",
+      "indexdef": "CREATE INDEX idx_users_company_role ON public.users USING btree (company_id, role_id)"
+    },
+    {
+      "tablename": "warehouses",
+      "indexname": "IDX_warehouses_company",
+      "indexdef": "CREATE INDEX \"IDX_warehouses_company\" ON public.warehouses USING btree (company_id)"
+    },
+    {
+      "tablename": "warehouses",
+      "indexname": "PK_warehouses",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_warehouses\" ON public.warehouses USING btree (id)"
+    },
+    {
+      "tablename": "warehouses",
+      "indexname": "UQ_warehouses_company_code",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_warehouses_company_code\" ON public.warehouses USING btree (company_id, warehouse_code) WHERE (deleted_at IS NULL)"
+    }
+  ]
+}

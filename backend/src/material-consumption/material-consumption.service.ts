@@ -10,10 +10,14 @@ import { CreateMaterialConsumptionDto } from './dto/create-material-consumption.
 import { MaterialConsumptionFilterDto } from './dto/material-consumption-filter.dto';
 import { MaterialConsumptionLineEntity } from './entities/material-consumption-line.entity';
 import { MaterialConsumptionEntity } from './entities/material-consumption.entity';
-
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 @Injectable()
 export class MaterialConsumptionService {
   constructor(
+    @InjectRepository(AccountingSettingsEntity)
+    private readonly accountingSettingsRepository: Repository<AccountingSettingsEntity>,
+    private readonly accountingEngineService: AccountingEngineService,
     @InjectRepository(MaterialConsumptionEntity)
     private readonly consumptionRepository: Repository<MaterialConsumptionEntity>,
     private readonly dataSource: DataSource,
@@ -22,7 +26,12 @@ export class MaterialConsumptionService {
 
   async create(companyId: string, userId: string, dto: CreateMaterialConsumptionDto): Promise<MaterialConsumptionEntity> {
     this.assertUniqueComponentLines(dto);
-    return this.dataSource.transaction((manager) => this.createWithManager(manager, companyId, userId, dto));
+    const saved = await this.dataSource.transaction((manager) =>
+      this.createWithManager(manager, companyId, userId, dto),
+    );
+
+    await this.autoPostMaterialConsumptionIfEnabled(saved.id, companyId, userId);
+    return saved;
   }
 
   async findAll(companyId: string, filter: MaterialConsumptionFilterDto): Promise<{
@@ -58,6 +67,23 @@ export class MaterialConsumptionService {
     });
     if (!entity) throw new NotFoundException('Material consumption not found.');
     return entity;
+  }
+  private async autoPostMaterialConsumptionIfEnabled(
+    sourceId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<void> {
+    const settings = await this.accountingSettingsRepository.findOne({
+      where: { companyId },
+    });
+
+    if (settings?.autoPostMaterialConsumption === false) return;
+
+    await this.accountingEngineService.postMaterialConsumption(
+      sourceId,
+      companyId,
+      userId,
+    );
   }
 
   private async createWithManager(

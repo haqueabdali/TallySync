@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - tallysync_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - tallysync_internal
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_SSL: "false"
+
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
+      BODY_LIMIT: ${BODY_LIMIT:-1mb}
+      SLOW_REQUEST_MS: ${SLOW_REQUEST_MS:-1500}
+
+      BACKGROUND_JOBS_ENABLED: ${BACKGROUND_JOBS_ENABLED:-true}
+      BACKGROUND_JOBS_POLL_INTERVAL_MS: ${BACKGROUND_JOBS_POLL_INTERVAL_MS:-5000}
+      BACKGROUND_JOBS_BATCH_SIZE: ${BACKGROUND_JOBS_BATCH_SIZE:-10}
+      BACKGROUND_JOBS_STALE_AFTER_SECONDS: ${BACKGROUND_JOBS_STALE_AFTER_SECONDS:-900}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:3000/health/ready >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      - tallysync_internal
+
+volumes:
+  tallysync_postgres_data:
+
+networks:
+  tallysync_internal:
+    driver: bridge

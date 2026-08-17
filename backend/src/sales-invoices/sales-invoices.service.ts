@@ -11,6 +11,7 @@ import {
   Repository,
 } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { DeliveryNoteItemEntity } from '../delivery-notes/entities/delivery-note-item.entity';
 import { DeliveryNoteEntity } from '../delivery-notes/entities/delivery-note.entity';
@@ -59,6 +60,8 @@ export class SalesInvoicesService {
 
     @InjectRepository(ItemEntity)
     private readonly itemRepository: Repository<ItemEntity>,
+
+    private readonly accountingEngineService: AccountingEngineService,
   ) {}
 
   async create(
@@ -430,7 +433,7 @@ export class SalesInvoicesService {
     companyId: string,
     userId: string,
   ): Promise<SalesInvoiceResponseDto> {
-    return this.dataSource.transaction(async (manager) => {
+    const postedInvoice = await this.dataSource.transaction(async (manager) => {
       const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
       const customerRepository = manager.getRepository(CustomerEntity);
 
@@ -441,6 +444,14 @@ export class SalesInvoicesService {
 
       if (!invoice) {
         throw new NotFoundException('Sales invoice not found.');
+      }
+
+      if (
+        invoice.status === SalesInvoiceStatus.POSTED ||
+        invoice.status === SalesInvoiceStatus.PARTIALLY_PAID ||
+        invoice.status === SalesInvoiceStatus.PAID
+      ) {
+        return this.toResponse(invoice);
       }
 
       this.ensureDraft(invoice);
@@ -499,8 +510,15 @@ export class SalesInvoicesService {
         await invoiceRepository.save(invoice),
       );
     });
-  }
 
+    await this.accountingEngineService.autoPostSalesInvoice(
+      postedInvoice.id,
+      companyId,
+      userId,
+    );
+
+    return postedInvoice;
+  }
   async cancel(
     id: string,
     companyId: string,

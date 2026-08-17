@@ -68,6 +68,33 @@ import { BankReconciliationMatchEntity } from '../bank-reconciliation/entities/b
 import { VatReturnEntity } from '../vat-engine/entities/vat-return.entity';
 import { VatReturnLineEntity } from '../vat-engine/entities/vat-return-line.entity';
 import { CashFlowAccountMappingEntity } from '../cash-flow/entities/cash-flow-account-mapping.entity';
+import { InventoryRevaluationEntity } from '../inventory-revaluation/entities/inventory-revaluation.entity';
+import { InventoryRevaluationLineEntity } from '../inventory-revaluation/entities/inventory-revaluation-line.entity';
+import { ManualCostAdjustmentEntity } from '../manual-cost-adjustments/entities/manual-cost-adjustment.entity';
+import { ManualCostAdjustmentLineEntity } from '../manual-cost-adjustments/entities/manual-cost-adjustment-line.entity';
+import { NegativeInventoryPolicyEntity } from '../negative-inventory-policy/entities/negative-inventory-policy.entity';
+import { WipAccountingSettingsEntity } from '../manufacturing-wip-accounting/entities/wip-accounting-settings.entity';
+import { WipPostingEntity } from '../manufacturing-wip-accounting/entities/wip-posting.entity';
+import { ProductionVarianceSettingsEntity } from '../production-variance/entities/production-variance-settings.entity';
+import { ProductionVarianceEntity } from '../production-variance/entities/production-variance.entity';
+import { ProductionVarianceLineEntity } from '../production-variance/entities/production-variance-line.entity';
+import { AssetDisposalEntity } from '../asset-disposal/entities/asset-disposal.entity';
+import { VatSettlementSettingsEntity } from '../vat-settlement/entities/vat-settlement-settings.entity';
+import { VatSettlementEntity } from '../vat-settlement/entities/vat-settlement.entity';
+import { BackgroundJobEntity } from '../background-jobs/entities/background-job.entity';
+import { NotificationEntity } from '../notifications/entities/notification.entity';
+import { NotificationTemplateEntity } from '../notifications/entities/notification-template.entity';
+import { NotificationPreferenceEntity } from '../notifications/entities/notification-preference.entity';
+import { WorkCenterEntity } from '../capacity-planning/entities/work-center.entity';
+import { WorkCenterCapacityOverrideEntity } from '../capacity-planning/entities/work-center-capacity-override.entity';
+import { QualityInspectionEntity } from '../quality-management/entities/quality-inspection.entity';
+import { QualityInspectionCheckEntity } from '../quality-management/entities/quality-inspection-check.entity';
+import { MaintenanceAssetEntity } from '../maintenance-management/entities/maintenance-asset.entity';
+import { MaintenancePlanEntity } from '../maintenance-management/entities/maintenance-plan.entity';
+import { MaintenanceWorkOrderEntity } from '../maintenance-management/entities/maintenance-work-order.entity';
+import { MaintenanceDowntimeEntity } from '../maintenance-management/entities/maintenance-downtime.entity';
+import { ProductionCostAnalysisEntity } from '../costing-variance/entities/production-cost-analysis.entity';
+import { ProductionCostMaterialLineEntity } from '../costing-variance/entities/production-cost-material-line.entity';
 
 
 export default new DataSource({
@@ -143,7 +170,33 @@ export default new DataSource({
     VatReturnEntity,
     VatReturnLineEntity,
     CashFlowAccountMappingEntity,
-
+    InventoryRevaluationEntity,
+    InventoryRevaluationLineEntity,
+    ManualCostAdjustmentEntity,
+    ManualCostAdjustmentLineEntity,
+    NegativeInventoryPolicyEntity,
+    WipAccountingSettingsEntity,
+    WipPostingEntity,
+    ProductionVarianceSettingsEntity,
+    ProductionVarianceEntity,
+    ProductionVarianceLineEntity,
+    AssetDisposalEntity,
+    VatSettlementSettingsEntity,
+    VatSettlementEntity,
+    BackgroundJobEntity,
+    NotificationEntity,
+    NotificationTemplateEntity,
+    NotificationPreferenceEntity,
+    WorkCenterEntity,
+    WorkCenterCapacityOverrideEntity,
+    QualityInspectionEntity,
+    QualityInspectionCheckEntity, 
+    MaintenanceAssetEntity,
+    MaintenancePlanEntity,
+    MaintenanceWorkOrderEntity,
+    MaintenanceDowntimeEntity,
+    ProductionCostAnalysisEntity,
+    ProductionCostMaterialLineEntity,
 
   ],
 

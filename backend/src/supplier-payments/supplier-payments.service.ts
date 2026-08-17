@@ -11,6 +11,8 @@ import {
   Repository,
 } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
 import { PurchaseInvoiceStatus } from '../purchase-invoices/enums/purchase-invoice-status.enum';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
@@ -43,6 +45,13 @@ export class SupplierPaymentsService {
 
     @InjectRepository(PurchaseInvoiceEntity)
     private readonly purchaseInvoiceRepository: Repository<PurchaseInvoiceEntity>,
+
+    @InjectRepository(AccountingSettingsEntity)
+    private readonly accountingSettingsRepository:
+      Repository<AccountingSettingsEntity>,
+
+    private readonly accountingEngineService:
+      AccountingEngineService,
   ) {}
 
   async create(
@@ -64,6 +73,9 @@ export class SupplierPaymentsService {
       const paymentRepository = manager.getRepository(SupplierPayment);
       const allocationRepository =
         manager.getRepository(SupplierPaymentAllocation);
+      
+      const invoiceRepository =
+        manager.getRepository(PurchaseInvoiceEntity);
 
       const allocatedAmount = this.round(
         allocations.reduce(
@@ -96,13 +108,53 @@ export class SupplierPaymentsService {
 
       const savedPayment = await paymentRepository.save(payment);
 
-      savedPayment.allocations = allocations.map((allocation) =>
-        allocationRepository.create({
-          supplierPaymentId: savedPayment.id,
-          purchaseInvoiceId: allocation.purchaseInvoiceId,
-          allocatedAmount: this.round(allocation.allocatedAmount),
-        }),
+     savedPayment.allocations = await Promise.all(
+  allocations.map(async (allocation) => {
+    const invoice =
+      await invoiceRepository.findOne({
+        where: {
+          id: allocation.purchaseInvoiceId,
+          companyId,
+          supplierId: dto.supplierId,
+        },
+      });
+
+    if (!invoice) {
+      throw new NotFoundException(
+        `Purchase invoice ${allocation.purchaseInvoiceId} not found.`,
       );
+    }
+
+    const allocatedAmount =
+      this.round(
+        allocation.allocatedAmount,
+      );
+
+    const invoiceBalanceBefore =
+      this.round(
+        Number(invoice.balanceDue),
+      );
+
+    const invoiceBalanceAfter =
+      this.round(
+        Math.max(
+          0,
+          invoiceBalanceBefore -
+            allocatedAmount,
+        ),
+      );
+
+    return allocationRepository.create({
+      supplierPaymentId:
+        savedPayment.id,
+      purchaseInvoiceId:
+        allocation.purchaseInvoiceId,
+      allocatedAmount,
+      invoiceBalanceBefore,
+      invoiceBalanceAfter,
+    });
+  }),
+);
 
       if (savedPayment.allocations.length > 0) {
         savedPayment.allocations = await allocationRepository.save(
@@ -228,6 +280,9 @@ export class SupplierPaymentsService {
       const allocationRepository =
         manager.getRepository(SupplierPaymentAllocation);
 
+        const invoiceRepository =
+    manager.getRepository(PurchaseInvoiceEntity);
+
       const payment = await paymentRepository.findOne({
         where: { id, companyId },
         relations: { allocations: true },
@@ -261,15 +316,53 @@ export class SupplierPaymentsService {
           supplierPaymentId: payment.id,
         });
 
-        payment.allocations = dto.allocations.map((allocation) =>
-          allocationRepository.create({
-            supplierPaymentId: payment.id,
-            purchaseInvoiceId: allocation.purchaseInvoiceId,
-            allocatedAmount: this.round(
-              allocation.allocatedAmount,
-            ),
-          }),
-        );
+        payment.allocations = await Promise.all(
+  dto.allocations.map(async (allocation) => {
+    const invoice =
+      await invoiceRepository.findOne({
+        where: {
+          id: allocation.purchaseInvoiceId,
+          companyId,
+          supplierId,
+        },
+      });
+
+    if (!invoice) {
+      throw new NotFoundException(
+        `Purchase invoice ${allocation.purchaseInvoiceId} not found.`,
+      );
+    }
+
+    const allocatedAmount =
+      this.round(
+        allocation.allocatedAmount,
+      );
+
+    const invoiceBalanceBefore =
+      this.round(
+        Number(invoice.balanceDue),
+      );
+
+    const invoiceBalanceAfter =
+      this.round(
+        Math.max(
+          0,
+          invoiceBalanceBefore -
+            allocatedAmount,
+        ),
+      );
+
+    return allocationRepository.create({
+      supplierPaymentId:
+        payment.id,
+      purchaseInvoiceId:
+        allocation.purchaseInvoiceId,
+      allocatedAmount,
+      invoiceBalanceBefore,
+      invoiceBalanceAfter,
+    });
+  }),
+);
 
         payment.allocations =
           payment.allocations.length > 0
@@ -332,99 +425,218 @@ export class SupplierPaymentsService {
     companyId: string,
     userId: string,
   ): Promise<SupplierPaymentResponseDto> {
-    return this.dataSource.transaction(async (manager) => {
-      const paymentRepository = manager.getRepository(SupplierPayment);
-      const invoiceRepository = manager.getRepository(PurchaseInvoiceEntity);
-      const supplierRepository = manager.getRepository(SupplierEntity);
-
-      const payment = await paymentRepository.findOne({
+    const existing =
+      await this.paymentRepository.findOne({
         where: { id, companyId },
         relations: { allocations: true },
       });
 
-      if (!payment) {
-        throw new NotFoundException('Supplier payment not found.');
-      }
+    if (!existing) {
+      throw new NotFoundException(
+        'Supplier payment not found.',
+      );
+    }
 
-      this.ensureDraft(payment);
+    /*
+     * Retry-safe accounting recovery for a payment whose business posting
+     * succeeded but whose journal posting failed afterward.
+     */
+    if (
+      existing.status === SupplierPaymentStatus.Posted
+    ) {
+      await this.autoPostAccountingIfEnabled(
+        existing.id,
+        companyId,
+        userId,
+      );
 
-      const supplier = await supplierRepository.findOne({
-        where: {
-          id: payment.supplierId,
-          companyId,
+      return this.toResponse(existing);
+    }
+
+    const saved =
+      await this.dataSource.transaction(
+        async (manager) => {
+          const paymentRepository =
+            manager.getRepository(
+              SupplierPayment,
+            );
+
+          const allocationRepository =
+            manager.getRepository(
+              SupplierPaymentAllocation,
+            );
+
+          const invoiceRepository =
+            manager.getRepository(
+              PurchaseInvoiceEntity,
+            );
+
+          const supplierRepository =
+            manager.getRepository(
+              SupplierEntity,
+            );
+
+          const payment =
+            await paymentRepository.findOne({
+              where: { id, companyId },
+              relations: {
+                allocations: true,
+              },
+            });
+
+          if (!payment) {
+            throw new NotFoundException(
+              'Supplier payment not found.',
+            );
+          }
+
+          this.ensureDraft(payment);
+
+          const supplier =
+            await supplierRepository.findOne({
+              where: {
+                id: payment.supplierId,
+                companyId,
+              },
+            });
+
+          if (!supplier) {
+            throw new NotFoundException(
+              'Supplier not found.',
+            );
+          }
+
+          for (
+            const allocation of payment.allocations
+          ) {
+            const invoice =
+              await invoiceRepository.findOne({
+                where: {
+                  id:
+                    allocation.purchaseInvoiceId,
+                  companyId,
+                  supplierId:
+                    payment.supplierId,
+                },
+              });
+
+            if (!invoice) {
+              throw new NotFoundException(
+                `Purchase invoice ${allocation.purchaseInvoiceId} not found.`,
+              );
+            }
+
+            if (
+              invoice.status !==
+                PurchaseInvoiceStatus.Posted &&
+              invoice.status !==
+                PurchaseInvoiceStatus.Paid
+            ) {
+              throw new ConflictException(
+                `Purchase invoice ${invoice.invoiceNumber} must be posted before payment.`,
+              );
+            }
+
+            const allocationAmount =
+              Number(
+                allocation.allocatedAmount,
+              );
+
+            const balanceDue =
+              Number(invoice.balanceDue);
+
+            if (
+              allocationAmount >
+              balanceDue
+            ) {
+              throw new BadRequestException(
+                `Allocation exceeds balance due for invoice ${invoice.invoiceNumber}.`,
+              );
+            }
+
+            invoice.paidAmount =
+              this.round(
+                Number(
+                  invoice.paidAmount,
+                ) +
+                  allocationAmount,
+              );
+
+            invoice.balanceDue =
+              this.round(
+                Number(
+                  invoice.grandTotal,
+                ) -
+                  Number(
+                    invoice.paidAmount,
+                  ),
+              );
+
+            invoice.status =
+              invoice.balanceDue === 0
+                ? PurchaseInvoiceStatus.Paid
+                : PurchaseInvoiceStatus.Posted;
+
+            await invoiceRepository.save(
+              invoice,
+            );
+          }
+
+          supplier.currentBalance =
+            this.round(
+              Number(
+                supplier.currentBalance ??
+                  0,
+              ) -
+                Number(
+                  payment.amount,
+                ),
+            );
+
+          await supplierRepository.save(
+            supplier,
+          );
+
+          payment.status =
+            SupplierPaymentStatus.Posted;
+
+          payment.updatedBy =
+            userId;
+
+          return paymentRepository.save(
+            payment,
+          );
         },
+      );
+
+    await this.autoPostAccountingIfEnabled(
+      saved.id,
+      companyId,
+      userId,
+    );
+
+    return this.toResponse(saved);
+  }
+
+  private async autoPostAccountingIfEnabled(
+    paymentId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<void> {
+    const settings =
+      await this.accountingSettingsRepository.findOne({
+        where: { companyId },
       });
 
-      if (!supplier) {
-        throw new NotFoundException('Supplier not found.');
-      }
-
-      for (const allocation of payment.allocations) {
-        const invoice = await invoiceRepository.findOne({
-          where: {
-            id: allocation.purchaseInvoiceId,
-            companyId,
-            supplierId: payment.supplierId,
-          },
-        });
-
-        if (!invoice) {
-          throw new NotFoundException(
-            `Purchase invoice ${allocation.purchaseInvoiceId} not found.`,
-          );
-        }
-
-        if (
-          invoice.status !== PurchaseInvoiceStatus.Posted &&
-          invoice.status !== PurchaseInvoiceStatus.Paid
-        ) {
-          throw new ConflictException(
-            `Purchase invoice ${invoice.invoiceNumber} must be posted before payment.`,
-          );
-        }
-
-        const allocationAmount = Number(
-          allocation.allocatedAmount,
-        );
-        const balanceDue = Number(invoice.balanceDue);
-
-        if (allocationAmount > balanceDue) {
-          throw new BadRequestException(
-            `Allocation exceeds balance due for invoice ${invoice.invoiceNumber}.`,
-          );
-        }
-
-        invoice.paidAmount = this.round(
-          Number(invoice.paidAmount) + allocationAmount,
-        );
-
-        invoice.balanceDue = this.round(
-          Number(invoice.grandTotal) -
-            Number(invoice.paidAmount),
-        );
-
-        invoice.status =
-          invoice.balanceDue === 0
-            ? PurchaseInvoiceStatus.Paid
-            : PurchaseInvoiceStatus.Posted;
-
-        await invoiceRepository.save(invoice);
-      }
-
-      supplier.currentBalance = this.round(
-        Number(supplier.currentBalance ?? 0) -
-          Number(payment.amount),
+    if (
+      settings?.autoPostSupplierPayments !== false
+    ) {
+      await this.accountingEngineService.postSupplierPayment(
+        paymentId,
+        companyId,
+        userId,
       );
-
-      await supplierRepository.save(supplier);
-
-      payment.status = SupplierPaymentStatus.Posted;
-      payment.updatedBy = userId;
-
-      return this.toResponse(
-        await paymentRepository.save(payment),
-      );
-    });
+    }
   }
 
   async cancel(

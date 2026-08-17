@@ -7,14 +7,22 @@ import { MaterialConsumptionController } from './material-consumption.controller
 import { MaterialConsumptionLineEntity } from './entities/material-consumption-line.entity';
 import { MaterialConsumptionEntity } from './entities/material-consumption.entity';
 import { MaterialConsumptionService } from './material-consumption.service';
+import {
+  AccountingEngineModule,
+} from '../accounting-engine/accounting-engine.module';
 
+import {
+  AccountingSettingsEntity,
+} from '../accounting-settings/entities/accounting-settings.entity';
 @Module({
   imports: [
+      AccountingEngineModule,
     TypeOrmModule.forFeature([
       MaterialConsumptionEntity,
       MaterialConsumptionLineEntity,
       ProductionOrderEntity,
       ProductionOrderComponentEntity,
+       AccountingSettingsEntity,
     ]),
     MovingAverageCostingModule,
   ],

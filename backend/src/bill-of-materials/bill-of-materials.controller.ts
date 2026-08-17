@@ -9,7 +9,9 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -31,6 +33,7 @@ import type { AuthenticatedBillOfMaterialRequest } from './interfaces/authentica
 @ApiTags('Bill of Materials')
 @ApiBearerAuth()
 @Controller('bill-of-materials')
+@UseGuards(JwtAuthGuard)
 export class BillOfMaterialsController {
   constructor(private readonly service: BillOfMaterialsService) {}
 

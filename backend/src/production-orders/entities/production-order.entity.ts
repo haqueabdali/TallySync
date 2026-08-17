@@ -19,6 +19,20 @@ import { WarehouseEntity } from '../../warehouses/entities/warehouse.entity';
 import { ProductionOrderStatus } from '../enums/production-order-status.enum';
 import { ProductionOrderComponentEntity } from './production-order-component.entity';
 
+const decimalTransformer = {
+  to: (
+    value: number | null | undefined,
+  ): number =>
+    value ?? 0,
+
+  from: (
+    value: string | number | null,
+  ): number =>
+    value === null
+      ? 0
+      : Number(value),
+};
+
 const numericTransformer: ValueTransformer = {
   to: (value: number | null | undefined) => value,
   from: (value: string | number | null) => value === null ? null : Number(value),
@@ -84,6 +98,48 @@ export class ProductionOrderEntity {
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy!: string | null;
+
+  @Column({
+  name: 'actual_material_cost',
+  type: 'decimal',
+  precision: 18,
+  scale: 2,
+  default: 0,
+  transformer: decimalTransformer,
+})
+actualMaterialCost!: number;
+
+@Column({
+  name: 'actual_labor_cost',
+  type: 'decimal',
+  precision: 18,
+  scale: 2,
+  default: 0,
+  transformer: decimalTransformer,
+})
+actualLaborCost!: number;
+
+@Column({
+  name: 'actual_overhead_cost',
+  type: 'decimal',
+  precision: 18,
+  scale: 2,
+  default: 0,
+  transformer: decimalTransformer,
+})
+actualOverheadCost!: number;
+
+@Column({
+  name: 'actual_total_cost',
+  type: 'decimal',
+  precision: 18,
+  scale: 2,
+  default: 0,
+  transformer: decimalTransformer,
+})
+actualTotalCost!: number;
+
+
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

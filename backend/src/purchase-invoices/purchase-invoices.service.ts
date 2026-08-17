@@ -11,6 +11,8 @@ import {
   Repository,
 } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 import { GoodsReceipt } from '../goods-receipts/entities/goods-receipt.entity';
 import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.entity';
 import { GoodsReceiptStatus } from '../goods-receipts/enums/goods-receipt-status.enum';
@@ -60,6 +62,13 @@ export class PurchaseInvoicesService {
 
     @InjectRepository(ItemEntity)
     private readonly itemRepository: Repository<ItemEntity>,
+
+    @InjectRepository(AccountingSettingsEntity)
+    private readonly accountingSettingsRepository:
+      Repository<AccountingSettingsEntity>,
+
+    private readonly accountingEngineService:
+      AccountingEngineService,
   ) {}
 
   async create(
@@ -454,6 +463,26 @@ export class PurchaseInvoicesService {
     userId: string,
   ): Promise<PurchaseInvoiceResponseDto> {
     const invoice = await this.getEntity(id, companyId);
+
+    /*
+     * Retry-safe posting:
+     * if the business document is already posted/paid, do not apply its
+     * balance effects again. Only retry the idempotent accounting journal.
+     */
+    if (
+      invoice.status === PurchaseInvoiceStatus.POSTED ||
+      invoice.status === PurchaseInvoiceStatus.PARTIALLY_PAID ||
+      invoice.status === PurchaseInvoiceStatus.PAID
+    ) {
+      await this.autoPostAccountingIfEnabled(
+        invoice.id,
+        companyId,
+        userId,
+      );
+
+      return this.toResponse(invoice);
+    }
+
     this.ensureDraft(invoice);
 
     if (!invoice.items.length) {
@@ -466,19 +495,49 @@ export class PurchaseInvoicesService {
       Number(invoice.grandTotal) -
         Number(invoice.paidAmount),
     );
+
     invoice.status =
       invoice.balanceDue === 0
         ? PurchaseInvoiceStatus.PAID
         : invoice.paidAmount > 0
           ? PurchaseInvoiceStatus.PARTIALLY_PAID
           : PurchaseInvoiceStatus.POSTED;
+
     invoice.postedBy = userId;
     invoice.postedAt = new Date();
     invoice.updatedBy = userId;
 
-    return this.toResponse(
-      await this.purchaseInvoiceRepository.save(invoice),
+    const saved =
+      await this.purchaseInvoiceRepository.save(invoice);
+
+    await this.autoPostAccountingIfEnabled(
+      saved.id,
+      companyId,
+      userId,
     );
+
+    return this.toResponse(saved);
+  }
+
+  private async autoPostAccountingIfEnabled(
+    invoiceId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<void> {
+    const settings =
+      await this.accountingSettingsRepository.findOne({
+        where: { companyId },
+      });
+
+    if (
+      settings?.autoPostPurchaseInvoices !== false
+    ) {
+      await this.accountingEngineService.postPurchaseInvoice(
+        invoiceId,
+        companyId,
+        userId,
+      );
+    }
   }
 
   async cancel(

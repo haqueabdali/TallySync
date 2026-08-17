@@ -6,4 +6,6 @@ export enum InventoryCostSourceType {
   SALES_RETURN = 'sales_return',
   LANDED_COST = 'landed_cost',
   STOCK_ADJUSTMENT = 'stock_adjustment',
+
+  PRODUCTION_COMPLETION = 'production_completion',
 }

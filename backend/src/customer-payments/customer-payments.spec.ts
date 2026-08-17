@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { SalesInvoiceEntity } from '../sales-invoices/entities/sales-invoice.entity';
 import { CustomerPaymentAllocationEntity } from './entities/customer-payment-allocation.entity';
@@ -15,6 +16,13 @@ describe('CustomerPaymentsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CustomerPaymentsService,
+        {
+          provide: AccountingEngineService,
+          useValue: {
+            autoPostSalesInvoice: jest.fn(),
+            autoPostCustomerPayment: jest.fn(),
+          },
+        },
         {
           provide: DataSource,
           useValue: {

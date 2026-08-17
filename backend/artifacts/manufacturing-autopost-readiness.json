@@ -1,0 +1,98 @@
+[
+  {
+    "severity": "WARN",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "label": "Material Consumption",
+    "detail": "No obvious posting/completion lifecycle method detected."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "label": "Material Consumption",
+    "detail": "AccountingEngineService is not injected/imported."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "label": "Material Consumption",
+    "detail": "No postMaterialConsumption(...) call detected."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "label": "Material Consumption",
+    "detail": "No autoPostMaterialConsumption settings check detected."
+  },
+  {
+    "severity": "WARN",
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "label": "Material Consumption",
+    "detail": "No obvious already-posted/completed retry path was detected."
+  },
+  {
+    "severity": "WARN",
+    "file": "src/production-orders/production-orders.service.ts",
+    "label": "Production Completion",
+    "detail": "No obvious posting/completion lifecycle method detected."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-orders/production-orders.service.ts",
+    "label": "Production Completion",
+    "detail": "AccountingEngineService is not injected/imported."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-orders/production-orders.service.ts",
+    "label": "Production Completion",
+    "detail": "No postProductionCompletion(...) call detected."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-orders/production-orders.service.ts",
+    "label": "Production Completion",
+    "detail": "No autoPostProductionCompletion settings check detected."
+  },
+  {
+    "severity": "WARN",
+    "file": "src/production-orders/production-orders.service.ts",
+    "label": "Production Completion",
+    "detail": "No obvious already-posted/completed retry path was detected."
+  },
+  {
+    "severity": "INFO",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "Lifecycle signal detected: post("
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "AccountingEngineService is not injected/imported."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "No postProductionVariance(...) call detected."
+  },
+  {
+    "severity": "ERROR",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "No autoPostProductionVariance settings check detected."
+  },
+  {
+    "severity": "WARN",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "No DataSource.transaction(...) signal detected."
+  },
+  {
+    "severity": "WARN",
+    "file": "src/production-variance/production-variance.service.ts",
+    "label": "Production Variance",
+    "detail": "No obvious already-posted/completed retry path was detected."
+  }
+]

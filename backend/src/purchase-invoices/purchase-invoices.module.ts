@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { AccountingEngineModule } from '../accounting-engine/accounting-engine.module';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.entity';
@@ -14,6 +16,7 @@ import { PurchaseInvoicesController } from './purchase-invoices.controller';
 
 @Module({
   imports: [
+    AccountingEngineModule,
     TypeOrmModule.forFeature([
       PurchaseInvoiceEntity,
       PurchaseInvoiceItemEntity,
@@ -23,6 +26,7 @@ import { PurchaseInvoicesController } from './purchase-invoices.controller';
       GoodsReceipt,
       GoodsReceiptItem,
       ItemEntity,
+      AccountingSettingsEntity,
     ]),
   ],
   controllers: [PurchaseInvoicesController],

@@ -10,5 +10,8 @@ export enum JournalEntrySourceType {
   LANDED_COST = 'landed_cost',
   INVENTORY_ADJUSTMENT = 'inventory_adjustment',
   OPENING_BALANCE = 'opening_balance',
+  MATERIAL_CONSUMPTION = 'material_consumption',
+  PRODUCTION_COMPLETION = 'production_completion',
+  PRODUCTION_VARIANCE = 'production_variance',
   OTHER = 'other',
 }

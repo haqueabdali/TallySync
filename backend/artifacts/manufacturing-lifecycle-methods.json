@@ -1,0 +1,359 @@
+[
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "create",
+    "line": 36,
+    "isAsync": true,
+    "signals": [
+      "transaction",
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "findAll",
+    "line": 41,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "findOne",
+    "line": 67,
+    "isAsync": true,
+    "signals": [
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "autoPostMaterialConsumptionIfEnabled",
+    "line": 75,
+    "isAsync": true,
+    "signals": [
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "createWithManager",
+    "line": 101,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "save",
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "assertUniqueComponentLines",
+    "line": 188,
+    "isAsync": false,
+    "signals": [
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/material-consumption/material-consumption.service.ts",
+    "className": "MaterialConsumptionService",
+    "method": "round6",
+    "line": 195,
+    "isAsync": false,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "create",
+    "line": 42,
+    "isAsync": true,
+    "signals": [
+      "transaction",
+      "status",
+      "save",
+      "consumption",
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "findAll",
+    "line": 91,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "findOne",
+    "line": 115,
+    "isAsync": true,
+    "signals": [
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "update",
+    "line": 125,
+    "isAsync": true,
+    "signals": [
+      "transaction",
+      "status",
+      "save",
+      "consumption",
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "release",
+    "line": 169,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "start",
+    "line": 176,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "cancel",
+    "line": 183,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "remove",
+    "line": 192,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "autoPostProductionCompletionIfEnabled",
+    "line": 198,
+    "isAsync": true,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "getEntity",
+    "line": 224,
+    "isAsync": true,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "getActiveBom",
+    "line": 230,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "getWarehouse",
+    "line": 237,
+    "isAsync": true,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "validateDates",
+    "line": 243,
+    "isAsync": false,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "roundQuantity",
+    "line": 247,
+    "isAsync": false,
+    "signals": []
+  },
+  {
+    "file": "src/production-orders/production-orders.service.ts",
+    "className": "ProductionOrdersService",
+    "method": "toResponse",
+    "line": 251,
+    "isAsync": false,
+    "signals": [
+      "status",
+      "consumption",
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "getSettings",
+    "line": 59,
+    "isAsync": true,
+    "signals": [
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "upsertSettings",
+    "line": 68,
+    "isAsync": true,
+    "signals": [
+      "save",
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "calculate",
+    "line": 82,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "save",
+      "consumption",
+      "completion",
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "post",
+    "line": 126,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "save",
+      "completion",
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "findOne",
+    "line": 169,
+    "isAsync": true,
+    "signals": [
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "list",
+    "line": 178,
+    "isAsync": true,
+    "signals": [
+      "status",
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "autoPostProductionVarianceIfEnabled",
+    "line": 189,
+    "isAsync": true,
+    "signals": [
+      "variance"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "getWipCosts",
+    "line": 215,
+    "isAsync": true,
+    "signals": [
+      "consumption",
+      "completion"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "getComponentActualCosts",
+    "line": 226,
+    "isAsync": true,
+    "signals": [
+      "consumption"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "validateAccount",
+    "line": 238,
+    "isAsync": true,
+    "signals": [
+      "status"
+    ]
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "money",
+    "line": 246,
+    "isAsync": false,
+    "signals": []
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "quantity",
+    "line": 247,
+    "isAsync": false,
+    "signals": []
+  },
+  {
+    "file": "src/production-variance/production-variance.service.ts",
+    "className": "ProductionVarianceService",
+    "method": "isUniqueViolation",
+    "line": 248,
+    "isAsync": false,
+    "signals": []
+  }
+]

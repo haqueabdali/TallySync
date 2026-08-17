@@ -1,0 +1,65 @@
+[
+  {
+    "severity": "HIGH",
+    "file": "src/production-scheduling/production-scheduling.controller.ts",
+    "line": 106,
+    "method": "complete",
+    "category": "company-scope",
+    "detail": "Critical manufacturing lifecycle method does not show an obvious companyId scope in its data access.",
+    "recommendation": "Scope every production order, item, BOM, warehouse, and consumption lookup by companyId. Cross-company references must fail before any mutation."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/production-scheduling/production-scheduling.controller.ts",
+    "line": 106,
+    "method": "complete",
+    "category": "idempotency",
+    "detail": "Completion-like method has no obvious already-completed guard.",
+    "recommendation": "Make completion exactly-once: if already Completed, return the existing order without adding finished stock again. Lock/reload the production order before changing status or stock."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/production-scheduling/production-scheduling.service.ts",
+    "line": 202,
+    "method": "complete",
+    "category": "company-scope",
+    "detail": "Critical manufacturing lifecycle method does not show an obvious companyId scope in its data access.",
+    "recommendation": "Scope every production order, item, BOM, warehouse, and consumption lookup by companyId. Cross-company references must fail before any mutation."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/quality-management/quality-management.controller.ts",
+    "line": 179,
+    "method": "complete",
+    "category": "company-scope",
+    "detail": "Critical manufacturing lifecycle method does not show an obvious companyId scope in its data access.",
+    "recommendation": "Scope every production order, item, BOM, warehouse, and consumption lookup by companyId. Cross-company references must fail before any mutation."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/quality-management/quality-management.controller.ts",
+    "line": 179,
+    "method": "complete",
+    "category": "idempotency",
+    "detail": "Completion-like method has no obvious already-completed guard.",
+    "recommendation": "Make completion exactly-once: if already Completed, return the existing order without adding finished stock again. Lock/reload the production order before changing status or stock."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/quality-management/quality-management.service.ts",
+    "line": 467,
+    "method": "complete",
+    "category": "company-scope",
+    "detail": "Critical manufacturing lifecycle method does not show an obvious companyId scope in its data access.",
+    "recommendation": "Scope every production order, item, BOM, warehouse, and consumption lookup by companyId. Cross-company references must fail before any mutation."
+  },
+  {
+    "severity": "HIGH",
+    "file": "src/quality-management/quality-management.service.ts",
+    "line": 467,
+    "method": "complete",
+    "category": "idempotency",
+    "detail": "Completion-like method has no obvious already-completed guard.",
+    "recommendation": "Make completion exactly-once: if already Completed, return the existing order without adding finished stock again. Lock/reload the production order before changing status or stock."
+  }
+]

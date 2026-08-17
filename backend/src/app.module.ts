@@ -58,6 +58,24 @@ import { AgedPayablesModule } from './aged-payables/aged-payables.module';
 import { TrialBalanceModule } from './trial-balance/trial-balance.module';
 import { CustomerStatementsModule } from './customer-statements/customer-statements.module';
 import { SupplierStatementsModule } from './supplier-statements/supplier-statements.module';
+import { InventoryRevaluationModule } from './inventory-revaluation/inventory-revaluation.module';
+import { ManualCostAdjustmentsModule } from './manual-cost-adjustments/manual-cost-adjustments.module';
+import { NegativeInventoryPolicyModule } from './negative-inventory-policy/negative-inventory-policy.module';
+import { ManufacturingWipAccountingModule } from './manufacturing-wip-accounting/manufacturing-wip-accounting.module';
+import { ProductionVarianceModule } from './production-variance/production-variance.module';
+import { AssetDisposalModule } from './asset-disposal/asset-disposal.module';
+import { VatSettlementModule } from './vat-settlement/vat-settlement.module';
+import { BackgroundJobsModule } from './background-jobs/background-jobs.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { ProductionSchedulingModule } from './production-scheduling/production-scheduling.module';
+import { CapacityPlanningModule } from './capacity-planning/capacity-planning.module';
+import { QualityManagementModule } from './quality-management/quality-management.module';
+import { MaintenanceManagementModule } from './maintenance-management/maintenance-management.module';
+import { AdvancedReportingModule } from './advanced-reporting/advanced-reporting.module';
+import { CostingVarianceModule } from './costing-variance/costing-variance.module';
+import { createDatabaseOptions } from './database/config/database-options';
+
 
 @Module({
   imports: [
@@ -159,7 +177,23 @@ import { SupplierStatementsModule } from './supplier-statements/supplier-stateme
     TrialBalanceModule,
     CustomerStatementsModule,
     SupplierStatementsModule,
-  
+    InventoryRevaluationModule,
+    ManualCostAdjustmentsModule,
+    NegativeInventoryPolicyModule,
+    ManufacturingWipAccountingModule,
+    ProductionVarianceModule,  
+    AssetDisposalModule,
+    VatSettlementModule,
+    BackgroundJobsModule,
+    NotificationsModule,
+    AuditLogsModule,
+    ProductionSchedulingModule,
+    CapacityPlanningModule,
+    QualityManagementModule,
+    MaintenanceManagementModule,
+    AdvancedReportingModule,
+    CostingVarianceModule,
+
 
   ],
 

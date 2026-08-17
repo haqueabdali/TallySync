@@ -160,12 +160,6 @@ export class CustomerPaymentPostingRule
       );
     }
 
-    if (!settings.autoPostCustomerPayments) {
-      throw new ConflictException(
-        'Automatic posting for customer payments is disabled.',
-      );
-    }
-
     return settings;
   }
 

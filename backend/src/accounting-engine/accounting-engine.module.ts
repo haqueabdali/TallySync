@@ -18,6 +18,15 @@ import { SalesInvoicePostingRule } from './posting-rules/sales-invoice.rule';
 import { SalesReturnPostingRule } from './posting-rules/sales-return.rule';
 import { SupplierPaymentPostingRule } from './posting-rules/supplier-payment.rule';
 import { LandedCostPostingRule } from './posting-rules/landed-cost.rule';
+import { LandedCostEntity } from '../landed-costs/entities/landed-cost.entity';
+import { MaterialConsumptionEntity } from '../material-consumption/entities/material-consumption.entity';
+import { ProductionOrderEntity } from '../production-orders/entities/production-order.entity';
+import { ProductionVarianceEntity } from '../production-variance/entities/production-variance.entity';
+
+import { MaterialConsumptionPostingRule } from './posting-rules/material-consumption.rule';
+import { ProductionCompletionPostingRule } from './posting-rules/production-completion.rule';
+import { ProductionVariancePostingRule } from './posting-rules/production-variance.rule';
+
 
 @Module({
   imports: [
@@ -30,6 +39,10 @@ import { LandedCostPostingRule } from './posting-rules/landed-cost.rule';
       SalesReturnEntity,
       SupplierPayment,
       PurchaseInvoiceEntity,
+      LandedCostEntity,
+      MaterialConsumptionEntity,
+      ProductionOrderEntity,
+      ProductionVarianceEntity,
     ]),
     JournalEntriesModule,
   ],
@@ -42,6 +55,9 @@ import { LandedCostPostingRule } from './posting-rules/landed-cost.rule';
     SupplierPaymentPostingRule,
     PurchaseInvoicePostingRule,
     LandedCostPostingRule,
+    MaterialConsumptionPostingRule,
+    ProductionCompletionPostingRule,
+    ProductionVariancePostingRule,
   ],
   exports: [AccountingEngineService],
 })

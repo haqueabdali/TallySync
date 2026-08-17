@@ -11,6 +11,7 @@ import {
   Repository,
 } from 'typeorm';
 
+import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { SalesInvoiceEntity } from '../sales-invoices/entities/sales-invoice.entity';
 import { SalesInvoiceStatus } from '../sales-invoices/enums/sales-invoice-status.enum';
@@ -44,6 +45,8 @@ export class CustomerPaymentsService {
 
     @InjectRepository(SalesInvoiceEntity)
     private readonly salesInvoiceRepository: Repository<SalesInvoiceEntity>,
+
+    private readonly accountingEngineService: AccountingEngineService,
   ) {}
 
   async create(
@@ -405,7 +408,7 @@ export class CustomerPaymentsService {
     companyId: string,
     userId: string,
   ): Promise<CustomerPaymentResponseDto> {
-    return this.dataSource.transaction(async (manager) => {
+    const postedPayment = await this.dataSource.transaction(async (manager) => {
       const paymentRepository =
         manager.getRepository(CustomerPaymentEntity);
       const allocationRepository =
@@ -424,6 +427,10 @@ export class CustomerPaymentsService {
         throw new NotFoundException(
           'Customer payment not found.',
         );
+      }
+
+      if (payment.status === CustomerPaymentStatus.POSTED) {
+        return this.toResponse(payment);
       }
 
       this.ensureDraft(payment);
@@ -548,8 +555,15 @@ export class CustomerPaymentsService {
         await paymentRepository.save(payment),
       );
     });
-  }
 
+    await this.accountingEngineService.autoPostCustomerPayment(
+      postedPayment.id,
+      companyId,
+      userId,
+    );
+
+    return postedPayment;
+  }
   async reverse(
     id: string,
     dto: ReverseCustomerPaymentDto,

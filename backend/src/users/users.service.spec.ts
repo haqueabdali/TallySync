@@ -8,6 +8,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from './users.service';
+import { LicensingService } from '../licensing/licensing.service';
 import { UserEntity, UserStatus } from './entities/user.entity';
 import { RoleEntity } from './entities/role.entity';
 import { AuditAction, AuditLogEntity } from './entities/audit-log.entity';
@@ -87,6 +88,10 @@ const createRoleRepositoryMock = () => ({
   findOne: jest.fn(),
 });
 
+const createLicensingServiceMock = () => ({
+  assertUserCapacity: jest.fn().mockResolvedValue(undefined),
+});
+
 const createAuditRepositoryMock = () => ({
   findAndCount: jest.fn(),
   create: jest.fn(
@@ -106,6 +111,9 @@ describe('UsersService', () => {
   let auditRepository: ReturnType<
     typeof createAuditRepositoryMock
   >;
+  let licensingService: ReturnType<
+    typeof createLicensingServiceMock
+  >;
 
   beforeEach(async () => {
     const module: TestingModule =
@@ -124,6 +132,10 @@ describe('UsersService', () => {
             provide: getRepositoryToken(AuditLogEntity),
             useFactory: createAuditRepositoryMock,
           },
+          {
+            provide: LicensingService,
+            useFactory: createLicensingServiceMock,
+          },
         ],
       }).compile();
 
@@ -137,6 +149,7 @@ describe('UsersService', () => {
     auditRepository = module.get(
       getRepositoryToken(AuditLogEntity),
     );
+    licensingService = module.get(LicensingService);
   });
 
   afterEach(() => {
@@ -175,6 +188,9 @@ describe('UsersService', () => {
 
       expect(result).toBeDefined();
       expect(userRepository.save).toHaveBeenCalledTimes(1);
+      expect(licensingService.assertUserCapacity).toHaveBeenCalledWith(
+        dto.companyId,
+      );
       expect(auditRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           action: AuditAction.CREATE,

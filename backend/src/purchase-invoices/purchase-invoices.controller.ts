@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreatePurchaseInvoiceDto } from './dto/create-purchase-invoice.dto';
 import { PurchaseInvoiceFilterDto } from './dto/purchase-invoice-filter.dto';
 import {
@@ -32,7 +35,8 @@ import { PurchaseInvoicesService } from './purchase-invoices.service';
 
 @ApiTags('Purchase Invoices')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.PURCHASE)
 @Controller('purchase-invoices')
 export class PurchaseInvoicesController {
   constructor(
@@ -60,10 +64,7 @@ export class PurchaseInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: PurchaseInvoiceFilterDto,
   ): Promise<PaginatedPurchaseInvoicesResponseDto> {
-    return this.purchaseInvoicesService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.purchaseInvoicesService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +74,7 @@ export class PurchaseInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PurchaseInvoiceResponseDto> {
-    return this.purchaseInvoicesService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.purchaseInvoicesService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -129,9 +127,6 @@ export class PurchaseInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.purchaseInvoicesService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.purchaseInvoicesService.remove(id, request.user.companyId);
   }
 }

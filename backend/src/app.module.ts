@@ -14,7 +14,7 @@ import { TallySyncModule } from './tally-sync/tally-sync.module';
 import { MobileModule } from './mobile/mobile.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { HealthModule } from './health/health.module';
-import { DashboardModule} from './dashboard/dashboard.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { CategoriesModule } from './categories/categories.module';
 import { WarehousesModule } from './warehouses/warehouses.module';
 import { ItemsModule } from './items/items.module';
@@ -74,8 +74,8 @@ import { QualityManagementModule } from './quality-management/quality-management
 import { MaintenanceManagementModule } from './maintenance-management/maintenance-management.module';
 import { AdvancedReportingModule } from './advanced-reporting/advanced-reporting.module';
 import { CostingVarianceModule } from './costing-variance/costing-variance.module';
-import { createDatabaseOptions } from './database/config/database-options';
-
+import { LicensingModule } from './licensing/licensing.module';
+import { PlatformAdminModule } from './platform-admin/platform-admin.module';
 
 @Module({
   imports: [
@@ -181,7 +181,7 @@ import { createDatabaseOptions } from './database/config/database-options';
     ManualCostAdjustmentsModule,
     NegativeInventoryPolicyModule,
     ManufacturingWipAccountingModule,
-    ProductionVarianceModule,  
+    ProductionVarianceModule,
     AssetDisposalModule,
     VatSettlementModule,
     BackgroundJobsModule,
@@ -193,8 +193,8 @@ import { createDatabaseOptions } from './database/config/database-options';
     MaintenanceManagementModule,
     AdvancedReportingModule,
     CostingVarianceModule,
-
-
+    LicensingModule,
+    PlatformAdminModule,
   ],
 
   controllers: [AppController],

@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateSalesInvoiceDto } from './dto/create-sales-invoice.dto';
 import { SalesInvoiceFilterDto } from './dto/sales-invoice-filter.dto';
 import {
@@ -32,12 +35,11 @@ import { SalesInvoicesService } from './sales-invoices.service';
 
 @ApiTags('Sales Invoices')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('sales-invoices')
 export class SalesInvoicesController {
-  constructor(
-    private readonly salesInvoicesService: SalesInvoicesService,
-  ) {}
+  constructor(private readonly salesInvoicesService: SalesInvoicesService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a sales invoice' })
@@ -60,10 +62,7 @@ export class SalesInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: SalesInvoiceFilterDto,
   ): Promise<PaginatedSalesInvoicesResponseDto> {
-    return this.salesInvoicesService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.salesInvoicesService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +72,7 @@ export class SalesInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SalesInvoiceResponseDto> {
-    return this.salesInvoicesService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.salesInvoicesService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -129,9 +125,6 @@ export class SalesInvoicesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.salesInvoicesService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.salesInvoicesService.remove(id, request.user.companyId);
   }
 }

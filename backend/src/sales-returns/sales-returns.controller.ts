@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateSalesReturnDto } from './dto/create-sales-return.dto';
 import { ReverseSalesReturnDto } from './dto/reverse-sales-return.dto';
 import { SalesReturnFilterDto } from './dto/sales-return-filter.dto';
@@ -33,12 +36,11 @@ import { SalesReturnsService } from './sales-returns.service';
 
 @ApiTags('Sales Returns')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('sales-returns')
 export class SalesReturnsController {
-  constructor(
-    private readonly salesReturnsService: SalesReturnsService,
-  ) {}
+  constructor(private readonly salesReturnsService: SalesReturnsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a sales return' })
@@ -61,10 +63,7 @@ export class SalesReturnsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: SalesReturnFilterDto,
   ): Promise<PaginatedSalesReturnsResponseDto> {
-    return this.salesReturnsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.salesReturnsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -74,10 +73,7 @@ export class SalesReturnsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SalesReturnResponseDto> {
-    return this.salesReturnsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.salesReturnsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -146,9 +142,6 @@ export class SalesReturnsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.salesReturnsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.salesReturnsService.remove(id, request.user.companyId);
   }
 }

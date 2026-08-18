@@ -1,6 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateNotificationTemplateDto } from './dto/create-notification-template.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { NotificationQueryDto } from './dto/notification-query.dto';
@@ -15,14 +30,18 @@ import {
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.NOTIFICATIONS)
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly service: NotificationsService) {}
 
   @Post('templates')
   @ApiOperation({ summary: 'Create a notification template' })
-  createTemplate(@Req() req: AuthenticatedRequest, @Body() dto: CreateNotificationTemplateDto) {
+  createTemplate(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: CreateNotificationTemplateDto,
+  ) {
     return this.service.createTemplate(req.user.companyId, req.user.id, dto);
   }
 
@@ -34,13 +53,25 @@ export class NotificationsController {
 
   @Patch('templates/:id')
   @ApiOperation({ summary: 'Update a notification template' })
-  updateTemplate(@Req() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateNotificationTemplateDto) {
-    return this.service.updateTemplate(req.user.companyId, req.user.id, id, dto);
+  updateTemplate(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() dto: UpdateNotificationTemplateDto,
+  ) {
+    return this.service.updateTemplate(
+      req.user.companyId,
+      req.user.id,
+      id,
+      dto,
+    );
   }
 
   @Delete('templates/:id')
   @ApiOperation({ summary: 'Soft-delete a notification template' })
-  async deleteTemplate(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+  async deleteTemplate(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
     await this.service.deleteTemplate(req.user.companyId, id);
     return { deleted: true };
   }
@@ -52,8 +83,13 @@ export class NotificationsController {
   }
 
   @Put('preferences/me')
-  @ApiOperation({ summary: 'Create or update a current-user channel preference' })
-  upsertPreference(@Req() req: AuthenticatedRequest, @Body() dto: UpsertNotificationPreferenceDto) {
+  @ApiOperation({
+    summary: 'Create or update a current-user channel preference',
+  })
+  upsertPreference(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpsertNotificationPreferenceDto,
+  ) {
     return this.service.upsertPreference(req.user.companyId, req.user.id, dto);
   }
 
@@ -65,21 +101,21 @@ export class NotificationsController {
 
   @Post('from-template')
   @ApiOperation({ summary: 'Render a template and queue a notification' })
-  sendFromTemplate(@Req() req: AuthenticatedRequest, @Body() dto: SendTemplateNotificationDto) {
+  sendFromTemplate(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: SendTemplateNotificationDto,
+  ) {
     return this.service.sendFromTemplate(req.user.companyId, req.user.id, dto);
   }
 
   @Get()
-@ApiOperation({ summary: 'List company notifications' })
-findAll(
-  @Req() req: AuthenticatedRequest,
-  @Query() query: NotificationQueryDto,
-): Promise<NotificationListResult> {
-  return this.service.findAll(
-    req.user.companyId,
-    query,
-  );
-}
+  @ApiOperation({ summary: 'List company notifications' })
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: NotificationQueryDto,
+  ): Promise<NotificationListResult> {
+    return this.service.findAll(req.user.companyId, query);
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Get one notification' })
   findOne(@Req() req: AuthenticatedRequest, @Param('id') id: string) {

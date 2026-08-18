@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { AccountFilterDto } from './dto/account-filter.dto';
 import {
   AccountResponseDto,
@@ -33,12 +36,11 @@ import { AccountsService } from './accounts.service';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.ACCOUNTING)
 @Controller('accounts')
 export class AccountsController {
-  constructor(
-    private readonly accountsService: AccountsService,
-  ) {}
+  constructor(private readonly accountsService: AccountsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create an account' })
@@ -61,10 +63,7 @@ export class AccountsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: AccountFilterDto,
   ): Promise<PaginatedAccountsResponseDto> {
-    return this.accountsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.accountsService.findAll(filter, request.user.companyId);
   }
 
   @Get('tree')
@@ -76,9 +75,7 @@ export class AccountsController {
   findTree(
     @Req() request: AuthenticatedRequest,
   ): Promise<AccountTreeNodeResponseDto[]> {
-    return this.accountsService.findTree(
-      request.user.companyId,
-    );
+    return this.accountsService.findTree(request.user.companyId);
   }
 
   @Post('seed-default')
@@ -103,10 +100,7 @@ export class AccountsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<AccountResponseDto> {
-    return this.accountsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.accountsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -159,9 +153,6 @@ export class AccountsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.accountsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.accountsService.remove(id, request.user.companyId);
   }
 }

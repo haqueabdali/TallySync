@@ -95,7 +95,11 @@ import { MaintenanceWorkOrderEntity } from '../maintenance-management/entities/m
 import { MaintenanceDowntimeEntity } from '../maintenance-management/entities/maintenance-downtime.entity';
 import { ProductionCostAnalysisEntity } from '../costing-variance/entities/production-cost-analysis.entity';
 import { ProductionCostMaterialLineEntity } from '../costing-variance/entities/production-cost-material-line.entity';
-
+import { LicenseEntity } from '../licensing/entities/license.entity';
+import { LicenseFeatureEntity } from '../licensing/entities/license-feature.entity';
+import { LicenseActivationEntity } from '../licensing/entities/license-activation.entity';
+import { LicenseAuditLogEntity } from '../licensing/entities/license-audit-log.entity';
+import { LicenseSessionEntity } from '../licensing/entities/license-session.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -105,9 +109,7 @@ export default new DataSource({
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME ?? 'tallysync_db',
   ssl:
-    process.env.DATABASE_SSL === 'true'
-      ? { rejectUnauthorized: false }
-      : false,
+    process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
 
@@ -190,14 +192,18 @@ export default new DataSource({
     WorkCenterEntity,
     WorkCenterCapacityOverrideEntity,
     QualityInspectionEntity,
-    QualityInspectionCheckEntity, 
+    QualityInspectionCheckEntity,
     MaintenanceAssetEntity,
     MaintenancePlanEntity,
     MaintenanceWorkOrderEntity,
     MaintenanceDowntimeEntity,
     ProductionCostAnalysisEntity,
     ProductionCostMaterialLineEntity,
-
+    LicenseEntity,
+    LicenseFeatureEntity,
+    LicenseActivationEntity,
+    LicenseAuditLogEntity,
+    LicenseSessionEntity,
   ],
 
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],

@@ -19,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CapacityPlanningService } from './capacity-planning.service';
 import { CapacityReportQueryDto } from './dto/capacity-report-query.dto';
 import { CapacityReportResponseDto } from './dto/capacity-report-response.dto';
@@ -31,12 +34,11 @@ import type { AuthenticatedCapacityPlanningRequest } from './interfaces/authenti
 
 @ApiTags('Capacity Planning')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.MANUFACTURING)
 @Controller('capacity-planning')
 export class CapacityPlanningController {
-  constructor(
-    private readonly service: CapacityPlanningService,
-  ) {}
+  constructor(private readonly service: CapacityPlanningService) {}
 
   @Post('work-centers')
   @ApiOperation({ summary: 'Create a work center' })
@@ -45,11 +47,7 @@ export class CapacityPlanningController {
     @Req() req: AuthenticatedCapacityPlanningRequest,
     @Body() dto: CreateWorkCenterDto,
   ): Promise<WorkCenterResponseDto> {
-    return this.service.createWorkCenter(
-      req.user.companyId,
-      req.user.id,
-      dto,
-    );
+    return this.service.createWorkCenter(req.user.companyId, req.user.id, dto);
   }
 
   @Get('work-centers')
@@ -61,9 +59,7 @@ export class CapacityPlanningController {
   listWorkCenters(
     @Req() req: AuthenticatedCapacityPlanningRequest,
   ): Promise<WorkCenterResponseDto[]> {
-    return this.service.listWorkCenters(
-      req.user.companyId,
-    );
+    return this.service.listWorkCenters(req.user.companyId);
   }
 
   @Patch('work-centers/:id')
@@ -108,9 +104,6 @@ export class CapacityPlanningController {
     @Req() req: AuthenticatedCapacityPlanningRequest,
     @Query() query: CapacityReportQueryDto,
   ): Promise<CapacityReportResponseDto> {
-    return this.service.getCapacityReport(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getCapacityReport(req.user.companyId, query);
   }
 }

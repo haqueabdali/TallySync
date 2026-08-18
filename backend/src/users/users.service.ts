@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 
 import { UserEntity, UserStatus } from '../auth/entities/user.entity';
+import { LicensingService } from '../licensing/licensing.service';
 import { RoleEntity } from '../auth/entities/role.entity';
 import { AuditLogEntity, AuditAction } from './entities/audit-log.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -44,6 +45,7 @@ export class UsersService {
     private readonly roleRepository: Repository<RoleEntity>,
     @InjectRepository(AuditLogEntity)
     private readonly auditRepository: Repository<AuditLogEntity>,
+    private readonly licensingService: LicensingService,
   ) {}
 
   async createUser(
@@ -64,6 +66,11 @@ export class UsersService {
       if (role.name === 'admin') {
         throw new BadRequestException('Only admins can assign the admin role');
       }
+    }
+
+    const requestedStatus = dto.status ?? UserStatus.ACTIVE;
+    if (requestedStatus === UserStatus.ACTIVE) {
+      await this.licensingService.assertUserCapacity(dto.companyId);
     }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
@@ -196,6 +203,14 @@ export class UsersService {
       }
     }
 
+    if (
+      dto.status === UserStatus.ACTIVE &&
+      user.status !== UserStatus.ACTIVE &&
+      user.companyId
+    ) {
+      await this.licensingService.assertUserCapacity(user.companyId);
+    }
+
     const oldValues = this.sanitize(user);
     if (dto.fullName !== undefined) user.fullName = dto.fullName;
     if (dto.phone !== undefined) user.phone = dto.phone;
@@ -306,6 +321,11 @@ export class UsersService {
   ): Promise<UserResponseDto> {
     const user = await this.findEntityById(id);
     const oldCompanyId = user.companyId;
+
+    if (user.status === UserStatus.ACTIVE && dto.companyId !== oldCompanyId) {
+      await this.licensingService.assertUserCapacity(dto.companyId);
+    }
+
     user.companyId = dto.companyId;
     const updated = await this.userRepository.save(user);
     await this.writeAudit(

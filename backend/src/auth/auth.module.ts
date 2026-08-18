@@ -5,6 +5,8 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { StringValue } from 'ms';
 
+import { LicensingModule } from '../licensing/licensing.module';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -19,6 +21,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 @Module({
   imports: [
     ConfigModule,
+    LicensingModule,
 
     PassportModule.register({
       defaultStrategy: 'jwt',

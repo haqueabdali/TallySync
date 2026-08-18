@@ -6,6 +6,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { UserEntity, UserStatus } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { LicenseSessionService } from '../../licensing/license-session.service';
 
 const mockUserRepo = () => ({
   findOne: jest.fn(),
@@ -16,9 +17,14 @@ const mockConfigService = () => ({
   get: jest.fn().mockReturnValue('tally-sync'),
 });
 
+const mockLicenseSessionService = () => ({
+  assertAndTouchSession: jest.fn().mockResolvedValue(undefined),
+});
+
 const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
+  company: null,
   roleId: 'role-uuid-1',
   fullName: 'Test User',
   email: 'test@example.com',
@@ -46,6 +52,10 @@ describe('JwtStrategy', () => {
         JwtStrategy,
         { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
         { provide: ConfigService, useFactory: mockConfigService },
+        {
+          provide: LicenseSessionService,
+          useFactory: mockLicenseSessionService,
+        },
       ],
     }).compile();
 

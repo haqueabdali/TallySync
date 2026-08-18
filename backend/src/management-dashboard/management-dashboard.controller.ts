@@ -2,6 +2,9 @@ import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { ManagementDashboardFilterDto } from './dto/management-dashboard-filter.dto';
 import { ManagementDashboardResponseDto } from './dto/management-dashboard-response.dto';
 import type { AuthenticatedRequest } from './interfaces/authenticated-request.interface';
@@ -9,7 +12,8 @@ import { ManagementDashboardService } from './management-dashboard.service';
 
 @ApiTags('Management Dashboard')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.REPORTING)
 @Controller('management-dashboard')
 export class ManagementDashboardController {
   constructor(

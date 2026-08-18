@@ -23,6 +23,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateGoodsReceiptDto } from './dto/create-goods-receipt.dto';
 import { GoodsReceiptFilterDto } from './dto/goods-receipt-filter.dto';
 import {
@@ -35,12 +38,11 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('Goods Receipts')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.PURCHASE)
 @Controller('goods-receipts')
 export class GoodsReceiptsController {
-  constructor(
-    private readonly goodsReceiptsService: GoodsReceiptsService,
-  ) {}
+  constructor(private readonly goodsReceiptsService: GoodsReceiptsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a draft goods receipt' })
@@ -63,10 +65,7 @@ export class GoodsReceiptsController {
     @Query() filter: GoodsReceiptFilterDto,
     @Req() request: AuthenticatedRequest,
   ): Promise<PaginatedGoodsReceiptsResponseDto> {
-    return this.goodsReceiptsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.goodsReceiptsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -76,10 +75,7 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<GoodsReceiptResponseDto> {
-    return this.goodsReceiptsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.goodsReceiptsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -106,10 +102,7 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<void> {
-    await this.goodsReceiptsService.remove(
-      id,
-      request.user.companyId,
-    );
+    await this.goodsReceiptsService.remove(id, request.user.companyId);
   }
 
   @Post(':id/post')
@@ -120,10 +113,7 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<GoodsReceiptResponseDto> {
-    return this.goodsReceiptsService.post(
-      id,
-      request.user.companyId,
-    );
+    return this.goodsReceiptsService.post(id, request.user.companyId);
   }
 
   @Post(':id/reverse')
@@ -134,9 +124,6 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<GoodsReceiptResponseDto> {
-    return this.goodsReceiptsService.reverse(
-      id,
-      request.user.companyId,
-    );
+    return this.goodsReceiptsService.reverse(id, request.user.companyId);
   }
 }

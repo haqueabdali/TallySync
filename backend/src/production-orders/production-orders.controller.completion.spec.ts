@@ -7,6 +7,8 @@ import {
   JwtAuthGuard,
 } from '../auth/guards/jwt-auth.guard';
 
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
+
 import {
   ProductionOrdersController,
 } from './production-orders.controller';
@@ -35,6 +37,10 @@ describe('ProductionOrdersController.complete', () => {
         ],
       })
         .overrideGuard(JwtAuthGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .overrideGuard(LicenseFeatureGuard)
         .useValue({
           canActivate: () => true,
         })

@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateJournalEntryDto } from './dto/create-journal-entry.dto';
 import { JournalEntryFilterDto } from './dto/journal-entry-filter.dto';
 import {
@@ -33,12 +36,11 @@ import { JournalEntriesService } from './journal-entries.service';
 
 @ApiTags('Journal Entries')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.ACCOUNTING)
 @Controller('journal-entries')
 export class JournalEntriesController {
-  constructor(
-    private readonly journalEntriesService: JournalEntriesService,
-  ) {}
+  constructor(private readonly journalEntriesService: JournalEntriesService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a journal entry' })
@@ -61,10 +63,7 @@ export class JournalEntriesController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: JournalEntryFilterDto,
   ): Promise<PaginatedJournalEntriesResponseDto> {
-    return this.journalEntriesService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.journalEntriesService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -74,10 +73,7 @@ export class JournalEntriesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<JournalEntryResponseDto> {
-    return this.journalEntriesService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.journalEntriesService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -146,9 +142,6 @@ export class JournalEntriesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.journalEntriesService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.journalEntriesService.remove(id, request.user.companyId);
   }
 }

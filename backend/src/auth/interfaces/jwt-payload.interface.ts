@@ -8,6 +8,8 @@ export interface JwtPayload {
   email: string;
   role: string;
   companyId: string | null;
+  /** Commercial authentication-session identifier. */
+  sid?: string;
   /** Issued-at (Unix timestamp, set automatically by JwtService) */
   iat?: number;
   /** Expiration (Unix timestamp) */

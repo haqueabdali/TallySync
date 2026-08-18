@@ -21,6 +21,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CashFlowService } from './cash-flow.service';
 import { CashFlowReportFilterDto } from './dto/cash-flow-report-filter.dto';
 import { CashFlowReportResponseDto } from './dto/cash-flow-response.dto';
@@ -30,7 +33,8 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('Cash Flow')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.REPORTING)
 @Controller('cash-flow')
 export class CashFlowController {
   constructor(private readonly cashFlowService: CashFlowService) {}
@@ -64,7 +68,9 @@ export class CashFlowController {
   }
 
   @Get('report')
-  @ApiOperation({ summary: 'Generate the indirect-classified cash-flow report' })
+  @ApiOperation({
+    summary: 'Generate the indirect-classified cash-flow report',
+  })
   @ApiOkResponse({ type: CashFlowReportResponseDto })
   getReport(
     @Req() request: AuthenticatedRequest,

@@ -18,6 +18,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateProductionScheduleDto } from './dto/create-production-schedule.dto';
 import { ProductionScheduleQueryDto } from './dto/production-schedule-query.dto';
 import {
@@ -31,12 +34,11 @@ import { ProductionSchedulingService } from './production-scheduling.service';
 
 @ApiTags('Production Scheduling')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.MANUFACTURING)
 @Controller('production-schedules')
 export class ProductionSchedulingController {
-  constructor(
-    private readonly service: ProductionSchedulingService,
-  ) {}
+  constructor(private readonly service: ProductionSchedulingService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a planned production schedule' })

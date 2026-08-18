@@ -48,11 +48,11 @@ export class MobileService {
     private readonly tallyHealthService: TallyHealthService,
   ) {}
 
-  async getDashboard() {
+  async getDashboard(companyId: string) {
     const [totalOrders, pendingSync, failedSync, tally] = await Promise.all([
-      this.countOrders(),
-      this.countOrders(SalesOrderSyncStatus.PENDING),
-      this.countOrders(SalesOrderSyncStatus.FAILED),
+      this.countOrders(companyId),
+      this.countOrders(companyId, SalesOrderSyncStatus.PENDING),
+      this.countOrders(companyId, SalesOrderSyncStatus.FAILED),
       this.getSafeTallyStatus(),
     ]);
 
@@ -60,6 +60,7 @@ export class MobileService {
       .createQueryBuilder('salesOrder')
       .select('COALESCE(SUM(salesOrder.grandTotal), 0)', 'total')
       .where('salesOrder.deletedAt IS NULL')
+      .andWhere('salesOrder.companyId = :companyId', { companyId })
       .getRawOne<{ total: string | number | null }>();
 
     return {
@@ -75,17 +76,29 @@ export class MobileService {
     };
   }
 
-  async getCustomers(search?: string) {
+  async getCustomers(search: string | undefined, companyId: string) {
     const normalizedSearch = search?.trim();
 
     const customers = await this.customerRepository.find({
       where: normalizedSearch
         ? [
-            { name: ILike(`%${normalizedSearch}%`), deletedAt: IsNull() },
-            { email: ILike(`%${normalizedSearch}%`), deletedAt: IsNull() },
-            { phone: ILike(`%${normalizedSearch}%`), deletedAt: IsNull() },
+            {
+              companyId,
+              name: ILike(`%${normalizedSearch}%`),
+              deletedAt: IsNull(),
+            },
+            {
+              companyId,
+              email: ILike(`%${normalizedSearch}%`),
+              deletedAt: IsNull(),
+            },
+            {
+              companyId,
+              phone: ILike(`%${normalizedSearch}%`),
+              deletedAt: IsNull(),
+            },
           ]
-        : { deletedAt: IsNull() },
+        : { companyId, deletedAt: IsNull() },
       order: { name: 'ASC' },
       take: 100,
     });
@@ -103,7 +116,7 @@ export class MobileService {
     };
   }
 
-  async getProducts(search?: string) {
+  async getProducts(search: string | undefined, companyId: string) {
     const normalizedSearch = search?.trim();
 
     const query = this.itemRepository
@@ -116,6 +129,7 @@ export class MobileService {
       .addSelect('item.stockQty', 'stock')
       .addSelect('item.unit', 'unit')
       .where('item.deletedAt IS NULL')
+      .andWhere('item.companyId = :companyId', { companyId })
       .orderBy('item.name', 'ASC')
       .take(100);
 
@@ -150,7 +164,7 @@ export class MobileService {
     };
   }
 
-  async getSalesOrders(query: MobileSalesOrderQueryDto) {
+  async getSalesOrders(query: MobileSalesOrderQueryDto, companyId: string) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -158,7 +172,8 @@ export class MobileService {
     const builder = this.salesOrderRepository
       .createQueryBuilder('salesOrder')
       .leftJoinAndSelect('salesOrder.customer', 'customer')
-      .where('salesOrder.deletedAt IS NULL');
+      .where('salesOrder.deletedAt IS NULL')
+      .andWhere('salesOrder.companyId = :companyId', { companyId });
 
     if (query.syncStatus) {
       builder.andWhere('salesOrder.syncStatus = :syncStatus', {
@@ -205,9 +220,9 @@ export class MobileService {
     };
   }
 
-  async getSalesOrder(id: string) {
+  async getSalesOrder(id: string, companyId: string) {
     const order = await this.salesOrderRepository.findOne({
-      where: { id },
+      where: { id, companyId },
       relations: { customer: true, items: true },
     });
 
@@ -263,9 +278,13 @@ export class MobileService {
     };
   }
 
-  async createSalesOrder(dto: CreateMobileSalesOrderDto) {
+  async createSalesOrder(
+    dto: CreateMobileSalesOrderDto,
+    companyId: string,
+    userId: string,
+  ) {
     const customer = await this.customerRepository.findOne({
-      where: { id: dto.customerId, deletedAt: IsNull() },
+      where: { id: dto.customerId, companyId, deletedAt: IsNull() },
     });
 
     if (!customer) {
@@ -276,7 +295,7 @@ export class MobileService {
       ...new Set(dto.items.map((item) => item.productId)),
     ];
     const products = await this.itemRepository.find({
-      where: { id: In(uniqueProductIds) },
+      where: { id: In(uniqueProductIds), companyId, deletedAt: IsNull() },
     });
 
     if (products.length !== uniqueProductIds.length) {
@@ -319,10 +338,10 @@ export class MobileService {
     );
 
     const order = this.salesOrderRepository.create({
-      companyId: customer.companyId,
+      companyId,
       customerId: customer.id,
       customer,
-      createdBy: customer.id,
+      createdBy: userId,
       orderNumber: this.createOrderNumber(),
       orderDate: new Date().toISOString().slice(0, 10),
       expectedDeliveryDate: null,
@@ -379,8 +398,8 @@ export class MobileService {
     };
   }
 
-  async syncSalesOrder(id: string) {
-    const result = await this.tallySyncService.syncSalesOrder(id);
+  async syncSalesOrder(id: string, companyId: string) {
+    const result = await this.tallySyncService.syncSalesOrder(id, companyId);
 
     return {
       success: true,
@@ -391,12 +410,13 @@ export class MobileService {
     };
   }
 
-  async retrySalesOrder(id: string) {
-    return this.syncSalesOrder(id);
+  async retrySalesOrder(id: string, companyId: string) {
+    return this.syncSalesOrder(id, companyId);
   }
 
-  async syncPendingSalesOrders() {
-    const result = await this.tallySyncService.syncPendingSalesOrders();
+  async syncPendingSalesOrders(companyId: string) {
+    const result =
+      await this.tallySyncService.syncPendingSalesOrders(companyId);
 
     return {
       success: result.failed === 0,
@@ -420,11 +440,14 @@ export class MobileService {
     };
   }
 
-  private countOrders(syncStatus?: SalesOrderSyncStatus): Promise<number> {
+  private countOrders(
+    companyId: string,
+    syncStatus?: SalesOrderSyncStatus,
+  ): Promise<number> {
     return this.salesOrderRepository.count({
       where: syncStatus
-        ? { syncStatus, deletedAt: IsNull() }
-        : { deletedAt: IsNull() },
+        ? { companyId, syncStatus, deletedAt: IsNull() }
+        : { companyId, deletedAt: IsNull() },
     });
   }
 

@@ -11,7 +11,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -20,6 +19,11 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 
 import { CreateLandedCostDto } from './dto/create-landed-cost.dto';
 import { LandedCostFilterDto } from './dto/landed-cost-filter.dto';
@@ -33,12 +37,11 @@ import { LandedCostsService } from './landed-costs.service';
 
 @ApiTags('Landed Costs')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.PURCHASE)
 @Controller('landed-costs')
-@UseGuards(JwtAuthGuard)
 export class LandedCostsController {
-  constructor(
-    private readonly landedCostsService: LandedCostsService,
-  ) {}
+  constructor(private readonly landedCostsService: LandedCostsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a landed cost document' })
@@ -61,10 +64,7 @@ export class LandedCostsController {
     @Query() filter: LandedCostFilterDto,
     @Req() request: AuthenticatedLandedCostRequest,
   ): Promise<PaginatedLandedCostsResponseDto> {
-    return this.landedCostsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.landedCostsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -74,10 +74,7 @@ export class LandedCostsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() request: AuthenticatedLandedCostRequest,
   ): Promise<LandedCostResponseDto> {
-    return this.landedCostsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.landedCostsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -131,9 +128,6 @@ export class LandedCostsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() request: AuthenticatedLandedCostRequest,
   ): Promise<{ message: string }> {
-    return this.landedCostsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.landedCostsService.remove(id, request.user.companyId);
   }
 }

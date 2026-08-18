@@ -1,0 +1,16 @@
+export enum LicensedFeature {
+  ACCOUNTING = 'accounting',
+  INVENTORY = 'inventory',
+  SALES = 'sales',
+  PURCHASE = 'purchase',
+  MANUFACTURING = 'manufacturing',
+  WIP = 'wip',
+  COSTING = 'costing',
+  VAT = 'vat',
+  ASSET_MANAGEMENT = 'asset_management',
+  BANK_RECONCILIATION = 'bank_reconciliation',
+  REPORTING = 'reporting',
+  MOBILE_APP = 'mobile_app',
+  API_ACCESS = 'api_access',
+  NOTIFICATIONS = 'notifications',
+}

@@ -19,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CompleteQualityInspectionDto } from './dto/complete-quality-inspection.dto';
 import { CreateQualityInspectionDto } from './dto/create-quality-inspection.dto';
 import { QualityInspectionQueryDto } from './dto/quality-inspection-query.dto';
@@ -36,18 +39,15 @@ import { QualityManagementService } from './quality-management.service';
 
 @ApiTags('Quality Management')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.MANUFACTURING)
 @Controller('quality-inspections')
 export class QualityManagementController {
-  constructor(
-    private readonly service:
-      QualityManagementService,
-  ) {}
+  constructor(private readonly service: QualityManagementService) {}
 
   @Post()
   @ApiOperation({
-    summary:
-      'Create a draft quality inspection',
+    summary: 'Create a draft quality inspection',
   })
   @ApiCreatedResponse({
     type: QualityInspectionResponseDto,
@@ -58,11 +58,7 @@ export class QualityManagementController {
     @Body()
     dto: CreateQualityInspectionDto,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.create(
-      req.user.companyId,
-      req.user.id,
-      dto,
-    );
+    return this.service.create(req.user.companyId, req.user.id, dto);
   }
 
   @Get()
@@ -75,10 +71,7 @@ export class QualityManagementController {
     @Query()
     query: QualityInspectionQueryDto,
   ): Promise<PaginatedQualityInspectionsResponseDto> {
-    return this.service.findAll(
-      req.user.companyId,
-      query,
-    );
+    return this.service.findAll(req.user.companyId, query);
   }
 
   @Get('report')
@@ -94,10 +87,7 @@ export class QualityManagementController {
     @Query()
     query: QualityReportQueryDto,
   ): Promise<QualityReportResponseDto> {
-    return this.service.getReport(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getReport(req.user.companyId, query);
   }
 
   @Get(':id')
@@ -110,10 +100,7 @@ export class QualityManagementController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.findOne(
-      req.user.companyId,
-      id,
-    );
+    return this.service.findOne(req.user.companyId, id);
   }
 
   @Patch(':id')
@@ -128,12 +115,7 @@ export class QualityManagementController {
     @Body()
     dto: UpdateQualityInspectionDto,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.update(
-      req.user.companyId,
-      req.user.id,
-      id,
-      dto,
-    );
+    return this.service.update(req.user.companyId, req.user.id, id, dto);
   }
 
   @Post(':id/start')
@@ -143,11 +125,7 @@ export class QualityManagementController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.start(
-      req.user.companyId,
-      req.user.id,
-      id,
-    );
+    return this.service.start(req.user.companyId, req.user.id, id);
   }
 
   @Patch(':inspectionId/checks/:checkId/result')
@@ -157,10 +135,7 @@ export class QualityManagementController {
   recordCheckResult(
     @Req()
     req: AuthenticatedQualityManagementRequest,
-    @Param(
-      'inspectionId',
-      ParseUUIDPipe,
-    )
+    @Param('inspectionId', ParseUUIDPipe)
     inspectionId: string,
     @Param('checkId', ParseUUIDPipe)
     checkId: string,
@@ -185,12 +160,7 @@ export class QualityManagementController {
     @Body()
     dto: CompleteQualityInspectionDto,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.complete(
-      req.user.companyId,
-      req.user.id,
-      id,
-      dto,
-    );
+    return this.service.complete(req.user.companyId, req.user.id, id, dto);
   }
 
   @Post(':id/cancel')
@@ -200,10 +170,6 @@ export class QualityManagementController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<QualityInspectionResponseDto> {
-    return this.service.cancel(
-      req.user.companyId,
-      req.user.id,
-      id,
-    );
+    return this.service.cancel(req.user.companyId, req.user.id, id);
   }
 }

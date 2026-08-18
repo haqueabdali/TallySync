@@ -19,12 +19,14 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { LicenseSessionService } from '../licensing/license-session.service';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
+  company: null,
   roleId: 'role-uuid-1',
   fullName: 'Test User',
   email: 'test@example.com',
@@ -47,6 +49,7 @@ const makeRefreshToken = (
 ): RefreshTokenEntity => ({
   id: 'token-uuid-1',
   userId: 'user-uuid-1',
+  sessionId: 'session-uuid-1',
   tokenHash: crypto.createHash('sha256').update('raw-token').digest('hex'),
   expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
   isRevoked: false,
@@ -86,6 +89,13 @@ const mockConfigService = () => ({
   getOrThrow: jest.fn().mockReturnValue('test-jwt-secret'),
 });
 
+const mockLicenseSessionService = () => ({
+  openSession: jest.fn().mockResolvedValue({ id: 'session-uuid-1' }),
+  assertAndTouchSession: jest.fn().mockResolvedValue(undefined),
+  revokeSession: jest.fn().mockResolvedValue(undefined),
+  revokeAllUserSessions: jest.fn().mockResolvedValue(undefined),
+});
+
 // ── Test Suite ────────────────────────────────────────────────────────────────
 
 describe('AuthService', () => {
@@ -105,6 +115,10 @@ describe('AuthService', () => {
         },
         { provide: JwtService, useFactory: mockJwtService },
         { provide: ConfigService, useFactory: mockConfigService },
+        {
+          provide: LicenseSessionService,
+          useFactory: mockLicenseSessionService,
+        },
       ],
     }).compile();
 
@@ -185,12 +199,9 @@ describe('AuthService', () => {
       const result = await service.refreshToken(dto);
 
       expect(result.accessToken).toBe('mock.access.token');
-     expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-  'token-uuid-1',
-  {
-    isRevoked: true,
-  },
-);
+      expect(refreshTokenRepo.update).toHaveBeenCalledWith('token-uuid-1', {
+        isRevoked: true,
+      });
     });
 
     it('throws UnauthorizedException when token not found', async () => {
@@ -239,15 +250,15 @@ describe('AuthService', () => {
 
       expect(result.message).toContain('Logged out');
       expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-  {
-    userId: 'user-uuid-1',
-    tokenHash: expect.any(String),
-    isRevoked: false,
-  },
-  {
-    isRevoked: true,
-  },
-);
+        {
+          userId: 'user-uuid-1',
+          tokenHash: expect.any(String),
+          isRevoked: false,
+        },
+        {
+          isRevoked: true,
+        },
+      );
     });
 
     it('succeeds gracefully even if the token is not found', async () => {

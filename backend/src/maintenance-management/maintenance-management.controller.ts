@@ -10,13 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CompleteMaintenanceWorkOrderDto } from './dto/complete-maintenance-work-order.dto';
 import { CreateDowntimeLogDto } from './dto/create-downtime-log.dto';
 import { CreateMaintenanceAssetDto } from './dto/create-maintenance-asset.dto';
@@ -35,12 +34,11 @@ import { MaintenanceManagementService } from './maintenance-management.service';
 
 @ApiTags('Maintenance Management')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.MANUFACTURING)
 @Controller('maintenance')
 export class MaintenanceManagementController {
-  constructor(
-    private readonly service: MaintenanceManagementService,
-  ) {}
+  constructor(private readonly service: MaintenanceManagementService) {}
 
   @Post('assets')
   createAsset(

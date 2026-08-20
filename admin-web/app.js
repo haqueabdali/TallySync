@@ -24,7 +24,10 @@ const FEATURES = [
 const state = {
   session: readSession(),
   route: '',
+<<<<<<< HEAD
   planTemplates: [],
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 };
 
 function readSession() {
@@ -161,9 +164,15 @@ async function logout() {
 
 function showModal(title, body, actions = '') {
   document.getElementById('modal-root').innerHTML = `
+<<<<<<< HEAD
     <div class="modal-backdrop">
       <div class="modal" role="dialog" aria-modal="true" aria-label="${e(title)}" data-modal-panel>
         <div class="modal-head"><h2>${e(title)}</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close">×</button></div>
+=======
+    <div class="modal-backdrop" data-close-modal>
+      <div class="modal" role="dialog" aria-modal="true" aria-label="${e(title)}" data-modal-panel>
+        <div class="modal-head"><h2>${e(title)}</h2><button class="icon-btn" data-close-modal aria-label="Close">×</button></div>
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
         <div class="modal-body">${body}</div>
         ${actions ? `<div class="modal-actions">${actions}</div>` : ''}
       </div>
@@ -187,11 +196,15 @@ function shell(content, pageTitle) {
     <nav class="nav">
       ${navButton('dashboard', '◫', 'Dashboard', route)}
       ${navButton('companies', '▦', 'Companies', route)}
+<<<<<<< HEAD
       ${navButton('users', '♙', 'Users', route)}
       ${navButton('licenses', '◆', 'Licenses', route)}
       ${navButton('plans', '▤', 'Plan templates', route)}
       ${navButton('notifications', '●', 'Commercial notifications', route)}
       ${navButton('audit', '⌁', 'Audit history', route)}
+=======
+      ${navButton('licenses', '◆', 'Licenses', route)}
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     </nav>
     <div class="sidebar-footer">
       <div class="user-mini"><strong>${e(user?.fullName || 'Platform Admin')}</strong><span>${e(user?.email || '')}</span></div>
@@ -212,7 +225,11 @@ function currentRoute() {
   const raw = (location.hash || '#/dashboard').replace(/^#\/?/, '');
   const [name = 'dashboard', id] = raw.split('/');
   if (name === 'license' && id) return { name: 'license', id };
+<<<<<<< HEAD
   if (['dashboard', 'companies', 'users', 'licenses', 'plans', 'notifications', 'audit', 'login'].includes(name)) return { name };
+=======
+  if (['dashboard', 'companies', 'licenses', 'login'].includes(name)) return { name };
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   return { name: 'dashboard' };
 }
 
@@ -244,17 +261,25 @@ async function renderDashboard() {
     ]);
 
     const content = `
+<<<<<<< HEAD
       <div class="page-head"><div><h1>Commercial control</h1><p>License health, customer companies and authorization state.</p></div><div class="actions"><button type="button" class="btn primary" data-action="new-company">+ Company</button><button class="btn" data-action="new-license">+ License</button></div></div>
+=======
+      <div class="page-head"><div><h1>Commercial control</h1><p>License health, customer companies and authorization state.</p></div><div class="actions"><button class="btn primary" data-action="new-company">+ Company</button><button class="btn" data-action="new-license">+ License</button></div></div>
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
       <section class="grid stats-grid">
         ${statCard('Licensed companies', summary.licensedCompanies, 'All commercial tenants')}
         ${statCard('Active licenses', summary.active, 'Currently authorized')}
         ${statCard('Suspended', summary.suspended, 'Temporarily blocked')}
         ${statCard('Revoked', summary.revoked, 'Permanently blocked')}
         ${statCard('Expired by date', summary.expiredByDate, 'Needs renewal')}
+<<<<<<< HEAD
         ${statCard('Expiring ≤ 7 days', summary.expiringWithin7Days ?? 0, 'Urgent renewals')}
         ${statCard('Expiring ≤ 30 days', summary.expiringWithin30Days ?? 0, 'Upcoming renewals')}
       </section>
       ${expirationWarnings(summary.expirationWarnings || [])}
+=======
+      </section>
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
       <section class="grid two-col">
         <div class="card">
           <div class="section-head"><h2 class="section-title">Recent licenses</h2><button class="btn small secondary" data-nav="#/licenses">View all</button></div>
@@ -271,6 +296,7 @@ async function renderDashboard() {
   }
 }
 
+<<<<<<< HEAD
 function expirationWarnings(licenses) {
   if (!licenses?.length) return '';
   return `
@@ -294,6 +320,8 @@ function expirationWarnings(licenses) {
     </section>`;
 }
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 function statCard(label, value, foot) {
   return `<div class="card stat"><div class="stat-label">${e(label)}</div><div class="stat-value">${e(value)}</div><div class="stat-foot">${e(foot)}</div></div>`;
 }
@@ -321,7 +349,11 @@ async function renderCompanies() {
   try {
     const result = await api('/platform/companies?page=1&limit=200');
     const content = `
+<<<<<<< HEAD
       <div class="page-head"><div><h1>Customer companies</h1><p>Create tenants and control whether a company is allowed to operate.</p></div><button type="button" class="btn primary" data-action="new-company">+ New company</button></div>
+=======
+      <div class="page-head"><div><h1>Customer companies</h1><p>Create tenants and control whether a company is allowed to operate.</p></div><button class="btn primary" data-action="new-company">+ New company</button></div>
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
       <div class="toolbar"><input class="input" id="company-filter" placeholder="Search company…"></div>
       <div class="card"><div class="table-wrap"><table id="companies-table"><thead><tr><th>Company</th><th>Active users</th><th>License</th><th>Status</th><th>Company state</th><th></th></tr></thead><tbody>
       ${result.data.map(companyRow).join('')}
@@ -336,6 +368,7 @@ function companyRow(company) {
   return `<tr data-company-search="${e(`${company.name} ${company.tallyCompanyName}`.toLowerCase())}"><td><div class="cell-title">${e(company.name)}</div><div class="cell-sub">${e(company.tallyCompanyName)}</div></td><td>${e(company.activeUsers)}</td><td>${company.license ? `<button class="btn small" data-nav="#/license/${e(company.license.id)}">${e(company.license.licenseNumber)}</button>` : '<span class="cell-sub">Not licensed</span>'}</td><td>${company.license ? badge(company.license.status) : '—'}</td><td>${badge(company.isActive ? 'active' : 'disabled')}</td><td><button class="btn small" data-action="edit-company" data-company-id="${e(company.id)}">Edit</button>${!company.license ? ` <button class="btn small primary" data-action="new-license-for" data-company-id="${e(company.id)}">License</button>` : ''}</td></tr>`;
 }
 
+<<<<<<< HEAD
 function filterUserRows() {
   const query = (document.getElementById('user-filter')?.value || '').trim().toLowerCase();
   const companyId = document.getElementById('user-company-filter')?.value || '';
@@ -375,6 +408,8 @@ async function renderUsers() {
   }
 }
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 async function renderLicenses() {
   const app = document.getElementById('app');
   app.className = 'app-shell authenticated';
@@ -401,12 +436,15 @@ async function renderLicenseDetail(id) {
       api(`/platform/licenses/${id}/usage`),
       api(`/platform/licenses/${id}/sessions`),
     ]);
+<<<<<<< HEAD
     let audit = { data: [] };
     try {
       audit = await api(`/platform/licenses/audit?licenseId=${encodeURIComponent(id)}&page=1&limit=20`);
     } catch (auditError) {
       console.warn('Unable to load license audit history:', auditError);
     }
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     const enabled = new Map((license.features || []).map((feature) => [feature.feature, feature]));
     const content = `
       <div class="page-head"><div><button class="btn small secondary" data-nav="#/licenses">← Licenses</button><h1 style="margin-top:12px">${e(license.company?.name || license.licenseNumber)}</h1><p>${e(license.licenseNumber)} · ${titleCase(license.plan)} · ${badge(license.status)}</p></div><div class="actions">${licenseActionButtons(license)}</div></div>
@@ -435,9 +473,13 @@ async function renderLicenseDetail(id) {
       <div style="height:18px"></div>
       <section class="card"><div class="section-head"><h2 class="section-title">Authorized installations</h2><button class="btn small primary" data-action="new-activation" data-license-id="${e(id)}">+ Installation</button></div>${activationTable(license.activations || [], id)}</section>
       <div style="height:18px"></div>
+<<<<<<< HEAD
       <section class="card"><div class="section-head"><h2 class="section-title">Authentication sessions</h2><span class="cell-sub">${usage.concurrentUsers} concurrent users · ${usage.activeSessions} active sessions</span></div>${sessionTable(sessions, id)}</section>
       <div style="height:18px"></div>
       <section class="card"><div class="section-head"><h2 class="section-title">License audit history</h2><button class="btn small secondary" data-nav="#/audit">View platform audit</button></div>${auditTable(audit.data || [])}</section>`;
+=======
+      <section class="card"><div class="section-head"><h2 class="section-title">Authentication sessions</h2><span class="cell-sub">${usage.concurrentUsers} concurrent users · ${usage.activeSessions} active sessions</span></div>${sessionTable(sessions, id)}</section>`;
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     app.innerHTML = shell(content, license.company?.name || 'License');
   } catch (error) {
     app.innerHTML = shell(`<div class="card card-pad"><h2>Unable to load license</h2><p class="brand-sub">${e(errorMessage(error))}</p><button class="btn" data-nav="#/licenses">Back</button></div>`, 'License');
@@ -452,6 +494,7 @@ function usageBlock(usage) {
 
 function licenseActionButtons(license) {
   const id = e(license.id);
+<<<<<<< HEAD
   const items = [];
   if (license.status !== 'revoked') {
     items.push(`<button class="btn" data-action="renew-license" data-license-id="${id}">Renew</button>`);
@@ -459,6 +502,9 @@ function licenseActionButtons(license) {
   if (license.status === 'active' && license.company?.isActive !== false) {
     items.push(`<button class="btn" data-action="sign-license" data-license-id="${id}">${license.certificateIssuedAt ? 'Re-sign license' : 'Sign license'}</button>`);
   }
+=======
+  const items = [`<button class="btn" data-action="sign-license" data-license-id="${id}">Sign license</button>`];
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   if (license.status !== 'active' && license.status !== 'revoked') items.push(`<button class="btn primary" data-action="license-status" data-op="activate" data-license-id="${id}">Activate</button>`);
   if (license.status === 'active') items.push(`<button class="btn warning" data-action="license-status" data-op="suspend" data-license-id="${id}">Suspend</button>`);
   if (license.status !== 'revoked') items.push(`<button class="btn danger" data-action="license-status" data-op="revoke" data-license-id="${id}">Revoke</button>`);
@@ -479,6 +525,7 @@ function sessionTable(sessions, licenseId) {
   return `<div class="table-wrap"><table><thead><tr><th>User</th><th>Last seen</th><th>Expires</th><th>IP</th><th>State</th><th></th></tr></thead><tbody>${sessions.map((session) => `<tr><td><div class="cell-title">${e(session.user?.fullName || session.userId)}</div><div class="cell-sub">${e(session.user?.email || '')}</div></td><td>${fmtDate(session.lastSeenAt)}</td><td>${fmtDate(session.expiresAt)}</td><td>${e(session.ipAddress || '—')}</td><td>${badge(session.isRevoked ? 'revoked' : 'active')}</td><td>${session.isRevoked ? '—' : `<button class="btn small danger" data-action="revoke-session" data-license-id="${e(licenseId)}" data-session-id="${e(session.id)}">Revoke</button>`}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
+<<<<<<< HEAD
 
 function auditTable(logs) {
   if (!logs?.length) return '<div class="empty">No commercial audit events.</div>';
@@ -599,6 +646,8 @@ async function renderAudit() {
   }
 }
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 function textField(label, name, value, placeholder = '') {
   return `<div class="field"><label>${e(label)}</label><input class="input" name="${e(name)}" value="${e(value)}" placeholder="${e(placeholder)}"></div>`;
 }
@@ -613,6 +662,7 @@ function selectField(label, name, options, value) {
   return `<div class="field"><label>${e(label)}</label><select class="select" name="${e(name)}">${options.map((option) => `<option value="${e(option)}" ${option === value ? 'selected' : ''}>${e(titleCase(option))}</option>`).join('')}</select></div>`;
 }
 
+<<<<<<< HEAD
 async function openNewUserModal() {
   const [companies, roles] = await Promise.all([
     api('/platform/companies?page=1&limit=200&isActive=true'),
@@ -664,13 +714,18 @@ async function openUserActivityModal(userId) {
   showModal(`${user.fullName} activity`, `<div class="table-wrap"><table><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows || '<tr><td colspan="3"><div class="empty">No activity recorded.</div></td></tr>'}</tbody></table></div>`, `<button type="button" class="btn primary" data-close-modal>Done</button>`);
 }
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 async function openNewCompanyModal() {
   showModal('Create customer company', `
     <form id="company-create-form" class="form-grid">
       <div class="field full"><label>Company name</label><input class="input" name="name" required minlength="2" maxlength="255"></div>
       <div class="field full"><label>Tally company name</label><input class="input" name="tallyCompanyName" maxlength="255"><span class="form-help">Optional. Defaults to the company name.</span></div>
       <label class="switch-row field full"><span class="switch-label"><strong>Company active</strong><span>Inactive companies cannot use an otherwise active license.</span></span><input type="checkbox" name="isActive" checked></label>
+<<<<<<< HEAD
       <label class="switch-row field full"><span class="switch-label"><strong>Continue to license setup</strong><span>Open the commercial entitlement wizard immediately after the company is created.</span></span><input type="checkbox" name="continueToLicense" checked></label>
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     </form>`, `<button class="btn secondary" data-close-modal>Cancel</button><button class="btn primary" data-submit-form="company-create-form">Create company</button>`);
 }
 
@@ -686,6 +741,7 @@ async function openEditCompanyModal(id) {
   } catch (error) { toast(errorMessage(error), 'error'); }
 }
 
+<<<<<<< HEAD
 async function openNewLicenseModal(preselectedCompanyId = '', initialPlan = 'business') {
   try {
     const [companies, templates] = await Promise.all([
@@ -731,6 +787,29 @@ async function openRenewLicenseModal(licenseId) {
   }
 }
 
+=======
+async function openNewLicenseModal(preselectedCompanyId = '') {
+  try {
+    const companies = await api('/platform/companies?page=1&limit=200&isActive=true');
+    const available = companies.data.filter((company) => !company.license || company.id === preselectedCompanyId);
+    if (!available.length) return toast('Every active company already has a license.', 'error');
+    showModal('Create company license', `
+      <form id="license-create-form" class="form-grid">
+        <div class="field full"><label>Company</label><select class="select" name="companyId" required>${available.map((company) => `<option value="${e(company.id)}" ${company.id === preselectedCompanyId ? 'selected' : ''}>${e(company.name)}</option>`).join('')}</select></div>
+        ${selectField('Plan', 'plan', PLANS, 'business')}
+        ${numberField('Maximum users', 'maxUsers', 25, 1)}
+        ${numberField('Concurrent users', 'maxConcurrentUsers', 10, 1)}
+        ${textField('Minimum version', 'minimumVersion', '1.0.0')}
+        ${textField('Maximum version', 'maximumVersion', '1.0.0')}
+        ${dateField('Valid from', 'validFrom', new Date())}
+        ${dateField('Expires at', 'expiresAt', new Date(Date.now() + 365*86400000))}
+        <div class="field full"><label>Modules</label><div class="switch-grid">${FEATURES.map(([key,label]) => `<label class="switch-row"><span class="switch-label"><strong>${e(label)}</strong><span>${e(key)}</span></span><input type="checkbox" data-new-feature="${e(key)}" ${['accounting','inventory','sales','purchase','reporting'].includes(key) ? 'checked' : ''}></label>`).join('')}</div></div>
+        <div class="field full"><label>Notes</label><textarea class="textarea" name="notes"></textarea></div>
+      </form>`, `<button class="btn secondary" data-close-modal>Cancel</button><button class="btn primary" data-submit-form="license-create-form">Create draft license</button>`);
+  } catch (error) { toast(errorMessage(error), 'error'); }
+}
+
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 function openNewActivationModal(licenseId) {
   showModal('Authorize installation', `
     <form id="activation-create-form" class="form-grid" data-license-id="${e(licenseId)}">
@@ -747,6 +826,7 @@ function dateToIsoOrNull(value, endOfDay = false) {
 
 async function submitForm(form) {
   const data = new FormData(form);
+<<<<<<< HEAD
   if (form.id === 'user-create-form') {
     const body = {
       companyId: data.get('companyId'),
@@ -785,6 +865,12 @@ async function submitForm(form) {
       await render();
     }
     return;
+=======
+  if (form.id === 'company-create-form') {
+    const body = { name: data.get('name'), tallyCompanyName: data.get('tallyCompanyName') || undefined, isActive: data.get('isActive') === 'on' };
+    await api('/platform/companies', { method: 'POST', body: JSON.stringify(body) });
+    closeModal(); toast('Company created.'); await render(); return;
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   }
   if (form.id === 'company-edit-form') {
     const id = form.dataset.companyId;
@@ -804,6 +890,7 @@ async function submitForm(form) {
     const license = await api('/platform/licenses', { method: 'POST', body: JSON.stringify(body) });
     closeModal(); toast('Draft license created.'); location.hash = `#/license/${license.id}`; return;
   }
+<<<<<<< HEAD
   if (form.id === 'license-renew-form') {
     const id = form.dataset.licenseId;
     const body = {
@@ -816,6 +903,8 @@ async function submitForm(form) {
     await render();
     return;
   }
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   if (form.id === 'activation-create-form') {
     const id = form.dataset.licenseId;
     const body = { installationId: data.get('installationId'), fingerprintHash: data.get('fingerprintHash'), appVersion: data.get('appVersion') };
@@ -852,8 +941,12 @@ async function saveFeatures(licenseId) {
 async function runLicenseOperation(licenseId, operation) {
   if (operation === 'revoke' && !confirm('Permanently revoke this license and all active installation activations?')) return;
   await api(`/platform/licenses/${licenseId}/${operation}`, { method: 'POST' });
+<<<<<<< HEAD
   const completedAction = { activate: 'activated', suspend: 'suspended', revoke: 'revoked' }[operation] || operation;
   toast(`License ${completedAction}.`);
+=======
+  toast(`License ${operation}d.`);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   await render();
 }
 
@@ -878,11 +971,15 @@ async function render() {
   if (route.name === 'login') { location.hash = '#/dashboard'; return; }
   if (route.name === 'dashboard') return renderDashboard();
   if (route.name === 'companies') return renderCompanies();
+<<<<<<< HEAD
   if (route.name === 'users') return renderUsers();
   if (route.name === 'licenses') return renderLicenses();
   if (route.name === 'plans') return renderPlans();
   if (route.name === 'notifications') return renderCommercialNotifications();
   if (route.name === 'audit') return renderAudit();
+=======
+  if (route.name === 'licenses') return renderLicenses();
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   if (route.name === 'license') return renderLicenseDetail(route.id);
 }
 
@@ -920,6 +1017,7 @@ document.addEventListener('click', async (event) => {
   try {
     if (action === 'logout') return await logout();
     if (action === 'new-company') return await openNewCompanyModal();
+<<<<<<< HEAD
     if (action === 'new-user') return await openNewUserModal();
     if (action === 'edit-user') return await openEditUserModal(target.dataset.userId);
     if (action === 'user-activity') return await openUserActivityModal(target.dataset.userId);
@@ -941,6 +1039,14 @@ document.addEventListener('click', async (event) => {
       toast(`Expiration scan complete: ${result.notificationsCreated} notification(s) created for ${result.licensesScanned} license(s).`);
       return await render();
     }
+=======
+    if (action === 'edit-company') return await openEditCompanyModal(target.dataset.companyId);
+    if (action === 'new-license') return await openNewLicenseModal();
+    if (action === 'new-license-for') return await openNewLicenseModal(target.dataset.companyId);
+    if (action === 'save-features') return await saveFeatures(target.dataset.licenseId);
+    if (action === 'license-status') return await runLicenseOperation(target.dataset.licenseId, target.dataset.op);
+    if (action === 'sign-license') return await signLicense(target.dataset.licenseId);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     if (action === 'new-activation') return openNewActivationModal(target.dataset.licenseId);
     if (action === 'issue-credential') return await issueCredential(target.dataset.licenseId, target.dataset.activationId);
     if (action === 'revoke-activation') {
@@ -960,6 +1066,7 @@ document.addEventListener('click', async (event) => {
   } catch (error) { toast(errorMessage(error), 'error'); }
 });
 
+<<<<<<< HEAD
 document.addEventListener('change', (event) => {
   const input = event.target;
   if (input instanceof HTMLSelectElement && input.id === 'user-company-filter') filterUserRows();
@@ -974,10 +1081,16 @@ document.addEventListener('input', (event) => {
   if (input.id === 'user-filter') {
     filterUserRows();
   }
+=======
+document.addEventListener('input', (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement)) return;
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   if (input.id === 'company-filter') {
     const query = input.value.trim().toLowerCase();
     document.querySelectorAll('[data-company-search]').forEach((row) => row.classList.toggle('hidden', !row.dataset.companySearch.includes(query)));
   }
+<<<<<<< HEAD
   if (input.id === 'commercial-notification-filter') {
     const query = input.value.trim().toLowerCase();
     document.querySelectorAll('[data-commercial-search]').forEach((row) => {
@@ -990,6 +1103,8 @@ document.addEventListener('input', (event) => {
       row.classList.toggle('hidden', !row.textContent.toLowerCase().includes(query));
     });
   }
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   if (input.id === 'license-filter') {
     const query = input.value.trim().toLowerCase();
     document.querySelectorAll('#license-filter + .card tbody tr, .card tbody tr').forEach((row) => {

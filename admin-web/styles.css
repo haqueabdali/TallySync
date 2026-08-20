@@ -152,7 +152,10 @@ tr:hover td { background: rgba(121,168,255,.025); }
   .kv { grid-template-columns: 1fr; gap: 3px; }
   .kv dd { margin-bottom: 9px; }
 }
+<<<<<<< HEAD
 
 /* V8 plan templates */
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500

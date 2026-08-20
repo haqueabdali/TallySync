@@ -3,9 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CompanyEntity } from '../auth/entities/company.entity';
+<<<<<<< HEAD
 import { NotificationEntity } from '../notifications/entities/notification.entity';
 import { UserEntity } from '../auth/entities/user.entity';
 import { CommercialNotificationsService } from './commercial-notifications.service';
+=======
+import { UserEntity } from '../auth/entities/user.entity';
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { LicenseActivationEntity } from './entities/license-activation.entity';
 import { LicenseAuditLogEntity } from './entities/license-audit-log.entity';
 import { LicenseFeatureEntity } from './entities/license-feature.entity';
@@ -32,7 +36,10 @@ import { PlatformLicensingController } from './platform-licensing.controller';
       LicenseSessionEntity,
       CompanyEntity,
       UserEntity,
+<<<<<<< HEAD
       NotificationEntity,
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     ]),
   ],
   controllers: [
@@ -46,7 +53,10 @@ import { PlatformLicensingController } from './platform-licensing.controller';
     LicenseSigningService,
     LicenseFeatureGuard,
     PlatformAdminGuard,
+<<<<<<< HEAD
     CommercialNotificationsService,
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   ],
   exports: [
     LicensingService,
@@ -54,7 +64,10 @@ import { PlatformLicensingController } from './platform-licensing.controller';
     LicenseSigningService,
     LicenseFeatureGuard,
     PlatformAdminGuard,
+<<<<<<< HEAD
     CommercialNotificationsService,
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   ],
 })
 export class LicensingModule {}

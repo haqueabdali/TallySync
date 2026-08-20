@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
+=======
+import { ForbiddenException } from '@nestjs/common';
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 
 import { LicensingService } from './licensing.service';
 import { LicensePlan } from './enums/license-plan.enum';
@@ -10,6 +14,7 @@ function createService() {
     findOne: jest.fn(),
     count: jest.fn(),
     createQueryBuilder: jest.fn(),
+<<<<<<< HEAD
     save: jest.fn(async (value) => value),
   };
   const featureRepository = {};
@@ -21,6 +26,14 @@ function createService() {
   };
   const companyRepository = {};
   const userRepository = { count: jest.fn(), find: jest.fn() };
+=======
+  };
+  const featureRepository = {};
+  const activationRepository = {};
+  const auditRepository = {};
+  const companyRepository = {};
+  const userRepository = { count: jest.fn() };
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   const dataSource = {};
 
   return {
@@ -35,7 +48,10 @@ function createService() {
     ),
     licenseRepository,
     userRepository,
+<<<<<<< HEAD
     auditRepository,
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   };
 }
 
@@ -121,6 +137,7 @@ describe('LicensingService', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
+<<<<<<< HEAD
 
   it('lists platform audit history with actor and company context', async () => {
     const { service, auditRepository, userRepository } = createService();
@@ -285,6 +302,8 @@ describe('LicensingService', () => {
     ).rejects.toThrow('Revoked license cannot be renewed');
   });
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   it('enforces company user capacity', async () => {
     const { service, licenseRepository, userRepository } = createService();
     licenseRepository.findOne.mockResolvedValue(
@@ -296,6 +315,7 @@ describe('LicensingService', () => {
       ForbiddenException,
     );
   });
+<<<<<<< HEAD
 
   it('returns reusable plan templates backed by existing license enums', () => {
     const { service } = createService();
@@ -327,4 +347,6 @@ describe('LicensingService', () => {
   });
 
 
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 });

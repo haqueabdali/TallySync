@@ -7,10 +7,7 @@ Owner-only control plane for TallySync commercial licensing.
 - Platform-admin login
 - Commercial dashboard
 - Customer company creation/edit/activation state
-<<<<<<< HEAD
 - Guided company-to-license onboarding
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 - License creation and management
 - User and concurrent-user limits
 - Minimum/maximum application versions
@@ -32,7 +29,6 @@ Super Admin must be a user with:
 - `role = admin`
 - `companyId = null`
 
-<<<<<<< HEAD
 Create that dedicated identity from the backend after migrations and the
 normal customer seed have run:
 
@@ -45,8 +41,6 @@ npm run seed:platform-owner
 Do not reuse the seeded customer administrator's email. The bootstrap command
 will reject any email already assigned to a customer company.
 
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 ## Configure API
 
 Edit `config.js`:

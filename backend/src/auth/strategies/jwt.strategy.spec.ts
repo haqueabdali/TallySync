@@ -6,10 +6,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { UserEntity, UserStatus } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-<<<<<<< HEAD
 import { DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER } from '../jwt.constants';
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { LicenseSessionService } from '../../licensing/license-session.service';
 
 const mockUserRepo = () => ({
@@ -23,10 +20,6 @@ const mockConfigService = () => ({
     if (key === 'JWT_AUDIENCE') return DEFAULT_JWT_AUDIENCE;
     return undefined;
   }),
-});
-
-const mockLicenseSessionService = () => ({
-  assertAndTouchSession: jest.fn().mockResolvedValue(undefined),
 });
 
 const mockLicenseSessionService = () => ({

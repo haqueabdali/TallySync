@@ -24,6 +24,7 @@ import { RefreshTokenEntity } from './entities/refresh-token.entity';
 import { UserEntity, UserStatus } from './entities/user.entity';
 
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
+import { LicenseSessionService } from '../licensing/license-session.service';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +43,7 @@ export class AuthService {
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly licenseSessionService: LicenseSessionService,
   ) {
     this.bcryptRounds = this.readPositiveInteger('BCRYPT_ROUNDS', 12);
 
@@ -96,15 +98,27 @@ export class AuthService {
 
     this.assertUserCanAuthenticate(user);
 
-    await this.userRepository.update(user.id, {
-      lastLoginAt: new Date(),
+    const session = await this.licenseSessionService.openSession({
+      user,
+      expiresAt: this.buildRefreshTokenExpiryDate(),
+      ipAddress,
+      userAgent,
     });
 
-    this.logger.log(
-      `User ${user.id} logged in from ${ipAddress ?? 'unknown IP'}`,
-    );
+    try {
+      await this.userRepository.update(user.id, {
+        lastLoginAt: new Date(),
+      });
 
-    return this.issueTokenPair(user, ipAddress, userAgent);
+      this.logger.log(
+        `User ${user.id} logged in from ${ipAddress ?? 'unknown IP'}`,
+      );
+
+      return await this.issueTokenPair(user, session.id, ipAddress, userAgent);
+    } catch (error) {
+      await this.licenseSessionService.revokeSession(session.id);
+      throw error;
+    }
   }
 
   /**
@@ -137,6 +151,7 @@ export class AuthService {
 
     if (storedToken.isRevoked) {
       await this.revokeAllUserTokens(dto.userId);
+      await this.licenseSessionService.revokeAllUserSessions(dto.userId);
 
       this.logger.warn(
         `Refresh token reuse detected for user ${dto.userId}; all sessions revoked`,
@@ -161,9 +176,30 @@ export class AuthService {
 
     this.assertUserCanAuthenticate(user);
 
+    let sessionId = storedToken.sessionId;
+    let createdReplacementSession = false;
+
+    if (sessionId) {
+      await this.licenseSessionService.assertAndTouchSession(
+        sessionId,
+        user.id,
+        user.companyId,
+      );
+    } else {
+      const session = await this.licenseSessionService.openSession({
+        user,
+        expiresAt: this.buildRefreshTokenExpiryDate(),
+        ipAddress,
+        userAgent,
+      });
+      sessionId = session.id;
+      createdReplacementSession = true;
+    }
+
     /*
      * Revoke the current token before issuing another one.
-     * This implements refresh-token rotation.
+     * This implements refresh-token rotation while preserving the same
+     * authenticated session across token refreshes.
      */
     await this.refreshTokenRepository.update(storedToken.id, {
       isRevoked: true,
@@ -171,7 +207,14 @@ export class AuthService {
 
     this.logger.log(`Refresh token rotated for user ${user.id}`);
 
-    return this.issueTokenPair(user, ipAddress, userAgent);
+    try {
+      return await this.issueTokenPair(user, sessionId, ipAddress, userAgent);
+    } catch (error) {
+      if (createdReplacementSession) {
+        await this.licenseSessionService.revokeSession(sessionId);
+      }
+      throw error;
+    }
   }
 
   /**
@@ -179,6 +222,13 @@ export class AuthService {
    */
   async logout(dto: LogoutDto, userId: string): Promise<MessageResponseDto> {
     const refreshTokenHash = this.hashToken(dto.refreshToken);
+
+    const storedToken = await this.refreshTokenRepository.findOne({
+      where: {
+        tokenHash: refreshTokenHash,
+        userId,
+      },
+    });
 
     await this.refreshTokenRepository.update(
       {
@@ -190,6 +240,10 @@ export class AuthService {
         isRevoked: true,
       },
     );
+
+    if (storedToken?.sessionId) {
+      await this.licenseSessionService.revokeSession(storedToken.sessionId);
+    }
 
     this.logger.log(`User ${userId} logged out`);
 
@@ -286,6 +340,7 @@ export class AuthService {
     });
 
     await this.revokeAllUserTokens(user.id);
+    await this.licenseSessionService.revokeAllUserSessions(user.id);
 
     this.logger.log(`Password reset completed for user ${user.id}`);
 
@@ -338,6 +393,7 @@ export class AuthService {
     });
 
     await this.revokeAllUserTokens(user.id);
+    await this.licenseSessionService.revokeAllUserSessions(user.id);
 
     this.logger.log(`Password changed for user ${user.id}`);
 
@@ -353,6 +409,7 @@ export class AuthService {
    */
   private async issueTokenPair(
     user: UserEntity,
+    sessionId: string,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<AuthResponseDto> {
@@ -365,6 +422,7 @@ export class AuthService {
       email: user.email,
       role: user.role.name,
       companyId: user.companyId,
+      sid: sessionId,
     };
 
     /*
@@ -391,12 +449,11 @@ export class AuthService {
 
     const refreshTokenHash = this.hashToken(rawRefreshToken);
 
-    const refreshTokenExpiresAt = new Date(
-      Date.now() + this.refreshTokenExpiryDays * 24 * 60 * 60 * 1000,
-    );
+    const refreshTokenExpiresAt = this.buildRefreshTokenExpiryDate();
 
     const refreshTokenEntity = this.refreshTokenRepository.create({
       userId: user.id,
+      sessionId,
       tokenHash: refreshTokenHash,
       expiresAt: refreshTokenExpiresAt,
       isRevoked: false,
@@ -484,6 +541,12 @@ export class AuthService {
       resetTokenHash: null,
       resetTokenExpiresAt: null,
     });
+  }
+
+  private buildRefreshTokenExpiryDate(): Date {
+    return new Date(
+      Date.now() + this.refreshTokenExpiryDays * 24 * 60 * 60 * 1000,
+    );
   }
 
   /**

@@ -361,44 +361,116 @@ async postProductionVariance(
     companyId: string,
   ): Promise<PostingDocument> {
     switch (sourceType) {
+      case JournalEntrySourceType.SALES_INVOICE: {
+        const source = await this.salesInvoicePostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.salesInvoicePostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
+      case JournalEntrySourceType.CUSTOMER_PAYMENT: {
+        const source = await this.customerPaymentPostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.customerPaymentPostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
+      case JournalEntrySourceType.SALES_RETURN: {
+        const source = await this.salesReturnPostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.salesReturnPostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
+      case JournalEntrySourceType.SUPPLIER_PAYMENT: {
+        const source = await this.supplierPaymentPostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.supplierPaymentPostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
+      case JournalEntrySourceType.PURCHASE_INVOICE: {
+        const source = await this.purchaseInvoicePostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.purchaseInvoicePostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
+      case JournalEntrySourceType.LANDED_COST: {
+        const source = await this.landedCostPostingRule.load(
+          sourceId,
+          companyId,
+        );
+
+        return this.landedCostPostingRule.build(
+          source,
+          companyId,
+        );
+      }
+
       case JournalEntrySourceType.MATERIAL_CONSUMPTION: {
-  const source: MaterialConsumptionEntity =
-    await this.materialConsumptionPostingRule.load(
-      sourceId,
-      companyId,
-    );
+        const source: MaterialConsumptionEntity =
+          await this.materialConsumptionPostingRule.load(
+            sourceId,
+            companyId,
+          );
 
-  return this.materialConsumptionPostingRule.build(
-    source,
-    companyId,
-  );
-}
+        return this.materialConsumptionPostingRule.build(
+          source,
+          companyId,
+        );
+      }
 
-case JournalEntrySourceType.PRODUCTION_COMPLETION: {
-  const source: ProductionOrderEntity =
-    await this.productionCompletionPostingRule.load(
-      sourceId,
-      companyId,
-    );
+      case JournalEntrySourceType.PRODUCTION_COMPLETION: {
+        const source: ProductionOrderEntity =
+          await this.productionCompletionPostingRule.load(
+            sourceId,
+            companyId,
+          );
 
-  return this.productionCompletionPostingRule.build(
-    source,
-    companyId,
-  );
-}
+        return this.productionCompletionPostingRule.build(
+          source,
+          companyId,
+        );
+      }
 
-case JournalEntrySourceType.PRODUCTION_VARIANCE: {
-  const source: ProductionVarianceEntity =
-    await this.productionVariancePostingRule.load(
-      sourceId,
-      companyId,
-    );
+      case JournalEntrySourceType.PRODUCTION_VARIANCE: {
+        const source: ProductionVarianceEntity =
+          await this.productionVariancePostingRule.load(
+            sourceId,
+            companyId,
+          );
 
-  return this.productionVariancePostingRule.build(
-    source,
-    companyId,
-  );
-}
+        return this.productionVariancePostingRule.build(
+          source,
+          companyId,
+        );
+      }
 
       default:
         throw new BadRequestException(

@@ -7,6 +7,6 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   role: string;
-  companyId: string;
+  companyId: string | null;
   fullName: string;
 }

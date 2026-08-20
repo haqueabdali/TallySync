@@ -19,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CostingVarianceService } from './costing-variance.service';
 import { CostingAnalysisQueryDto } from './dto/costing-analysis-query.dto';
 import {
@@ -33,18 +36,15 @@ import type { AuthenticatedCostingVarianceRequest } from './interfaces/authentic
 
 @ApiTags('Costing & Variance')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.COSTING)
 @Controller('costing-variance')
 export class CostingVarianceController {
-  constructor(
-    private readonly service:
-      CostingVarianceService,
-  ) {}
+  constructor(private readonly service: CostingVarianceService) {}
 
   @Post()
   @ApiOperation({
-    summary:
-      'Create a production costing snapshot',
+    summary: 'Create a production costing snapshot',
   })
   @ApiCreatedResponse({
     type: CostingVarianceSummaryResponseDto,
@@ -55,11 +55,7 @@ export class CostingVarianceController {
     @Body()
     dto: CreateProductionCostAnalysisDto,
   ): Promise<CostingVarianceSummaryResponseDto> {
-    return this.service.create(
-      req.user.companyId,
-      req.user.id,
-      dto,
-    );
+    return this.service.create(req.user.companyId, req.user.id, dto);
   }
 
   @Get()
@@ -72,16 +68,12 @@ export class CostingVarianceController {
     @Query()
     query: CostingAnalysisQueryDto,
   ): Promise<PaginatedCostingVarianceResponseDto> {
-    return this.service.findAll(
-      req.user.companyId,
-      query,
-    );
+    return this.service.findAll(req.user.companyId, query);
   }
 
   @Get('profitability')
   @ApiOperation({
-    summary:
-      'Production profitability report',
+    summary: 'Production profitability report',
   })
   @ApiOkResponse({
     type: ProfitabilityReportResponseDto,
@@ -92,10 +84,7 @@ export class CostingVarianceController {
     @Query()
     query: ProfitabilityReportQueryDto,
   ): Promise<ProfitabilityReportResponseDto> {
-    return this.service.getProfitabilityReport(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getProfitabilityReport(req.user.companyId, query);
   }
 
   @Get(':id')
@@ -108,10 +97,7 @@ export class CostingVarianceController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<CostingVarianceSummaryResponseDto> {
-    return this.service.findOne(
-      req.user.companyId,
-      id,
-    );
+    return this.service.findOne(req.user.companyId, id);
   }
 
   @Patch(':id')
@@ -126,12 +112,7 @@ export class CostingVarianceController {
     @Body()
     dto: UpdateProductionCostAnalysisDto,
   ): Promise<CostingVarianceSummaryResponseDto> {
-    return this.service.update(
-      req.user.companyId,
-      req.user.id,
-      id,
-      dto,
-    );
+    return this.service.update(req.user.companyId, req.user.id, id, dto);
   }
 
   @Post(':id/finalize')
@@ -141,11 +122,7 @@ export class CostingVarianceController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<CostingVarianceSummaryResponseDto> {
-    return this.service.finalize(
-      req.user.companyId,
-      req.user.id,
-      id,
-    );
+    return this.service.finalize(req.user.companyId, req.user.id, id);
   }
 
   @Post(':id/cancel')
@@ -155,10 +132,6 @@ export class CostingVarianceController {
     @Param('id', ParseUUIDPipe)
     id: string,
   ): Promise<CostingVarianceSummaryResponseDto> {
-    return this.service.cancel(
-      req.user.companyId,
-      req.user.id,
-      id,
-    );
+    return this.service.cancel(req.user.companyId, req.user.id, id);
   }
 }

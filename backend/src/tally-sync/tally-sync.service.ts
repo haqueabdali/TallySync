@@ -43,7 +43,7 @@ export class TallySyncService {
     return this.tallyHealthService.checkConnection();
   }
 
-  async findPendingSalesOrders(): Promise<{
+  async findPendingSalesOrders(companyId: string): Promise<{
     count: number;
     orders: Array<{
       id: string;
@@ -54,7 +54,8 @@ export class TallySyncService {
   }> {
     const orders = await this.salesOrderRepository
       .createQueryBuilder('salesOrder')
-      .where('salesOrder.status = :status', {
+      .where('salesOrder.companyId = :companyId', { companyId })
+      .andWhere('salesOrder.status = :status', {
         status: 'fulfilled',
       })
       .andWhere('salesOrder.syncStatus IN (:...syncStatuses)', {
@@ -79,7 +80,10 @@ export class TallySyncService {
     return this.tallyXmlService.buildSalesVoucher(dto);
   }
 
-  async syncSalesOrder(id: string): Promise<{
+  async syncSalesOrder(
+    id: string,
+    companyId: string,
+  ): Promise<{
     success: boolean;
     alreadySynced: boolean;
     orderId: string;
@@ -90,7 +94,7 @@ export class TallySyncService {
     tally?: TallyVoucherImportResult;
     responsePreview?: string;
   }> {
-    const claimedOrder = await this.claimSalesOrderForSync(id);
+    const claimedOrder = await this.claimSalesOrderForSync(id, companyId);
 
     if (String(claimedOrder.syncStatus) === 'synced') {
       return {
@@ -109,7 +113,7 @@ export class TallySyncService {
     let responseText = '';
 
     try {
-      order = await this.loadSalesOrderForTally(id);
+      order = await this.loadSalesOrderForTally(id, companyId);
 
       if (String(order.status) !== 'fulfilled') {
         throw new BadRequestException(
@@ -228,7 +232,7 @@ export class TallySyncService {
       }
 
       await this.salesOrderRepository.update(
-        { id: order.id },
+        { id: order.id, companyId },
         {
           syncStatus: 'synced' as SalesOrderEntity['syncStatus'],
           lastSyncedAt: new Date(),
@@ -259,7 +263,11 @@ export class TallySyncService {
       const message = this.getErrorMessage(error);
 
       try {
-        await this.markOrderSyncFailed(order?.id ?? claimedOrder.id, message);
+        await this.markOrderSyncFailed(
+          order?.id ?? claimedOrder.id,
+          companyId,
+          message,
+        );
       } catch {
         // Preserve the original synchronization error.
       }
@@ -282,7 +290,7 @@ export class TallySyncService {
     }
   }
 
-  async syncPendingSalesOrders(): Promise<{
+  async syncPendingSalesOrders(companyId: string): Promise<{
     total: number;
     synced: number;
     alreadySynced: number;
@@ -294,7 +302,7 @@ export class TallySyncService {
       error?: string;
     }>;
   }> {
-    const pending = await this.findPendingSalesOrders();
+    const pending = await this.findPendingSalesOrders(companyId);
     const results: Array<{
       orderId: string;
       orderNumber: string;
@@ -308,7 +316,7 @@ export class TallySyncService {
 
     for (const order of pending.orders) {
       try {
-        const result = await this.syncSalesOrder(order.id);
+        const result = await this.syncSalesOrder(order.id, companyId);
 
         if (result.alreadySynced) {
           alreadySynced += 1;
@@ -345,7 +353,10 @@ export class TallySyncService {
     };
   }
 
-  private async claimSalesOrderForSync(id: string): Promise<SalesOrderEntity> {
+  private async claimSalesOrderForSync(
+    id: string,
+    companyId: string,
+  ): Promise<SalesOrderEntity> {
     return this.salesOrderRepository.manager.transaction(async (manager) => {
       const repository = manager.getRepository(SalesOrderEntity);
 
@@ -353,6 +364,7 @@ export class TallySyncService {
         .createQueryBuilder('salesOrder')
         .setLock('pessimistic_write')
         .where('salesOrder.id = :id', { id })
+        .andWhere('salesOrder.companyId = :companyId', { companyId })
         .andWhere('salesOrder.deletedAt IS NULL')
         .getOne();
 
@@ -415,9 +427,12 @@ export class TallySyncService {
     });
   }
 
-  private async loadSalesOrderForTally(id: string): Promise<SalesOrderEntity> {
+  private async loadSalesOrderForTally(
+    id: string,
+    companyId: string,
+  ): Promise<SalesOrderEntity> {
     const order = await this.salesOrderRepository.findOne({
-      where: { id },
+      where: { id, companyId },
       relations: {
         customer: true,
         items: {
@@ -435,10 +450,11 @@ export class TallySyncService {
 
   private async markOrderSyncFailed(
     orderId: string,
+    companyId: string,
     errorMessage: string,
   ): Promise<void> {
     await this.salesOrderRepository.update(
-      { id: orderId },
+      { id: orderId, companyId },
       {
         syncStatus: 'failed' as SalesOrderEntity['syncStatus'],
         tallySyncError: errorMessage.substring(0, 10_000),

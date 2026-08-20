@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -13,6 +7,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { AdvancedReportingService } from './advanced-reporting.service';
 import { AdvancedReportQueryDto } from './dto/advanced-report-query.dto';
 import { ManufacturingDashboardResponseDto } from './dto/manufacturing-dashboard-response.dto';
@@ -23,18 +20,15 @@ import type { AuthenticatedAdvancedReportingRequest } from './interfaces/authent
 
 @ApiTags('Advanced Reporting')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.REPORTING)
 @Controller('advanced-reporting')
 export class AdvancedReportingController {
-  constructor(
-    private readonly service:
-      AdvancedReportingService,
-  ) {}
+  constructor(private readonly service: AdvancedReportingService) {}
 
   @Get('production')
   @ApiOperation({
-    summary:
-      'Production performance report',
+    summary: 'Production performance report',
   })
   @ApiOkResponse({
     type: ProductionPerformanceResponseDto,
@@ -45,16 +39,12 @@ export class AdvancedReportingController {
     @Query()
     query: AdvancedReportQueryDto,
   ): Promise<ProductionPerformanceResponseDto> {
-    return this.service.getProductionPerformance(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getProductionPerformance(req.user.companyId, query);
   }
 
   @Get('quality')
   @ApiOperation({
-    summary:
-      'Quality performance report',
+    summary: 'Quality performance report',
   })
   @ApiOkResponse({
     type: QualityPerformanceResponseDto,
@@ -65,16 +55,12 @@ export class AdvancedReportingController {
     @Query()
     query: AdvancedReportQueryDto,
   ): Promise<QualityPerformanceResponseDto> {
-    return this.service.getQualityPerformance(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getQualityPerformance(req.user.companyId, query);
   }
 
   @Get('maintenance')
   @ApiOperation({
-    summary:
-      'Maintenance performance report',
+    summary: 'Maintenance performance report',
   })
   @ApiOkResponse({
     type: MaintenancePerformanceResponseDto,
@@ -85,16 +71,12 @@ export class AdvancedReportingController {
     @Query()
     query: AdvancedReportQueryDto,
   ): Promise<MaintenancePerformanceResponseDto> {
-    return this.service.getMaintenancePerformance(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getMaintenancePerformance(req.user.companyId, query);
   }
 
   @Get('dashboard')
   @ApiOperation({
-    summary:
-      'Executive manufacturing dashboard',
+    summary: 'Executive manufacturing dashboard',
   })
   @ApiOkResponse({
     type: ManufacturingDashboardResponseDto,
@@ -105,9 +87,6 @@ export class AdvancedReportingController {
     @Query()
     query: AdvancedReportQueryDto,
   ): Promise<ManufacturingDashboardResponseDto> {
-    return this.service.getDashboard(
-      req.user.companyId,
-      query,
-    );
+    return this.service.getDashboard(req.user.companyId, query);
   }
 }

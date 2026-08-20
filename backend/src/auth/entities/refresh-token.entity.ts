@@ -20,6 +20,10 @@ export class RefreshTokenEntity {
   @Index()
   userId: string;
 
+  @Column({ name: 'session_id', type: 'uuid', nullable: true })
+  @Index()
+  sessionId: string | null;
+
   /** SHA-256 hex of the raw refresh token — never store plain */
   @Column({ name: 'token_hash', type: 'varchar', length: 255, unique: true })
   tokenHash: string;

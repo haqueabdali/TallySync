@@ -8,20 +8,29 @@ import { Repository } from 'typeorm';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 import { UserEntity, UserStatus } from '../entities/user.entity';
+import { LicenseSessionService } from '../../licensing/license-session.service';
+import { DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER } from '../jwt.constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  private readonly requireSessionIds: boolean;
+
   constructor(
     config: ConfigService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly licenseSessionService: LicenseSessionService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
-      issuer: config.get<string>('JWT_ISSUER', 'tally-sync'),
+      issuer: config.get<string>('JWT_ISSUER') ?? DEFAULT_JWT_ISSUER,
+      audience: config.get<string>('JWT_AUDIENCE') ?? DEFAULT_JWT_AUDIENCE,
     });
+
+    this.requireSessionIds =
+      config.get<string>('LICENSE_REQUIRE_SESSION_IDS') === 'true';
   }
 
   /**
@@ -46,6 +55,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     if (user.deletedAt) {
       throw new UnauthorizedException('User account has been deleted');
+    }
+
+    if (payload.sid) {
+      await this.licenseSessionService.assertAndTouchSession(
+        payload.sid,
+        user.id,
+        user.companyId,
+      );
+    } else if (this.requireSessionIds) {
+      throw new UnauthorizedException('Authentication session is required');
     }
 
     return {

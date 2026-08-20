@@ -23,7 +23,6 @@ import { AssignCompanyDto } from './dto/assign-company.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { AuthenticatedUser } from './interfaces/authenticated-user.interface';
-import { AuditCtx } from './decorators/audit-context.decorator';
 import type { AuditContext } from './interfaces/audit-context.interface';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -38,9 +37,9 @@ export class UsersController {
   @Roles('admin', 'company_owner')
   listUsers(
     @Query() query: ListUsersQueryDto,
-    @CurrentUser() _actor?: AuthenticatedUser,
+    @CurrentUser() actor: AuthenticatedUser,
   ) {
-    return this.usersService.listUsers(query);
+    return this.usersService.listUsers(query, actor);
   }
 
   @Get('roles')
@@ -128,19 +127,28 @@ export class UsersController {
   assignCompany(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignCompanyDto,
-    @AuditCtx() audit: AuditContext,
+    @CurrentUser() actor: AuthenticatedUser,
+    @Req() request?: Request,
   ) {
-    return this.usersService.assignCompany(id, dto, audit);
+    if (request)
+      return this.usersService.assignCompany(
+        id,
+        dto,
+        actor,
+        this.extractIp(request),
+      );
+    return this.usersService.assignCompany(id, dto, actor);
   }
 
   @Get(':id/activity')
   @Roles('admin')
   getUserActivity(
     @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() actor: AuthenticatedUser,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ) {
-    return this.usersService.getUserActivity(id, page, limit);
+    return this.usersService.getUserActivity(id, page, limit, actor);
   }
 
   private extractIp(request: Request): string | undefined {

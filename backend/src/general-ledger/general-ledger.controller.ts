@@ -15,6 +15,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { AccountLedgerFilterDto } from './dto/account-ledger-filter.dto';
 import { GeneralLedgerFilterDto } from './dto/general-ledger-filter.dto';
 import {
@@ -28,12 +31,11 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('General Ledger')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.ACCOUNTING)
 @Controller('general-ledger')
 export class GeneralLedgerController {
-  constructor(
-    private readonly generalLedgerService: GeneralLedgerService,
-  ) {}
+  constructor(private readonly generalLedgerService: GeneralLedgerService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get general ledger summary' })

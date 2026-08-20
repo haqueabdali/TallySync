@@ -22,6 +22,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditCtx } from '../users/decorators/audit-context.decorator';
@@ -40,6 +43,7 @@ import { CustomerRequestContext } from './interfaces/customer-request-context.in
 
 @ApiTags('Customers')
 @ApiBearerAuth()
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('customers')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CustomersController {

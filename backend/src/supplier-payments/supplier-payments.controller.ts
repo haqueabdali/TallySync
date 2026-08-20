@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateSupplierPaymentDto } from './dto/create-supplier-payment.dto';
 import {
   PaginatedSupplierPaymentsResponseDto,
@@ -32,7 +35,8 @@ import { SupplierPaymentsService } from './supplier-payments.service';
 
 @ApiTags('Supplier Payments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.PURCHASE)
 @Controller('supplier-payments')
 export class SupplierPaymentsController {
   constructor(
@@ -60,10 +64,7 @@ export class SupplierPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: SupplierPaymentFilterDto,
   ): Promise<PaginatedSupplierPaymentsResponseDto> {
-    return this.supplierPaymentsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.supplierPaymentsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +74,7 @@ export class SupplierPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SupplierPaymentResponseDto> {
-    return this.supplierPaymentsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.supplierPaymentsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -129,9 +127,6 @@ export class SupplierPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.supplierPaymentsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.supplierPaymentsService.remove(id, request.user.companyId);
   }
 }

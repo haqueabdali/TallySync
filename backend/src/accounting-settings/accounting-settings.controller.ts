@@ -16,12 +16,11 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import {
-  AccountingSettingsResponseDto,
-} from './dto/accounting-settings-response.dto';
-import {
-  AccountingSettingsValidationResponseDto,
-} from './dto/accounting-settings-validation-response.dto';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
+import { AccountingSettingsResponseDto } from './dto/accounting-settings-response.dto';
+import { AccountingSettingsValidationResponseDto } from './dto/accounting-settings-validation-response.dto';
 import { SeedAccountingSettingsDto } from './dto/seed-accounting-settings.dto';
 import { UpdateAccountingSettingsDto } from './dto/update-accounting-settings.dto';
 import { AccountingSettingsService } from './accounting-settings.service';
@@ -29,7 +28,8 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('Accounting Settings')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.ACCOUNTING)
 @Controller('accounting-settings')
 export class AccountingSettingsController {
   constructor(
@@ -42,9 +42,7 @@ export class AccountingSettingsController {
   get(
     @Req() request: AuthenticatedRequest,
   ): Promise<AccountingSettingsResponseDto> {
-    return this.accountingSettingsService.get(
-      request.user.companyId,
-    );
+    return this.accountingSettingsService.get(request.user.companyId);
   }
 
   @Put()
@@ -87,8 +85,6 @@ export class AccountingSettingsController {
   validate(
     @Req() request: AuthenticatedRequest,
   ): Promise<AccountingSettingsValidationResponseDto> {
-    return this.accountingSettingsService.validate(
-      request.user.companyId,
-    );
+    return this.accountingSettingsService.validate(request.user.companyId);
   }
 }

@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-08-20T17:31:40.741Z",
+  "profile": "platform",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 10,
+  "concurrency": 2,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 11807,
+    "successful": 180,
+    "throttled": 0,
+    "failed": 11627,
+    "errorRate": 0.9847548064707377,
+    "requestsPerSecond": 1180.7,
+    "latencyMs": {
+      "min": 0.65,
+      "mean": 1.69,
+      "p50": 0.96,
+      "p95": 2.73,
+      "p99": 19.15,
+      "max": 336.77
+    },
+    "statuses": {
+      "0": 11627,
+      "200": 180
+    }
+  },
+  "byRequest": {
+    "platform.dashboard": {
+      "requests": 11807,
+      "successful": 180,
+      "throttled": 0,
+      "failed": 11627,
+      "errorRate": 0.9847548064707377,
+      "requestsPerSecond": 1180.7,
+      "latencyMs": {
+        "min": 0.65,
+        "mean": 1.69,
+        "p50": 0.96,
+        "p95": 2.73,
+        "p99": 19.15,
+        "max": 336.77
+      },
+      "statuses": {
+        "0": 11627,
+        "200": 180
+      }
+    }
+  },
+  "errors": {
+    "count": 11627,
+    "errors": {
+      "fetch failed: ECONNRESET: read ECONNRESET": 2,
+      "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 11625
+    }
+  },
+  "errorsByRequest": {
+    "platform.dashboard": {
+      "count": 11627,
+      "errors": {
+        "fetch failed: ECONNRESET: read ECONNRESET": 2,
+        "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 11625
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 98.48% exceeded 1.00%"
+    ]
+  }
+}

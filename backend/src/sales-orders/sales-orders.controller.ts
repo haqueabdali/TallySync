@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
 import {
   PaginatedSalesOrdersResponseDto,
@@ -32,12 +35,11 @@ import { SalesOrdersService } from './sales-orders.service';
 
 @ApiTags('Sales Orders')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('sales-orders')
 export class SalesOrdersController {
-  constructor(
-    private readonly salesOrdersService: SalesOrdersService,
-  ) {}
+  constructor(private readonly salesOrdersService: SalesOrdersService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a sales order' })
@@ -60,10 +62,7 @@ export class SalesOrdersController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: SalesOrderFilterDto,
   ): Promise<PaginatedSalesOrdersResponseDto> {
-    return this.salesOrdersService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.salesOrdersService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +72,7 @@ export class SalesOrdersController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SalesOrderResponseDto> {
-    return this.salesOrdersService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.salesOrdersService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -142,9 +138,6 @@ export class SalesOrdersController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.salesOrdersService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.salesOrdersService.remove(id, request.user.companyId);
   }
 }

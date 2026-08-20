@@ -1,6 +1,14 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { AccountingEngineService } from './accounting-engine.service';
 import { PostSourceDocumentDto } from './dto/post-source-document.dto';
 import { PostingPreviewRequestDto } from './dto/posting-preview-request.dto';
@@ -11,26 +19,33 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('Accounting Engine')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.ACCOUNTING)
 @Controller('accounting-engine')
 export class AccountingEngineController {
   constructor(private readonly engine: AccountingEngineService) {}
 
   @Post('preview')
-  @ApiOkResponse({type: PostingPreviewResponseDto})
-  preview(@Req() req: AuthenticatedRequest,@Body() dto: PostingPreviewRequestDto){
+  @ApiOkResponse({ type: PostingPreviewResponseDto })
+  preview(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: PostingPreviewRequestDto,
+  ) {
     return this.engine.preview(dto, req.user.companyId);
   }
 
   @Post('post')
-  @ApiCreatedResponse({type: PostingResultResponseDto})
-  post(@Req() req: AuthenticatedRequest,@Body() dto: PostSourceDocumentDto){
+  @ApiCreatedResponse({ type: PostingResultResponseDto })
+  post(@Req() req: AuthenticatedRequest, @Body() dto: PostSourceDocumentDto) {
     return this.engine.post(dto, req.user.companyId, req.user.id);
   }
 
   @Post('reverse')
-  @ApiCreatedResponse({type: PostingResultResponseDto})
-  reverse(@Req() req: AuthenticatedRequest,@Body() dto: ReverseSourceJournalDto){
+  @ApiCreatedResponse({ type: PostingResultResponseDto })
+  reverse(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: ReverseSourceJournalDto,
+  ) {
     return this.engine.reverse(dto, req.user.companyId, req.user.id);
   }
 }

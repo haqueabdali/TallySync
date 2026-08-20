@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateSalesQuotationDto } from './dto/create-sales-quotation.dto';
 import { SalesQuotationFilterDto } from './dto/sales-quotation-filter.dto';
 import {
@@ -32,7 +35,8 @@ import { SalesQuotationsService } from './sales-quotations.service';
 
 @ApiTags('Sales Quotations')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('sales-quotations')
 export class SalesQuotationsController {
   constructor(
@@ -60,10 +64,7 @@ export class SalesQuotationsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: SalesQuotationFilterDto,
   ): Promise<PaginatedSalesQuotationsResponseDto> {
-    return this.salesQuotationsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.salesQuotationsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +74,7 @@ export class SalesQuotationsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SalesQuotationResponseDto> {
-    return this.salesQuotationsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.salesQuotationsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -156,9 +154,7 @@ export class SalesQuotationsController {
   expireOverdue(
     @Req() request: AuthenticatedRequest,
   ): Promise<{ affected: number }> {
-    return this.salesQuotationsService.expireOverdue(
-      request.user.companyId,
-    );
+    return this.salesQuotationsService.expireOverdue(request.user.companyId);
   }
 
   @Delete(':id')
@@ -167,9 +163,6 @@ export class SalesQuotationsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.salesQuotationsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.salesQuotationsService.remove(id, request.user.companyId);
   }
 }

@@ -6,6 +6,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { MrpPlanPageResponseDto } from './dto/mrp-plan-page-response.dto';
 import { MrpPlanQueryDto } from './dto/mrp-plan-query.dto';
 import type { AuthenticatedRequest } from './interfaces/authenticated-request.interface';
@@ -13,7 +16,8 @@ import { ManufacturingMrpService } from './manufacturing-mrp.service';
 
 @ApiTags('Manufacturing MRP')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.MANUFACTURING)
 @Controller('manufacturing/mrp')
 export class ManufacturingMrpController {
   constructor(private readonly service: ManufacturingMrpService) {}

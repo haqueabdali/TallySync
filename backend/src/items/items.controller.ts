@@ -19,6 +19,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemFilterDto } from './dto/item-filter.dto';
 import { UpdateItemStatusDto } from './dto/update-item-status.dto';
@@ -28,12 +31,11 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 
 @ApiTags('Items')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.INVENTORY)
 @Controller('items')
 export class ItemsController {
-  constructor(
-    private readonly itemsService: ItemsService,
-  ) {}
+  constructor(private readonly itemsService: ItemsService) {}
 
   @Post()
   @ApiOperation({
@@ -42,20 +44,13 @@ export class ItemsController {
   @ApiCreatedResponse({
     description: 'Item created successfully',
   })
-  create(
-    @Req() request: AuthenticatedRequest,
-    @Body() dto: CreateItemDto,
-  ) {
-    return this.itemsService.create(
-      request.user.companyId,
-      dto,
-    );
+  create(@Req() request: AuthenticatedRequest, @Body() dto: CreateItemDto) {
+    return this.itemsService.create(request.user.companyId, dto);
   }
 
   @Get()
   @ApiOperation({
-    summary:
-      'List items with pagination, search and filters',
+    summary: 'List items with pagination, search and filters',
   })
   @ApiOkResponse({
     description: 'Paginated item list',
@@ -64,10 +59,7 @@ export class ItemsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: ItemFilterDto,
   ) {
-    return this.itemsService.findAll(
-      request.user.companyId,
-      filter,
-    );
+    return this.itemsService.findAll(request.user.companyId, filter);
   }
 
   /*
@@ -78,38 +70,24 @@ export class ItemsController {
   @ApiOperation({
     summary: 'List low-stock items',
   })
-  findLowStock(
-    @Req() request: AuthenticatedRequest,
-  ) {
-    return this.itemsService.findLowStock(
-      request.user.companyId,
-    );
+  findLowStock(@Req() request: AuthenticatedRequest) {
+    return this.itemsService.findLowStock(request.user.companyId);
   }
 
   @Get('out-of-stock')
   @ApiOperation({
     summary: 'List out-of-stock items',
   })
-  findOutOfStock(
-    @Req() request: AuthenticatedRequest,
-  ) {
-    return this.itemsService.findOutOfStock(
-      request.user.companyId,
-    );
+  findOutOfStock(@Req() request: AuthenticatedRequest) {
+    return this.itemsService.findOutOfStock(request.user.companyId);
   }
 
   @Get('sku/:sku')
   @ApiOperation({
     summary: 'Find an item by SKU',
   })
-  findBySku(
-    @Req() request: AuthenticatedRequest,
-    @Param('sku') sku: string,
-  ) {
-    return this.itemsService.findBySku(
-      request.user.companyId,
-      sku,
-    );
+  findBySku(@Req() request: AuthenticatedRequest, @Param('sku') sku: string) {
+    return this.itemsService.findBySku(request.user.companyId, sku);
   }
 
   @Get('barcode/:barcode')
@@ -120,10 +98,7 @@ export class ItemsController {
     @Req() request: AuthenticatedRequest,
     @Param('barcode') barcode: string,
   ) {
-    return this.itemsService.findByBarcode(
-      request.user.companyId,
-      barcode,
-    );
+    return this.itemsService.findByBarcode(request.user.companyId, barcode);
   }
 
   @Get(':id')
@@ -134,10 +109,7 @@ export class ItemsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.itemsService.findOne(
-      request.user.companyId,
-      id,
-    );
+    return this.itemsService.findOne(request.user.companyId, id);
   }
 
   @Patch(':id')
@@ -149,11 +121,7 @@ export class ItemsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateItemDto,
   ) {
-    return this.itemsService.update(
-      request.user.companyId,
-      id,
-      dto,
-    );
+    return this.itemsService.update(request.user.companyId, id, dto);
   }
 
   @Patch(':id/status')
@@ -180,10 +148,7 @@ export class ItemsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.itemsService.restore(
-      request.user.companyId,
-      id,
-    );
+    return this.itemsService.restore(request.user.companyId, id);
   }
 
   @Delete(':id')
@@ -194,9 +159,6 @@ export class ItemsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.itemsService.remove(
-      request.user.companyId,
-      id,
-    );
+    return this.itemsService.remove(request.user.companyId, id);
   }
 }

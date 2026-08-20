@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-08-20T16:28:04.526Z",
+  "profile": "smoke",
+  "baseUrl": "http://localhost:3000",
+  "durationSeconds": 15.001,
+  "concurrency": 5,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 29813,
+    "successful": 0,
+    "throttled": 0,
+    "failed": 29813,
+    "errorRate": 1,
+    "requestsPerSecond": 1987.4,
+    "latencyMs": {
+      "min": 1.21,
+      "mean": 2.51,
+      "p50": 2.35,
+      "p95": 3.2,
+      "p99": 5.05,
+      "max": 60.1
+    },
+    "statuses": {
+      "0": 29813
+    }
+  },
+  "byRequest": {
+    "health.live": {
+      "requests": 22360,
+      "successful": 0,
+      "throttled": 0,
+      "failed": 22360,
+      "errorRate": 1,
+      "requestsPerSecond": 1490.57,
+      "latencyMs": {
+        "min": 1.21,
+        "mean": 2.51,
+        "p50": 2.35,
+        "p95": 3.2,
+        "p99": 5.1,
+        "max": 60.1
+      },
+      "statuses": {
+        "0": 22360
+      }
+    },
+    "health.ready": {
+      "requests": 7453,
+      "successful": 0,
+      "throttled": 0,
+      "failed": 7453,
+      "errorRate": 1,
+      "requestsPerSecond": 496.83,
+      "latencyMs": {
+        "min": 1.87,
+        "mean": 2.5,
+        "p50": 2.35,
+        "p95": 3.18,
+        "p99": 4.94,
+        "max": 17.41
+      },
+      "statuses": {
+        "0": 7453
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 100.00% exceeded 1.00%"
+    ]
+  }
+}

@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateCustomerPaymentDto } from './dto/create-customer-payment.dto';
 import { CustomerPaymentFilterDto } from './dto/customer-payment-filter.dto';
 import {
@@ -33,7 +36,8 @@ import { CustomerPaymentsService } from './customer-payments.service';
 
 @ApiTags('Customer Payments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('customer-payments')
 export class CustomerPaymentsController {
   constructor(
@@ -61,10 +65,7 @@ export class CustomerPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: CustomerPaymentFilterDto,
   ): Promise<PaginatedCustomerPaymentsResponseDto> {
-    return this.customerPaymentsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.customerPaymentsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -74,10 +75,7 @@ export class CustomerPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<CustomerPaymentResponseDto> {
-    return this.customerPaymentsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.customerPaymentsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -146,9 +144,6 @@ export class CustomerPaymentsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.customerPaymentsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.customerPaymentsService.remove(id, request.user.companyId);
   }
 }

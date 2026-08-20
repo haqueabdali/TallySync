@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreateDeliveryNoteDto } from './dto/create-delivery-note.dto';
 import { DeliveryNoteFilterDto } from './dto/delivery-note-filter.dto';
 import {
@@ -32,12 +35,11 @@ import { DeliveryNotesService } from './delivery-notes.service';
 
 @ApiTags('Delivery Notes')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('delivery-notes')
 export class DeliveryNotesController {
-  constructor(
-    private readonly deliveryNotesService: DeliveryNotesService,
-  ) {}
+  constructor(private readonly deliveryNotesService: DeliveryNotesService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a delivery note' })
@@ -60,10 +62,7 @@ export class DeliveryNotesController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: DeliveryNoteFilterDto,
   ): Promise<PaginatedDeliveryNotesResponseDto> {
-    return this.deliveryNotesService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.deliveryNotesService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +72,7 @@ export class DeliveryNotesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<DeliveryNoteResponseDto> {
-    return this.deliveryNotesService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.deliveryNotesService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -129,9 +125,6 @@ export class DeliveryNotesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.deliveryNotesService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.deliveryNotesService.remove(id, request.user.companyId);
   }
 }

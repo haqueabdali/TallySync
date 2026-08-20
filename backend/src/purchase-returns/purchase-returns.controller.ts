@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CreatePurchaseReturnDto } from './dto/create-purchase-return.dto';
 import {
   PaginatedPurchaseReturnsResponseDto,
@@ -32,7 +35,8 @@ import { PurchaseReturnsService } from './purchase-returns.service';
 
 @ApiTags('Purchase Returns')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.PURCHASE)
 @Controller('purchase-returns')
 export class PurchaseReturnsController {
   constructor(
@@ -60,10 +64,7 @@ export class PurchaseReturnsController {
     @Req() request: AuthenticatedRequest,
     @Query() filter: PurchaseReturnFilterDto,
   ): Promise<PaginatedPurchaseReturnsResponseDto> {
-    return this.purchaseReturnsService.findAll(
-      filter,
-      request.user.companyId,
-    );
+    return this.purchaseReturnsService.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
@@ -73,10 +74,7 @@ export class PurchaseReturnsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<PurchaseReturnResponseDto> {
-    return this.purchaseReturnsService.findOne(
-      id,
-      request.user.companyId,
-    );
+    return this.purchaseReturnsService.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
@@ -129,9 +127,6 @@ export class PurchaseReturnsController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
-    return this.purchaseReturnsService.remove(
-      id,
-      request.user.companyId,
-    );
+    return this.purchaseReturnsService.remove(id, request.user.companyId);
   }
 }

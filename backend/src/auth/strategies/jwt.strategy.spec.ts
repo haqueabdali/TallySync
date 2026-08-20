@@ -6,6 +6,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { UserEntity, UserStatus } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER } from '../jwt.constants';
+import { LicenseSessionService } from '../../licensing/license-session.service';
 
 const mockUserRepo = () => ({
   findOne: jest.fn(),
@@ -13,12 +15,21 @@ const mockUserRepo = () => ({
 
 const mockConfigService = () => ({
   getOrThrow: jest.fn().mockReturnValue('test-secret'),
-  get: jest.fn().mockReturnValue('tally-sync'),
+  get: jest.fn((key: string) => {
+    if (key === 'JWT_ISSUER') return DEFAULT_JWT_ISSUER;
+    if (key === 'JWT_AUDIENCE') return DEFAULT_JWT_AUDIENCE;
+    return undefined;
+  }),
+});
+
+const mockLicenseSessionService = () => ({
+  assertAndTouchSession: jest.fn().mockResolvedValue(undefined),
 });
 
 const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
+  company: null,
   roleId: 'role-uuid-1',
   fullName: 'Test User',
   email: 'test@example.com',
@@ -39,6 +50,7 @@ const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let userRepo: ReturnType<typeof mockUserRepo>;
+  let licenseSessionService: ReturnType<typeof mockLicenseSessionService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,11 +58,16 @@ describe('JwtStrategy', () => {
         JwtStrategy,
         { provide: getRepositoryToken(UserEntity), useFactory: mockUserRepo },
         { provide: ConfigService, useFactory: mockConfigService },
+        {
+          provide: LicenseSessionService,
+          useFactory: mockLicenseSessionService,
+        },
       ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
     userRepo = module.get(getRepositoryToken(UserEntity));
+    licenseSessionService = module.get(LicenseSessionService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -74,6 +91,28 @@ describe('JwtStrategy', () => {
       companyId: 'company-uuid-1',
       fullName: 'Test User',
     });
+  });
+
+  it('rehydrates a company-less platform owner and validates its session', async () => {
+    const platformOwner = makeUser({
+      companyId: null,
+      role: { id: 'role-uuid-1', name: 'admin' } as any,
+    });
+    userRepo.findOne.mockResolvedValue(platformOwner);
+
+    const result = await strategy.validate({
+      ...payload,
+      role: 'admin',
+      companyId: null,
+      sid: 'platform-session-1',
+    });
+
+    expect(result).toMatchObject({ role: 'admin', companyId: null });
+    expect(licenseSessionService.assertAndTouchSession).toHaveBeenCalledWith(
+      'platform-session-1',
+      platformOwner.id,
+      null,
+    );
   });
 
   it('throws UnauthorizedException when user does not exist', async () => {

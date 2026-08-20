@@ -33,12 +33,16 @@ import {
 } from './dto/inventory-response.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 import { AuditCtx } from '../users/decorators/audit-context.decorator';
 import type { AuditContext } from '../users/interfaces/audit-context.interface';
 
+@RequireLicenseFeature(LicensedFeature.INVENTORY)
 @Controller('inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {

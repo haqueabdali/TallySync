@@ -20,6 +20,9 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -34,23 +37,16 @@ interface AuthenticatedRequest extends Request {
 
 @ApiTags('Categories')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.INVENTORY)
 @Controller('categories')
 export class CategoriesController {
-  constructor(
-    private readonly categoriesService: CategoriesService,
-  ) {}
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a category' })
-  create(
-    @Req() request: AuthenticatedRequest,
-    @Body() dto: CreateCategoryDto,
-  ) {
-    return this.categoriesService.create(
-      request.user.company_id,
-      dto,
-    );
+  create(@Req() request: AuthenticatedRequest, @Body() dto: CreateCategoryDto) {
+    return this.categoriesService.create(request.user.company_id, dto);
   }
 
   @Get()
@@ -84,10 +80,7 @@ export class CategoriesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.categoriesService.findOne(
-      request.user.company_id,
-      id,
-    );
+    return this.categoriesService.findOne(request.user.company_id, id);
   }
 
   @Patch(':id')
@@ -97,11 +90,7 @@ export class CategoriesController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(
-      request.user.company_id,
-      id,
-      dto,
-    );
+    return this.categoriesService.update(request.user.company_id, id, dto);
   }
 
   @Delete(':id')
@@ -110,10 +99,7 @@ export class CategoriesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.categoriesService.remove(
-      request.user.company_id,
-      id,
-    );
+    return this.categoriesService.remove(request.user.company_id, id);
   }
 
   @Patch(':id/restore')
@@ -122,9 +108,6 @@ export class CategoriesController {
     @Req() request: AuthenticatedRequest,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.categoriesService.restore(
-      request.user.company_id,
-      id,
-    );
+    return this.categoriesService.restore(request.user.company_id, id);
   }
 }

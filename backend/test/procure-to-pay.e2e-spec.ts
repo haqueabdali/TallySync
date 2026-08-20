@@ -14,6 +14,8 @@ import {
   Repository,
 } from 'typeorm';
 
+import { ensureE2ECommercialLicense } from './helpers/ensure-e2e-commercial-license';
+
 import { AccountEntity } from '../src/accounts/entities/account.entity';
 import { AccountNormalBalance } from '../src/accounts/enums/account-normal-balance.enum';
 import { AccountStatus } from '../src/accounts/enums/account-status.enum';
@@ -365,6 +367,12 @@ describeBusinessE2E(
 
       adminUserId =
         user.id;
+
+      await ensureE2ECommercialLicense(
+        dataSource,
+        companyId,
+        adminUserId,
+      );
 
       const createAccount =
         async (

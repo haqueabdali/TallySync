@@ -1,6 +1,14 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';
+import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';
+import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';
 import { StockLedgerPageResponseDto } from './dto/stock-ledger-page-response.dto';
 import { StockLedgerQueryDto } from './dto/stock-ledger-query.dto';
 import { StockLedgerSummaryResponseDto } from './dto/stock-ledger-summary-response.dto';
@@ -9,7 +17,8 @@ import { StockLedgerService } from './stock-ledger.service';
 
 @ApiTags('Stock Ledger')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard)
+@RequireLicenseFeature(LicensedFeature.INVENTORY)
 @Controller('stock-ledger')
 export class StockLedgerController {
   constructor(private readonly stockLedgerService: StockLedgerService) {}
@@ -25,7 +34,9 @@ export class StockLedgerController {
   }
 
   @Get('summary')
-  @ApiOperation({ summary: 'Get stock ledger opening, movement, and closing summary' })
+  @ApiOperation({
+    summary: 'Get stock ledger opening, movement, and closing summary',
+  })
   @ApiOkResponse({ type: StockLedgerSummaryResponseDto })
   getSummary(
     @Req() request: StockLedgerAuthenticatedRequest,

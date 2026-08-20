@@ -1,6 +1,16 @@
 import 'dotenv/config';
 import 'reflect-metadata';
 
+<<<<<<< HEAD
+import AppDataSource from '../../src/database/data-source';
+import {
+  bootstrapPlatformOwner,
+  readPlatformOwnerBootstrapConfig,
+} from '../../src/platform-admin/platform-owner-bootstrap';
+
+async function main(): Promise<void> {
+  const config = readPlatformOwnerBootstrapConfig();
+=======
 import * as bcrypt from 'bcrypt';
 
 import AppDataSource from '../../src/database/data-source';
@@ -30,6 +40,7 @@ async function main(): Promise<void> {
     throw new Error('PLATFORM_ADMIN_PASSWORD must be at least 12 characters.');
   }
 
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   let initializedHere = false;
 
   try {
@@ -38,6 +49,14 @@ async function main(): Promise<void> {
       initializedHere = true;
     }
 
+<<<<<<< HEAD
+    const result = await bootstrapPlatformOwner(AppDataSource, config);
+
+    console.log(`Platform administrator ${result.action}.`);
+    console.log(`Email: ${result.email}`);
+    console.log('Role: admin');
+    console.log('Company: PLATFORM (companyId = null)');
+=======
     await AppDataSource.transaction(async (manager) => {
       const roleRepository = manager.getRepository(RoleEntity);
       const userRepository = manager.getRepository(UserEntity);
@@ -125,6 +144,7 @@ async function main(): Promise<void> {
       console.log('Role: admin');
       console.log('Company: PLATFORM (companyId = null)');
     });
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   } finally {
     if (initializedHere && AppDataSource.isInitialized) {
       await AppDataSource.destroy();

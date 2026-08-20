@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-08-20T17:23:14.876Z",
+  "profile": "liveness",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 10.001,
+  "concurrency": 5,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 21547,
+    "successful": 21547,
+    "throttled": 0,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 2154.48,
+    "latencyMs": {
+      "min": 1,
+      "mean": 2.26,
+      "p50": 1.95,
+      "p95": 3.63,
+      "p99": 9.47,
+      "max": 47.81
+    },
+    "statuses": {
+      "200": 21547
+    }
+  },
+  "byRequest": {
+    "health.live": {
+      "requests": 21547,
+      "successful": 21547,
+      "throttled": 0,
+      "failed": 0,
+      "errorRate": 0,
+      "requestsPerSecond": 2154.48,
+      "latencyMs": {
+        "min": 1,
+        "mean": 2.26,
+        "p50": 1.95,
+        "p95": 3.63,
+        "p99": 9.47,
+        "max": 47.81
+      },
+      "statuses": {
+        "200": 21547
+      }
+    }
+  },
+  "errors": {
+    "count": 0,
+    "errors": {}
+  },
+  "errorsByRequest": {},
+  "thresholdResult": {
+    "passed": true,
+    "failures": []
+  }
+}

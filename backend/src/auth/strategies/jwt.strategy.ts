@@ -9,6 +9,10 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 import { UserEntity, UserStatus } from '../entities/user.entity';
 import { LicenseSessionService } from '../../licensing/license-session.service';
+<<<<<<< HEAD
+import { DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER } from '../jwt.constants';
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -24,7 +28,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
-      issuer: config.get<string>('JWT_ISSUER', 'tally-sync'),
+      issuer: config.get<string>('JWT_ISSUER') ?? DEFAULT_JWT_ISSUER,
+      audience: config.get<string>('JWT_AUDIENCE') ?? DEFAULT_JWT_AUDIENCE,
     });
 
     this.requireSessionIds =

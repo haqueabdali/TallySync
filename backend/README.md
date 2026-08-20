@@ -31,6 +31,35 @@
 $ npm install
 ```
 
+## Dedicated platform owner
+
+Run the normal seed first so the customer company, customer administrator and
+system roles remain intact. Then configure a separate owner identity; never
+reuse `SEED_ADMIN_EMAIL` for this account.
+
+```dotenv
+PLATFORM_ADMIN_EMAIL=owner@example.com
+PLATFORM_ADMIN_PASSWORD=replace-with-a-unique-password-of-at-least-12-characters
+PLATFORM_ADMIN_NAME=TallySync Platform Owner
+```
+
+After all migrations have been applied, bootstrap the owner account:
+
+```bash
+npm run seed
+npm run seed:platform-owner
+```
+
+The command is idempotent. It creates or reconciles only the account selected
+by `PLATFORM_ADMIN_EMAIL`, with `role = admin` and `companyId = null`. It
+refuses to convert an existing company user into a platform owner. Re-running
+the command with a changed password securely re-hashes it and revokes the
+owner's existing refresh tokens and licensed sessions.
+
+The Super Admin web signs in through `POST /api/v1/auth/login`; the returned
+access token is authorized for `/api/v1/platform/*` only when the current
+database user still has the platform-owner role and no company assignment.
+
 ## Compile and run the project
 
 ```bash

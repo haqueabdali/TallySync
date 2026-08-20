@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-08-20T17:17:42.233Z",
+  "profile": "liveness",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 5,
+  "concurrency": 1,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 11171,
+    "successful": 0,
+    "throttled": 0,
+    "failed": 11171,
+    "errorRate": 1,
+    "requestsPerSecond": 2234.2,
+    "latencyMs": {
+      "min": 0.26,
+      "mean": 0.44,
+      "p50": 0.38,
+      "p95": 0.73,
+      "p99": 1.12,
+      "max": 42.55
+    },
+    "statuses": {
+      "0": 11171
+    }
+  },
+  "byRequest": {
+    "health.live": {
+      "requests": 11171,
+      "successful": 0,
+      "throttled": 0,
+      "failed": 11171,
+      "errorRate": 1,
+      "requestsPerSecond": 2234.2,
+      "latencyMs": {
+        "min": 0.26,
+        "mean": 0.44,
+        "p50": 0.38,
+        "p95": 0.73,
+        "p99": 1.12,
+        "max": 42.55
+      },
+      "statuses": {
+        "0": 11171
+      }
+    }
+  },
+  "errors": {
+    "count": 11171,
+    "errors": {
+      "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 11171
+    }
+  },
+  "errorsByRequest": {
+    "health.live": {
+      "count": 11171,
+      "errors": {
+        "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 11171
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 100.00% exceeded 1.00%"
+    ]
+  }
+}

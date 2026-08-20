@@ -6,6 +6,10 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { UserEntity, UserStatus } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+<<<<<<< HEAD
+import { DEFAULT_JWT_AUDIENCE, DEFAULT_JWT_ISSUER } from '../jwt.constants';
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { LicenseSessionService } from '../../licensing/license-session.service';
 
 const mockUserRepo = () => ({
@@ -14,7 +18,15 @@ const mockUserRepo = () => ({
 
 const mockConfigService = () => ({
   getOrThrow: jest.fn().mockReturnValue('test-secret'),
-  get: jest.fn().mockReturnValue('tally-sync'),
+  get: jest.fn((key: string) => {
+    if (key === 'JWT_ISSUER') return DEFAULT_JWT_ISSUER;
+    if (key === 'JWT_AUDIENCE') return DEFAULT_JWT_AUDIENCE;
+    return undefined;
+  }),
+});
+
+const mockLicenseSessionService = () => ({
+  assertAndTouchSession: jest.fn().mockResolvedValue(undefined),
 });
 
 const mockLicenseSessionService = () => ({
@@ -45,6 +57,7 @@ const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let userRepo: ReturnType<typeof mockUserRepo>;
+  let licenseSessionService: ReturnType<typeof mockLicenseSessionService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -61,6 +74,7 @@ describe('JwtStrategy', () => {
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
     userRepo = module.get(getRepositoryToken(UserEntity));
+    licenseSessionService = module.get(LicenseSessionService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -84,6 +98,28 @@ describe('JwtStrategy', () => {
       companyId: 'company-uuid-1',
       fullName: 'Test User',
     });
+  });
+
+  it('rehydrates a company-less platform owner and validates its session', async () => {
+    const platformOwner = makeUser({
+      companyId: null,
+      role: { id: 'role-uuid-1', name: 'admin' } as any,
+    });
+    userRepo.findOne.mockResolvedValue(platformOwner);
+
+    const result = await strategy.validate({
+      ...payload,
+      role: 'admin',
+      companyId: null,
+      sid: 'platform-session-1',
+    });
+
+    expect(result).toMatchObject({ role: 'admin', companyId: null });
+    expect(licenseSessionService.assertAndTouchSession).toHaveBeenCalledWith(
+      'platform-session-1',
+      platformOwner.id,
+      null,
+    );
   });
 
   it('throws UnauthorizedException when user does not exist', async () => {

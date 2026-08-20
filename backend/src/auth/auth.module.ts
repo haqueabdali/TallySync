@@ -17,6 +17,11 @@ import { RefreshTokenEntity } from './entities/refresh-token.entity';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import {
+  DEFAULT_JWT_AUDIENCE,
+  DEFAULT_JWT_EXPIRES_IN,
+  DEFAULT_JWT_ISSUER,
+} from './jwt.constants';
 
 @Module({
   imports: [
@@ -35,14 +40,15 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
         const secret = config.getOrThrow<string>('JWT_SECRET');
 
         const expiresIn = (config.get<string>('JWT_EXPIRES_IN') ??
-          '15m') as StringValue;
+          DEFAULT_JWT_EXPIRES_IN) as StringValue;
 
         return {
           secret,
           signOptions: {
             expiresIn,
-            issuer: config.get<string>('JWT_ISSUER') ?? 'tallysync-api',
-            audience: config.get<string>('JWT_AUDIENCE') ?? 'tallysync-app',
+            issuer: config.get<string>('JWT_ISSUER') ?? DEFAULT_JWT_ISSUER,
+            audience:
+              config.get<string>('JWT_AUDIENCE') ?? DEFAULT_JWT_AUDIENCE,
           },
         };
       },

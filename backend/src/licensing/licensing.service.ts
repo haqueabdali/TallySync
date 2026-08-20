@@ -8,16 +8,31 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+<<<<<<< HEAD
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
+=======
 import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 
 import { CompanyEntity } from '../auth/entities/company.entity';
 import { UserEntity, UserStatus } from '../auth/entities/user.entity';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
+<<<<<<< HEAD
+import { CommercialNotificationsService } from './commercial-notifications.service';
+import { CreateLicenseActivationDto } from './dto/create-license-activation.dto';
+import { CreateLicenseDto } from './dto/create-license.dto';
+import { LicenseHeartbeatDto } from './dto/license-heartbeat.dto';
+import { ListLicenseAuditQueryDto } from './dto/list-license-audit-query.dto';
+import { ListLicensesQueryDto } from './dto/list-licenses-query.dto';
+import { ReplaceLicenseFeaturesDto } from './dto/replace-license-features.dto';
+import { RenewLicenseDto } from './dto/renew-license.dto';
+=======
 import { CreateLicenseActivationDto } from './dto/create-license-activation.dto';
 import { CreateLicenseDto } from './dto/create-license.dto';
 import { LicenseHeartbeatDto } from './dto/license-heartbeat.dto';
 import { ListLicensesQueryDto } from './dto/list-licenses-query.dto';
 import { ReplaceLicenseFeaturesDto } from './dto/replace-license-features.dto';
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { UpdateLicenseDto } from './dto/update-license.dto';
 import { LicenseActivationEntity } from './entities/license-activation.entity';
 import { LicenseAuditLogEntity } from './entities/license-audit-log.entity';
@@ -25,6 +40,10 @@ import { LicenseFeatureEntity } from './entities/license-feature.entity';
 import { LicenseEntity } from './entities/license.entity';
 import { LicenseActivationStatus } from './enums/license-activation-status.enum';
 import { LicenseStatus } from './enums/license-status.enum';
+<<<<<<< HEAD
+import { getLicensePlanTemplates } from './license-plan-templates';
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { LicensedFeature } from './enums/licensed-feature.enum';
 import type { LicenseEntitlement } from './interfaces/license-entitlement.interface';
 import type {
@@ -51,8 +70,82 @@ export class LicensingService {
     private readonly dataSource: DataSource,
     @Optional()
     private readonly licenseSigningService?: LicenseSigningService,
+<<<<<<< HEAD
+    @Optional()
+    private readonly commercialNotifications?: CommercialNotificationsService,
   ) {}
 
+  async listAuditLogs(query: ListLicenseAuditQueryDto): Promise<{
+    data: Array<{
+      id: string;
+      licenseId: string;
+      action: string;
+      metadata: Record<string, unknown> | null;
+      ipAddress: string | null;
+      createdAt: Date;
+      actor: null | { id: string; fullName: string; email: string };
+      license: { id: string; licenseNumber: string; companyId: string; companyName: string };
+    }>;
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+
+    const qb = this.auditRepository
+      .createQueryBuilder('audit')
+      .innerJoinAndSelect('audit.license', 'license')
+      .innerJoinAndSelect('license.company', 'company')
+      .orderBy('audit.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (query.licenseId) {
+      qb.andWhere('audit.license_id = :licenseId', { licenseId: query.licenseId });
+    }
+    if (query.action?.trim()) {
+      qb.andWhere('audit.action ILIKE :action', { action: `%${query.action.trim()}%` });
+    }
+
+    const [logs, total] = await qb.getManyAndCount();
+    const actorIds = [...new Set(logs.map((log) => log.actorUserId).filter((id): id is string => Boolean(id)))];
+    const actors = actorIds.length
+      ? await this.userRepository.find({ where: { id: In(actorIds) } })
+      : [];
+    const actorById = new Map(actors.map((actor) => [actor.id, actor]));
+
+    return {
+      data: logs.map((log) => {
+        const actor = log.actorUserId ? actorById.get(log.actorUserId) : undefined;
+        return {
+          id: log.id,
+          licenseId: log.licenseId,
+          action: log.action,
+          metadata: log.metadata,
+          ipAddress: log.ipAddress,
+          createdAt: log.createdAt,
+          actor: actor ? { id: actor.id, fullName: actor.fullName, email: actor.email } : null,
+          license: {
+            id: log.license.id,
+            licenseNumber: log.license.licenseNumber,
+            companyId: log.license.companyId,
+            companyName: log.license.company?.name ?? log.license.companyId,
+          },
+        };
+      }),
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+  }
+
+=======
+  ) {}
+
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   async create(
     dto: CreateLicenseDto,
     actor: AuthenticatedUser,
@@ -231,6 +324,55 @@ export class LicensingService {
     return this.findOne(id);
   }
 
+<<<<<<< HEAD
+  async renew(
+    id: string,
+    dto: RenewLicenseDto,
+    actor: AuthenticatedUser,
+  ): Promise<LicenseEntity> {
+    const license = await this.findOne(id);
+    if (license.status === LicenseStatus.REVOKED) {
+      throw new BadRequestException('Revoked license cannot be renewed');
+    }
+
+    const nextExpiresAt = new Date(dto.expiresAt);
+    if (Number.isNaN(nextExpiresAt.getTime())) {
+      throw new BadRequestException('expiresAt must be a valid date');
+    }
+    if (nextExpiresAt.getTime() <= Date.now()) {
+      throw new BadRequestException('Renewal expiration must be in the future');
+    }
+    if (license.validFrom && nextExpiresAt.getTime() <= license.validFrom.getTime()) {
+      throw new BadRequestException('expiresAt must be after validFrom');
+    }
+    if (license.expiresAt && nextExpiresAt.getTime() <= license.expiresAt.getTime()) {
+      throw new BadRequestException('Renewal expiration must extend the current expiration');
+    }
+
+    const previousExpiresAt = license.expiresAt;
+    license.expiresAt = nextExpiresAt;
+    if (license.status === LicenseStatus.EXPIRED) {
+      license.status = LicenseStatus.ACTIVE;
+    }
+    license.updatedBy = actor.id;
+    this.invalidateSignedCertificate(license);
+
+    await this.licenseRepository.save(license);
+    await this.writeAudit(id, actor.id, 'license.renewed', {
+      previousExpiresAt: previousExpiresAt?.toISOString() ?? null,
+      expiresAt: nextExpiresAt.toISOString(),
+      renewalNote: dto.renewalNote?.trim() || null,
+    });
+    const renewed = await this.findOne(id);
+    await this.commercialNotifications?.notifyCompanyAdmins(renewed, 'license.renewed', {
+      previousExpiresAt: previousExpiresAt?.toISOString() ?? null,
+      expiresAt: nextExpiresAt.toISOString(),
+    });
+    return renewed;
+  }
+
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   async activate(id: string, actor: AuthenticatedUser): Promise<LicenseEntity> {
     const license = await this.findOne(id);
     if (license.status === LicenseStatus.REVOKED) {
@@ -246,7 +388,13 @@ export class LicensingService {
     this.invalidateSignedCertificate(license);
     await this.licenseRepository.save(license);
     await this.writeAudit(id, actor.id, 'license.activated');
+<<<<<<< HEAD
+    const activated = await this.findOne(id);
+    await this.commercialNotifications?.notifyCompanyAdmins(activated, 'license.activated');
+    return activated;
+=======
     return this.findOne(id);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   }
 
   async suspend(id: string, actor: AuthenticatedUser): Promise<LicenseEntity> {
@@ -259,7 +407,13 @@ export class LicensingService {
     this.invalidateSignedCertificate(license);
     await this.licenseRepository.save(license);
     await this.writeAudit(id, actor.id, 'license.suspended');
+<<<<<<< HEAD
+    const suspended = await this.findOne(id);
+    await this.commercialNotifications?.notifyCompanyAdmins(suspended, 'license.suspended');
+    return suspended;
+=======
     return this.findOne(id);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   }
 
   async revoke(id: string, actor: AuthenticatedUser): Promise<LicenseEntity> {
@@ -277,7 +431,13 @@ export class LicensingService {
       },
     );
     await this.writeAudit(id, actor.id, 'license.revoked');
+<<<<<<< HEAD
+    const revoked = await this.findOne(id);
+    await this.commercialNotifications?.notifyCompanyAdmins(revoked, 'license.revoked');
+    return revoked;
+=======
     return this.findOne(id);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   }
 
   async replaceFeatures(
@@ -341,6 +501,12 @@ export class LicensingService {
         installationId: saved.installationId,
         appVersion: saved.appVersion,
       });
+<<<<<<< HEAD
+      await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.authorized', {
+        activationId: saved.id, installationId: saved.installationId, appVersion: saved.appVersion, refreshed: true,
+      });
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
       return saved;
     }
 
@@ -360,6 +526,12 @@ export class LicensingService {
       installationId: saved.installationId,
       appVersion: saved.appVersion,
     });
+<<<<<<< HEAD
+    await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.authorized', {
+      activationId: saved.id, installationId: saved.installationId, appVersion: saved.appVersion, refreshed: false,
+    });
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     return saved;
   }
 
@@ -383,6 +555,13 @@ export class LicensingService {
       activationId,
       installationId: activation.installationId,
     });
+<<<<<<< HEAD
+    const license = await this.findOne(licenseId);
+    await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.revoked', {
+      activationId, installationId: activation.installationId,
+    });
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     return saved;
   }
 
@@ -681,12 +860,110 @@ export class LicensingService {
     };
   }
 
+<<<<<<< HEAD
+  planTemplates() {
+    return getLicensePlanTemplates();
+  }
+
+=======
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   async dashboard(): Promise<{
     total: number;
     active: number;
     suspended: number;
     revoked: number;
     expiredByDate: number;
+<<<<<<< HEAD
+    expiringWithin7Days: number;
+    expiringWithin30Days: number;
+    licensedCompanies: number;
+    expirationWarnings: Array<{
+      id: string;
+      licenseNumber: string;
+      companyId: string;
+      companyName: string;
+      status: LicenseStatus;
+      expiresAt: Date;
+      daysRemaining: number;
+    }>;
+  }> {
+    const warning7Cutoff = new Date(Date.now() + 7 * 86_400_000);
+    const warning30Cutoff = new Date(Date.now() + 30 * 86_400_000);
+    const [
+      total,
+      active,
+      suspended,
+      revoked,
+      expiredByDate,
+      expiringWithin7Days,
+      expiringWithin30Days,
+      warningLicenses,
+    ] = await Promise.all([
+      this.licenseRepository.count({ where: { deletedAt: IsNull() } }),
+      this.licenseRepository.count({
+        where: { status: LicenseStatus.ACTIVE, deletedAt: IsNull() },
+      }),
+      this.licenseRepository.count({
+        where: { status: LicenseStatus.SUSPENDED, deletedAt: IsNull() },
+      }),
+      this.licenseRepository.count({
+        where: { status: LicenseStatus.REVOKED, deletedAt: IsNull() },
+      }),
+      this.licenseRepository
+        .createQueryBuilder('license')
+        .where('license.deleted_at IS NULL')
+        .andWhere('license.expires_at IS NOT NULL')
+        .andWhere('license.expires_at <= NOW()')
+        .getCount(),
+      this.licenseRepository
+        .createQueryBuilder('license')
+        .where('license.deleted_at IS NULL')
+        .andWhere('license.expires_at IS NOT NULL')
+        .andWhere('license.expires_at > NOW()')
+        .andWhere('license.expires_at <= :warning7Cutoff', { warning7Cutoff })
+        .andWhere('license.status != :revokedStatus', {
+          revokedStatus: LicenseStatus.REVOKED,
+        })
+        .getCount(),
+      this.licenseRepository
+        .createQueryBuilder('license')
+        .where('license.deleted_at IS NULL')
+        .andWhere('license.expires_at IS NOT NULL')
+        .andWhere('license.expires_at > NOW()')
+        .andWhere('license.expires_at <= :warning30Cutoff', { warning30Cutoff })
+        .andWhere('license.status != :revokedStatus', {
+          revokedStatus: LicenseStatus.REVOKED,
+        })
+        .getCount(),
+      this.licenseRepository
+        .createQueryBuilder('license')
+        .leftJoinAndSelect('license.company', 'company')
+        .where('license.deleted_at IS NULL')
+        .andWhere('license.expires_at IS NOT NULL')
+        .andWhere('license.expires_at > NOW()')
+        .andWhere('license.expires_at <= :warning30Cutoff', { warning30Cutoff })
+        .andWhere('license.status != :revokedStatus', {
+          revokedStatus: LicenseStatus.REVOKED,
+        })
+        .orderBy('license.expiresAt', 'ASC')
+        .take(25)
+        .getMany(),
+    ]);
+
+    const now = Date.now();
+    const expirationWarnings = warningLicenses.map((license) => ({
+      id: license.id,
+      licenseNumber: license.licenseNumber,
+      companyId: license.companyId,
+      companyName: license.company?.name ?? license.companyId,
+      status: license.status,
+      expiresAt: license.expiresAt as Date,
+      daysRemaining: Math.max(
+        0,
+        Math.ceil(((license.expiresAt as Date).getTime() - now) / 86_400_000),
+      ),
+    }));
+=======
     licensedCompanies: number;
   }> {
     const [total, active, suspended, revoked, expiredByDate] =
@@ -708,6 +985,7 @@ export class LicensingService {
           .andWhere('license.expires_at <= NOW()')
           .getCount(),
       ]);
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 
     return {
       total,
@@ -715,7 +993,14 @@ export class LicensingService {
       suspended,
       revoked,
       expiredByDate,
+<<<<<<< HEAD
+      expiringWithin7Days,
+      expiringWithin30Days,
       licensedCompanies: total,
+      expirationWarnings,
+=======
+      licensedCompanies: total,
+>>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
     };
   }
 

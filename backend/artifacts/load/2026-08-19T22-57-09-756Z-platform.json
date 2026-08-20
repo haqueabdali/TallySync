@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-08-19T22:57:09.756Z",
+  "profile": "platform",
+  "baseUrl": "http://localhost:3000",
+  "durationSeconds": 30.055,
+  "concurrency": 10,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 2873,
+    "successful": 2873,
+    "throttled": 0,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 95.59,
+    "latencyMs": {
+      "min": 16.93,
+      "mean": 104.35,
+      "p50": 101.66,
+      "p95": 127.69,
+      "p99": 158.36,
+      "max": 460.27
+    },
+    "statuses": {
+      "200": 2873
+    }
+  },
+  "byRequest": {
+    "platform.dashboard": {
+      "requests": 2873,
+      "successful": 2873,
+      "throttled": 0,
+      "failed": 0,
+      "errorRate": 0,
+      "requestsPerSecond": 95.59,
+      "latencyMs": {
+        "min": 16.93,
+        "mean": 104.35,
+        "p50": 101.66,
+        "p95": 127.69,
+        "p99": 158.36,
+        "max": 460.27
+      },
+      "statuses": {
+        "200": 2873
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": true,
+    "failures": []
+  }
+}

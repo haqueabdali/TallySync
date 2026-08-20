@@ -27,6 +27,14 @@ const mockAuditCtx: AuditContext = {
   userAgent: 'jest',
 };
 
+const mockAuthenticatedUser = {
+  id: 'actor-uuid-1',
+  email: 'admin@example.com',
+  role: 'admin',
+  companyId: 'company-uuid-1',
+  fullName: 'Company Admin',
+};
+
 const userResponse = () => ({
   id: 'user-uuid-1',
   companyId: 'company-uuid-1',
@@ -99,9 +107,15 @@ describe('UsersController', () => {
       usersService.listUsers.mockResolvedValue(paginatedResponse);
 
       const query = { page: 1, limit: 20 };
-      const result = await controller.listUsers(query as any);
+      const result = await controller.listUsers(
+        query as any,
+        mockAuthenticatedUser,
+      );
 
-      expect(usersService.listUsers).toHaveBeenCalledWith(query);
+      expect(usersService.listUsers).toHaveBeenCalledWith(
+        query,
+        mockAuthenticatedUser,
+      );
       expect(result.meta.total).toBe(1);
       expect(result.data).toHaveLength(1);
     });
@@ -195,13 +209,13 @@ describe('UsersController', () => {
       const result = await controller.assignCompany(
         'user-uuid-1',
         dto,
-        mockAuditCtx,
+        mockAuthenticatedUser,
       );
 
       expect(usersService.assignCompany).toHaveBeenCalledWith(
         'user-uuid-1',
         dto,
-        mockAuditCtx,
+        mockAuthenticatedUser,
       );
       expect(result.companyId).toBe('company-uuid-2');
     });
@@ -228,12 +242,18 @@ describe('UsersController', () => {
       };
       usersService.getUserActivity.mockResolvedValue(paginatedLogs);
 
-      const result = await controller.getUserActivity('user-uuid-1', 1, 20);
+      const result = await controller.getUserActivity(
+        'user-uuid-1',
+        mockAuthenticatedUser,
+        1,
+        20,
+      );
 
       expect(usersService.getUserActivity).toHaveBeenCalledWith(
         'user-uuid-1',
         1,
         20,
+        mockAuthenticatedUser,
       );
       expect(result.data).toHaveLength(1);
       expect(result.data[0].action).toBe(AuditAction.CREATE);

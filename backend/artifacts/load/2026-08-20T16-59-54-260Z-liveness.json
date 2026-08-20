@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-08-20T16:59:54.260Z",
+  "profile": "liveness",
+  "baseUrl": "http://localhost:3000",
+  "durationSeconds": 20.002,
+  "concurrency": 10,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 38248,
+    "successful": 0,
+    "throttled": 0,
+    "failed": 38248,
+    "errorRate": 1,
+    "requestsPerSecond": 1912.21,
+    "latencyMs": {
+      "min": 2.53,
+      "mean": 5.22,
+      "p50": 4.73,
+      "p95": 7.56,
+      "p99": 11.62,
+      "max": 59.24
+    },
+    "statuses": {
+      "0": 38248
+    }
+  },
+  "byRequest": {
+    "health.live": {
+      "requests": 38248,
+      "successful": 0,
+      "throttled": 0,
+      "failed": 38248,
+      "errorRate": 1,
+      "requestsPerSecond": 1912.21,
+      "latencyMs": {
+        "min": 2.53,
+        "mean": 5.22,
+        "p50": 4.73,
+        "p95": 7.56,
+        "p99": 11.62,
+        "max": 59.24
+      },
+      "statuses": {
+        "0": 38248
+      }
+    }
+  },
+  "errors": {
+    "count": 38248,
+    "errors": {
+      "fetch failed": 38248
+    }
+  },
+  "errorsByRequest": {
+    "health.live": {
+      "count": 38248,
+      "errors": {
+        "fetch failed": 38248
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 100.00% exceeded 1.00%"
+    ]
+  }
+}

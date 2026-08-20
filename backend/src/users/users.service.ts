@@ -33,6 +33,9 @@ const BCRYPT_ROUNDS = 12;
 const SENSITIVE_FIELDS = new Set(['passwordHash', 'resetTokenHash']);
 
 type ActorContext = AuditContext | AuthenticatedUser;
+type ResolvedAuditContext = Omit<AuditContext, 'companyId'> & {
+  companyId: string | null;
+};
 
 @Injectable()
 export class UsersService {
@@ -57,13 +60,14 @@ export class UsersService {
     const role = await this.assertRoleExists(dto.roleId);
     const authActor = this.asAuthenticatedUser(actor);
 
-    if (authActor && authActor.role !== 'admin') {
+    if (authActor && !this.isPlatformAdmin(authActor)) {
+      this.assertActorHasCompany(authActor);
       if (dto.companyId !== authActor.companyId) {
         throw new BadRequestException(
           'You cannot create a user for another company',
         );
       }
-      if (role.name === 'admin') {
+      if (authActor.role !== 'admin' && role.name === 'admin') {
         throw new BadRequestException('Only admins can assign the admin role');
       }
     }
@@ -115,7 +119,8 @@ export class UsersService {
         'user.deleted_at IS NULL',
       );
 
-      if (actor.role !== 'admin') {
+      if (!this.isPlatformAdmin(actor)) {
+        this.assertActorHasCompany(actor);
         qb.andWhere('user.company_id = :companyId', {
           companyId: actor.companyId,
         });
@@ -137,16 +142,22 @@ export class UsersService {
         );
       }
 
-      qb.orderBy(`user.${this.toSnakeColumn(sortBy)}`, sortOrder)
+      qb.orderBy(`user.${sortBy}`, sortOrder)
         .skip((page - 1) * limit)
         .take(limit);
       const [users, total] = await qb.getManyAndCount();
       return this.paginate(users, total, page, limit);
     }
 
+    let effectiveCompanyId = query.companyId;
+    if (actor && !this.isPlatformAdmin(actor)) {
+      this.assertActorHasCompany(actor);
+      effectiveCompanyId = actor.companyId;
+    }
+
     const baseFilter: Record<string, unknown> = {
       deletedAt: IsNull(),
-      ...(query.companyId && { companyId: query.companyId }),
+      ...(effectiveCompanyId && { companyId: effectiveCompanyId }),
       ...(query.roleId && { roleId: query.roleId }),
       ...(query.status && { status: query.status }),
     };
@@ -175,8 +186,11 @@ export class UsersService {
     actor: AuthenticatedUser,
   ): Promise<UserResponseDto> {
     const user = await this.findEntityById(id);
-    if (actor.role !== 'admin' && user.companyId !== actor.companyId) {
-      throw new NotFoundException(`User with id '${id}' not found`);
+    if (!this.isPlatformAdmin(actor)) {
+      this.assertActorHasCompany(actor);
+      if (user.companyId !== actor.companyId) {
+        throw new NotFoundException(`User with id '${id}' not found`);
+      }
     }
     return this.toResponse(user);
   }
@@ -194,11 +208,12 @@ export class UsersService {
     const user = await this.findEntityById(id);
     const authActor = this.asAuthenticatedUser(actor);
 
-    if (authActor && authActor.role !== 'admin') {
+    if (authActor && !this.isPlatformAdmin(authActor)) {
+      this.assertActorHasCompany(authActor);
       if (user.companyId !== authActor.companyId) {
         throw new NotFoundException(`User with id '${id}' not found`);
       }
-      if (dto.status !== undefined) {
+      if (authActor.role !== 'admin' && dto.status !== undefined) {
         throw new BadRequestException('Only admins can change user status');
       }
     }
@@ -242,17 +257,20 @@ export class UsersService {
         throw new BadRequestException('You cannot delete your own account');
       throw new ForbiddenException('You cannot delete your own account');
     }
-    if (
-      authActor &&
-      authActor.role !== 'admin' &&
-      user.role?.name === 'admin'
-    ) {
-      throw new BadRequestException('Only admins can delete admin users');
+    if (authActor && !this.isPlatformAdmin(authActor)) {
+      this.assertActorHasCompany(authActor);
+      if (user.companyId !== authActor.companyId) {
+        throw new NotFoundException(`User with id '${id}' not found`);
+      }
+      if (authActor.role !== 'admin' && user.role?.name === 'admin') {
+        throw new BadRequestException('Only admins can delete admin users');
+      }
     }
     if (user.role?.isSystem && user.role.name === 'admin') {
       const count = await this.userRepository.count({
         where: {
           roleId: user.roleId,
+          companyId: user.companyId ?? IsNull(),
           status: UserStatus.ACTIVE,
           deletedAt: IsNull(),
         },
@@ -285,11 +303,15 @@ export class UsersService {
     const role = await this.assertRoleExists(dto.roleId);
     const authActor = this.asAuthenticatedUser(actor);
 
-    if (authActor && authActor.role !== 'admin') {
+    if (authActor && !this.isPlatformAdmin(authActor)) {
+      this.assertActorHasCompany(authActor);
       if (user.companyId !== authActor.companyId) {
         throw new NotFoundException(`User with id '${id}' not found`);
       }
-      if (role.name === 'admin' || user.role?.name === 'admin') {
+      if (
+        authActor.role !== 'admin' &&
+        (role.name === 'admin' || user.role?.name === 'admin')
+      ) {
         throw new BadRequestException('Only admins can change the admin role');
       }
     }
@@ -319,6 +341,13 @@ export class UsersService {
     actor: ActorContext,
     ipAddress?: string,
   ): Promise<UserResponseDto> {
+    const authActor = this.asAuthenticatedUser(actor);
+    if (authActor && !this.isPlatformAdmin(authActor)) {
+      throw new ForbiddenException(
+        'Only the platform administrator can reassign users between companies',
+      );
+    }
+
     const user = await this.findEntityById(id);
     const oldCompanyId = user.companyId;
 
@@ -343,8 +372,15 @@ export class UsersService {
     id: string,
     page = 1,
     limit = 20,
+    actor?: AuthenticatedUser,
   ): Promise<PaginatedActivityResponseDto> {
-    await this.findEntityById(id);
+    const user = await this.findEntityById(id);
+    if (actor && !this.isPlatformAdmin(actor)) {
+      this.assertActorHasCompany(actor);
+      if (user.companyId !== actor.companyId) {
+        throw new NotFoundException(`User with id '${id}' not found`);
+      }
+    }
     const [logs, total] = await this.auditRepository.findAndCount({
       where: { entityType: 'user', entityId: id },
       order: { createdAt: 'DESC' },
@@ -408,11 +444,26 @@ export class UsersService {
     return 'role' in actor && 'id' in actor ? actor : null;
   }
 
+  private isPlatformAdmin(actor: AuthenticatedUser): boolean {
+    return actor.role === 'admin' && actor.companyId === null;
+  }
+
+  private assertActorHasCompany(
+    actor: AuthenticatedUser,
+  ): asserts actor is AuthenticatedUser & { companyId: string } {
+    if (!actor.companyId) {
+      throw new ForbiddenException('Authenticated company context is required');
+    }
+  }
+
   private actorId(actor: ActorContext): string {
     return 'id' in actor ? actor.id : actor.actorId;
   }
 
-  private auditContext(actor: ActorContext, ipAddress?: string): AuditContext {
+  private auditContext(
+    actor: ActorContext,
+    ipAddress?: string,
+  ): ResolvedAuditContext {
     if ('actorId' in actor)
       return { ...actor, ipAddress: ipAddress ?? actor.ipAddress };
     return {
@@ -445,10 +496,6 @@ export class UsersService {
       data: users.map((user) => this.toResponse(user)),
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
-  }
-
-  private toSnakeColumn(field: string): string {
-    return field.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   }
 
   private async writeAudit(

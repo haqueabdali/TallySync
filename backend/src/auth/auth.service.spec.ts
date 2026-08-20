@@ -103,6 +103,7 @@ describe('AuthService', () => {
   let userRepo: ReturnType<typeof mockUserRepo>;
   let refreshTokenRepo: ReturnType<typeof mockRefreshTokenRepo>;
   let jwtService: ReturnType<typeof mockJwtService>;
+  let licenseSessionService: ReturnType<typeof mockLicenseSessionService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -126,6 +127,7 @@ describe('AuthService', () => {
     userRepo = module.get(getRepositoryToken(UserEntity));
     refreshTokenRepo = module.get(getRepositoryToken(RefreshTokenEntity));
     jwtService = module.get(JwtService);
+    licenseSessionService = module.get(LicenseSessionService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -154,6 +156,39 @@ describe('AuthService', () => {
       expect(userRepo.update).toHaveBeenCalledWith(
         'user-uuid-1',
         expect.objectContaining({ lastLoginAt: expect.any(Date) }),
+      );
+    });
+
+    it('issues a session-backed JWT for a dedicated platform owner', async () => {
+      const platformOwner = makeUser({
+        companyId: null,
+        email: 'owner@tallysync.test',
+        role: { id: 'role-uuid-1', name: 'admin' } as any,
+      });
+      userRepo.findOne.mockResolvedValue(platformOwner);
+      refreshTokenRepo.create.mockImplementation((d) => d);
+      refreshTokenRepo.save.mockResolvedValue({});
+
+      const result = await service.login({
+        email: platformOwner.email,
+        password: 'ValidPass1!',
+      });
+
+      expect(result.user).toMatchObject({
+        email: platformOwner.email,
+        role: 'admin',
+        companyId: null,
+      });
+      expect(licenseSessionService.openSession).toHaveBeenCalledWith(
+        expect.objectContaining({ user: platformOwner }),
+      );
+      expect(jwtService.signAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sub: platformOwner.id,
+          role: 'admin',
+          companyId: null,
+          sid: 'session-uuid-1',
+        }),
       );
     });
 

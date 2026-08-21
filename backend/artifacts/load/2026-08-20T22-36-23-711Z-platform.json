@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2026-08-20T22:36:23.711Z",
+  "profile": "platform",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 5.006,
+  "concurrency": 1,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 356,
+    "successful": 238,
+    "throttled": 0,
+    "failed": 118,
+    "errorRate": 0.33146067415730335,
+    "requestsPerSecond": 71.11,
+    "latencyMs": {
+      "min": 8.44,
+      "mean": 13.86,
+      "p50": 12.91,
+      "p95": 19.5,
+      "p99": 25.98,
+      "max": 33.29
+    },
+    "statuses": {
+      "200": 238,
+      "404": 118
+    }
+  },
+  "byRequest": {
+    "platform.dashboard": {
+      "requests": 238,
+      "successful": 238,
+      "throttled": 0,
+      "failed": 0,
+      "errorRate": 0,
+      "requestsPerSecond": 47.54,
+      "latencyMs": {
+        "min": 10.11,
+        "mean": 14.72,
+        "p50": 14.45,
+        "p95": 19.6,
+        "p99": 25.98,
+        "max": 33.29
+      },
+      "statuses": {
+        "200": 238
+      }
+    },
+    "platform.licenseUsage": {
+      "requests": 118,
+      "successful": 0,
+      "throttled": 0,
+      "failed": 118,
+      "errorRate": 1,
+      "requestsPerSecond": 23.57,
+      "latencyMs": {
+        "min": 8.44,
+        "mean": 12.13,
+        "p50": 11.65,
+        "p95": 15.49,
+        "p99": 25.87,
+        "max": 31.15
+      },
+      "statuses": {
+        "404": 118
+      }
+    }
+  },
+  "errors": {
+    "count": 118,
+    "errors": {
+      "404 Not Found": 118
+    }
+  },
+  "errorsByRequest": {
+    "platform.licenseUsage": {
+      "count": 118,
+      "errors": {
+        "404 Not Found": 118
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 33.15% exceeded 1.00%"
+    ]
+  }
+}

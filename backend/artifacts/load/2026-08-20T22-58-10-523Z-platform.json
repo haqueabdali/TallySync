@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-08-20T22:58:10.523Z",
+  "profile": "platform",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 10,
+  "concurrency": 2,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 12013,
+    "successful": 215,
+    "throttled": 0,
+    "failed": 11798,
+    "errorRate": 0.9821027220511113,
+    "requestsPerSecond": 1201.3,
+    "latencyMs": {
+      "min": 0.69,
+      "mean": 1.66,
+      "p50": 1.06,
+      "p95": 2.05,
+      "p99": 20.93,
+      "max": 147.17
+    },
+    "statuses": {
+      "0": 11798,
+      "200": 215
+    }
+  },
+  "byRequest": {
+    "platform.dashboard": {
+      "requests": 8009,
+      "successful": 144,
+      "throttled": 0,
+      "failed": 7865,
+      "errorRate": 0.9820202272443501,
+      "requestsPerSecond": 800.9,
+      "latencyMs": {
+        "min": 0.69,
+        "mean": 1.59,
+        "p50": 1.06,
+        "p95": 2.04,
+        "p99": 18.8,
+        "max": 147.17
+      },
+      "statuses": {
+        "0": 7865,
+        "200": 144
+      }
+    },
+    "platform.licenseUsage": {
+      "requests": 4004,
+      "successful": 71,
+      "throttled": 0,
+      "failed": 3933,
+      "errorRate": 0.9822677322677322,
+      "requestsPerSecond": 400.4,
+      "latencyMs": {
+        "min": 0.7,
+        "mean": 1.79,
+        "p50": 1.06,
+        "p95": 2.08,
+        "p99": 29.61,
+        "max": 80.39
+      },
+      "statuses": {
+        "0": 3933,
+        "200": 71
+      }
+    }
+  },
+  "errors": {
+    "count": 11798,
+    "errors": {
+      "fetch failed: ECONNRESET: read ECONNRESET": 2,
+      "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 11796
+    }
+  },
+  "errorsByRequest": {
+    "platform.dashboard": {
+      "count": 7865,
+      "errors": {
+        "fetch failed: ECONNRESET: read ECONNRESET": 1,
+        "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 7864
+      }
+    },
+    "platform.licenseUsage": {
+      "count": 3933,
+      "errors": {
+        "fetch failed: ECONNRESET: read ECONNRESET": 1,
+        "fetch failed: ECONNREFUSED: connect ECONNREFUSED 127.0.0.1:3000": 3932
+      }
+    }
+  },
+  "thresholdResult": {
+    "passed": false,
+    "failures": [
+      "error rate 98.21% exceeded 1.00%"
+    ]
+  }
+}

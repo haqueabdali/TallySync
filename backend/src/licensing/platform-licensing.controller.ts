@@ -15,7 +15,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
-<<<<<<< HEAD
 import { CommercialNotificationsService } from './commercial-notifications.service';
 import { CreateLicenseActivationDto } from './dto/create-license-activation.dto';
 import { CreateLicenseDto } from './dto/create-license.dto';
@@ -24,12 +23,6 @@ import { ListLicenseAuditQueryDto } from './dto/list-license-audit-query.dto';
 import { ListLicensesQueryDto } from './dto/list-licenses-query.dto';
 import { ReplaceLicenseFeaturesDto } from './dto/replace-license-features.dto';
 import { RenewLicenseDto } from './dto/renew-license.dto';
-=======
-import { CreateLicenseActivationDto } from './dto/create-license-activation.dto';
-import { CreateLicenseDto } from './dto/create-license.dto';
-import { ListLicensesQueryDto } from './dto/list-licenses-query.dto';
-import { ReplaceLicenseFeaturesDto } from './dto/replace-license-features.dto';
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
 import { UpdateLicenseDto } from './dto/update-license.dto';
 import { PlatformAdminGuard } from './guards/platform-admin.guard';
 import { LicensingService } from './licensing.service';
@@ -43,10 +36,7 @@ export class PlatformLicensingController {
   constructor(
     private readonly licensingService: LicensingService,
     private readonly licenseSessionService: LicenseSessionService,
-<<<<<<< HEAD
     private readonly commercialNotificationsService: CommercialNotificationsService,
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   ) {}
 
   @Get('dashboard')
@@ -55,22 +45,18 @@ export class PlatformLicensingController {
     return this.licensingService.dashboard();
   }
 
-<<<<<<< HEAD
   @Get('plan-templates')
   @ApiOperation({ summary: 'List commercial license plan templates' })
   planTemplates() {
     return this.licensingService.planTemplates();
   }
 
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   @Get()
   @ApiOperation({ summary: 'List company licenses for Super Admin' })
   list(@Query() query: ListLicensesQueryDto) {
     return this.licensingService.list(query);
   }
 
-<<<<<<< HEAD
 
   @Get('notifications')
   @ApiOperation({ summary: 'List cross-company commercial notifications' })
@@ -90,8 +76,6 @@ export class PlatformLicensingController {
     return this.licensingService.listAuditLogs(query);
   }
 
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   @Get(':id/usage')
   @ApiOperation({ summary: 'Get company license user and activation usage' })
   async usage(@Param('id', ParseUUIDPipe) id: string) {
@@ -171,7 +155,6 @@ export class PlatformLicensingController {
     return this.licensingService.replaceFeatures(id, dto, actor);
   }
 
-<<<<<<< HEAD
   @Post(':id/renew')
   @ApiOperation({ summary: 'Renew a company license expiration' })
   renew(
@@ -182,8 +165,6 @@ export class PlatformLicensingController {
     return this.licensingService.renew(id, dto, actor);
   }
 
-=======
->>>>>>> 3f291bdc4089472223df9e24763ba2efc0e96500
   @Post(':id/activate')
   @ApiOperation({ summary: 'Activate a company license' })
   activate(

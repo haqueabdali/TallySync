@@ -5,17 +5,20 @@ import {
 import { DataSource } from 'typeorm';
 
 import { HealthService } from './health.service';
+import { ApplicationLifecycleService } from './application-lifecycle.service';
 
 describe('HealthService', () => {
   let service: HealthService;
   let dataSource: {
     query: jest.Mock;
   };
+  let lifecycle: { isDraining: jest.Mock };
 
   beforeEach(async () => {
     dataSource = {
       query: jest.fn(),
     };
+    lifecycle = { isDraining: jest.fn().mockReturnValue(false) };
 
     const module: TestingModule =
       await Test.createTestingModule({
@@ -24,6 +27,10 @@ describe('HealthService', () => {
           {
             provide: DataSource,
             useValue: dataSource,
+          },
+          {
+            provide: ApplicationLifecycleService,
+            useValue: lifecycle,
           },
         ],
       }).compile();
@@ -46,6 +53,17 @@ describe('HealthService', () => {
     expect(
       typeof result.uptimeSeconds,
     ).toBe('number');
+  });
+
+
+  it('returns not ready while the instance is draining', async () => {
+    lifecycle.isDraining.mockReturnValue(true);
+
+    const result = await service.ready();
+
+    expect(result.status).toBe('error');
+    expect(result.lifecycle).toBe('draining');
+    expect(dataSource.query).not.toHaveBeenCalled();
   });
 
   it('returns ready when database responds', async () => {

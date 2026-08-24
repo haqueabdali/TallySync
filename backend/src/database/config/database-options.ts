@@ -17,6 +17,18 @@ function parseDatabasePort(value: string | undefined): number {
   return port;
 }
 
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+  key: string,
+): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${key} must be a positive integer`);
+  }
+  return parsed;
+}
+
 function parseBoolean(
   value: string | undefined,
   fallback: boolean,
@@ -83,6 +95,28 @@ export function createDatabaseOptions(
     );
   }
 
+  const poolMax = parsePositiveInteger(
+    config.get<string>('DATABASE_POOL_MAX'),
+    20,
+    'DATABASE_POOL_MAX',
+  );
+  const instanceCount = parsePositiveInteger(
+    config.get<string>('APP_INSTANCE_COUNT'),
+    1,
+    'APP_INSTANCE_COUNT',
+  );
+  const connectionBudget = parsePositiveInteger(
+    config.get<string>('DATABASE_CONNECTION_BUDGET'),
+    100,
+    'DATABASE_CONNECTION_BUDGET',
+  );
+
+  if (poolMax * instanceCount > connectionBudget) {
+    throw new Error(
+      `Database pool budget exceeded: DATABASE_POOL_MAX (${poolMax}) x APP_INSTANCE_COUNT (${instanceCount}) > DATABASE_CONNECTION_BUDGET (${connectionBudget})`,
+    );
+  }
+
   return {
     type: 'postgres',
     host,
@@ -127,11 +161,7 @@ export function createDatabaseOptions(
     retryDelay: 3_000,
 
     extra: {
-      max: Number(
-        config.get<string>(
-          'DATABASE_POOL_MAX',
-        ) ?? 20,
-      ),
+      max: poolMax,
       connectionTimeoutMillis: Number(
         config.get<string>(
           'DATABASE_CONNECTION_TIMEOUT_MS',

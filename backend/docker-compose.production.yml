@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
+    init: true
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USER}
@@ -17,18 +18,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-1g}
+    cpus: ${POSTGRES_CPU_LIMIT:-1.0}
+    logging: &bounded-logging
+      driver: json-file
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILES:-5}
     networks:
       - tallysync_internal
 
-  api:
+  migrate:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: "no"
+    init: true
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
+    environment: &api-environment
       NODE_ENV: production
       PORT: 3000
 
@@ -39,29 +48,138 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_SSL: "false"
 
-      JWT_SECRET: ${JWT_SECRET}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      APP_INSTANCE_COUNT: 2
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-15}
+      DATABASE_CONNECTION_BUDGET: ${DATABASE_CONNECTION_BUDGET:-80}
+      DATABASE_CONNECTION_TIMEOUT_MS: ${DATABASE_CONNECTION_TIMEOUT_MS:-10000}
+      DATABASE_IDLE_TIMEOUT_MS: ${DATABASE_IDLE_TIMEOUT_MS:-30000}
 
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_ISSUER: ${JWT_ISSUER:-tallysync-api}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-tallysync-app}
+      REFRESH_TOKEN_EXPIRES_DAYS: ${REFRESH_TOKEN_EXPIRES_DAYS:-30}
+
+      PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD}
+
+      CORS_ORIGINS: ${CORS_ORIGINS}
       ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
       BODY_LIMIT: ${BODY_LIMIT:-1mb}
       SLOW_REQUEST_MS: ${SLOW_REQUEST_MS:-1500}
+    command:
+      [
+        "node",
+        "node_modules/typeorm/cli.js",
+        "migration:run",
+        "-d",
+        "dist/src/database/data-source.js"
+      ]
+    mem_limit: ${MIGRATE_MEMORY_LIMIT:-512m}
+    cpus: ${MIGRATE_CPU_LIMIT:-0.5}
+    logging: *bounded-logging
+    networks:
+      - tallysync_internal
 
+  api-a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *api-environment
+      INSTANCE_NAME: api-a
       BACKGROUND_JOBS_ENABLED: ${BACKGROUND_JOBS_ENABLED:-true}
       BACKGROUND_JOBS_POLL_INTERVAL_MS: ${BACKGROUND_JOBS_POLL_INTERVAL_MS:-5000}
       BACKGROUND_JOBS_BATCH_SIZE: ${BACKGROUND_JOBS_BATCH_SIZE:-10}
       BACKGROUND_JOBS_STALE_AFTER_SECONDS: ${BACKGROUND_JOBS_STALE_AFTER_SECONDS:-900}
-    ports:
-      - "${API_PORT:-3000}:3000"
     healthcheck:
       test:
         [
           "CMD-SHELL",
           "wget -q -O - http://127.0.0.1:3000/health/ready >/dev/null 2>&1 || exit 1"
         ]
-      interval: 30s
+      interval: 15s
       timeout: 5s
       start_period: 20s
       retries: 3
+    stop_grace_period: 30s
+    mem_limit: ${API_MEMORY_LIMIT:-768m}
+    cpus: ${API_CPU_LIMIT:-1.0}
+    logging: *bounded-logging
+    networks:
+      - tallysync_internal
+
+  api-b:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *api-environment
+      INSTANCE_NAME: api-b
+      # Keep one worker owner until background-job multi-worker behavior is explicitly audited.
+      BACKGROUND_JOBS_ENABLED: "false"
+      BACKGROUND_JOBS_POLL_INTERVAL_MS: ${BACKGROUND_JOBS_POLL_INTERVAL_MS:-5000}
+      BACKGROUND_JOBS_BATCH_SIZE: ${BACKGROUND_JOBS_BATCH_SIZE:-10}
+      BACKGROUND_JOBS_STALE_AFTER_SECONDS: ${BACKGROUND_JOBS_STALE_AFTER_SECONDS:-900}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:3000/health/ready >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    stop_grace_period: 30s
+    mem_limit: ${API_MEMORY_LIMIT:-768m}
+    cpus: ${API_CPU_LIMIT:-1.0}
+    logging: *bounded-logging
+    networks:
+      - tallysync_internal
+
+  nginx:
+    image: nginx:1.31-alpine
+    restart: unless-stopped
+    init: true
+    depends_on:
+      api-a:
+        condition: service_healthy
+      api-b:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-3000}:8080"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:8080/lb-health >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+    stop_grace_period: 10s
+    mem_limit: ${NGINX_MEMORY_LIMIT:-128m}
+    cpus: ${NGINX_CPU_LIMIT:-0.5}
+    logging: *bounded-logging
     networks:
       - tallysync_internal
 

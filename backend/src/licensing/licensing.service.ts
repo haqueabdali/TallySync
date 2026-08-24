@@ -779,7 +779,14 @@ export class LicensingService {
     activeActivations: number;
     maxConcurrentUsers: number | null;
   }> {
-    const license = await this.findOne(id);
+    // Usage is a hot read path. Do not call findOne() here because that method
+    // intentionally loads company, feature and activation relations for the
+    // management UI. Usage only needs the persisted license row plus counts.
+    const license = await this.licenseRepository.findOne({
+      where: { id, deletedAt: IsNull() },
+    });
+    if (!license) throw new NotFoundException('License not found');
+
     const [activeUsers, activeActivations] = await Promise.all([
       this.userRepository.count({
         where: {
@@ -841,66 +848,88 @@ export class LicensingService {
   }> {
     const warning7Cutoff = new Date(Date.now() + 7 * 86_400_000);
     const warning30Cutoff = new Date(Date.now() + 30 * 86_400_000);
-    const [
-      total,
-      active,
-      suspended,
-      revoked,
-      expiredByDate,
-      expiringWithin7Days,
-      expiringWithin30Days,
-      warningLicenses,
-    ] = await Promise.all([
-      this.licenseRepository.count({ where: { deletedAt: IsNull() } }),
-      this.licenseRepository.count({
-        where: { status: LicenseStatus.ACTIVE, deletedAt: IsNull() },
-      }),
-      this.licenseRepository.count({
-        where: { status: LicenseStatus.SUSPENDED, deletedAt: IsNull() },
-      }),
-      this.licenseRepository.count({
-        where: { status: LicenseStatus.REVOKED, deletedAt: IsNull() },
-      }),
-      this.licenseRepository
-        .createQueryBuilder('license')
-        .where('license.deleted_at IS NULL')
-        .andWhere('license.expires_at IS NOT NULL')
-        .andWhere('license.expires_at <= NOW()')
-        .getCount(),
-      this.licenseRepository
-        .createQueryBuilder('license')
-        .where('license.deleted_at IS NULL')
-        .andWhere('license.expires_at IS NOT NULL')
-        .andWhere('license.expires_at > NOW()')
-        .andWhere('license.expires_at <= :warning7Cutoff', { warning7Cutoff })
-        .andWhere('license.status != :revokedStatus', {
-          revokedStatus: LicenseStatus.REVOKED,
-        })
-        .getCount(),
-      this.licenseRepository
-        .createQueryBuilder('license')
-        .where('license.deleted_at IS NULL')
-        .andWhere('license.expires_at IS NOT NULL')
-        .andWhere('license.expires_at > NOW()')
-        .andWhere('license.expires_at <= :warning30Cutoff', { warning30Cutoff })
-        .andWhere('license.status != :revokedStatus', {
-          revokedStatus: LicenseStatus.REVOKED,
-        })
-        .getCount(),
-      this.licenseRepository
-        .createQueryBuilder('license')
-        .leftJoinAndSelect('license.company', 'company')
-        .where('license.deleted_at IS NULL')
-        .andWhere('license.expires_at IS NOT NULL')
-        .andWhere('license.expires_at > NOW()')
-        .andWhere('license.expires_at <= :warning30Cutoff', { warning30Cutoff })
-        .andWhere('license.status != :revokedStatus', {
-          revokedStatus: LicenseStatus.REVOKED,
-        })
-        .orderBy('license.expiresAt', 'ASC')
-        .take(25)
-        .getMany(),
+
+    // PostgreSQL can calculate all dashboard counters in one scan. The
+    // previous implementation issued seven independent COUNT queries.
+    const aggregateQb = this.licenseRepository
+      .createQueryBuilder('license')
+      .select('COUNT(*)', 'total')
+      .addSelect(
+        'COUNT(*) FILTER (WHERE license.status = :activeStatus)',
+        'active',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE license.status = :suspendedStatus)',
+        'suspended',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE license.status = :revokedStatus)',
+        'revoked',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE license.expires_at IS NOT NULL AND license.expires_at <= NOW())',
+        'expiredByDate',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (
+          WHERE license.expires_at IS NOT NULL
+            AND license.expires_at > NOW()
+            AND license.expires_at <= :warning7Cutoff
+            AND license.status != :revokedStatus
+        )`,
+        'expiringWithin7Days',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (
+          WHERE license.expires_at IS NOT NULL
+            AND license.expires_at > NOW()
+            AND license.expires_at <= :warning30Cutoff
+            AND license.status != :revokedStatus
+        )`,
+        'expiringWithin30Days',
+      )
+      .where('license.deleted_at IS NULL')
+      .setParameters({
+        activeStatus: LicenseStatus.ACTIVE,
+        suspendedStatus: LicenseStatus.SUSPENDED,
+        revokedStatus: LicenseStatus.REVOKED,
+        warning7Cutoff,
+        warning30Cutoff,
+      });
+
+    const warningQb = this.licenseRepository
+      .createQueryBuilder('license')
+      .leftJoinAndSelect('license.company', 'company')
+      .where('license.deleted_at IS NULL')
+      .andWhere('license.expires_at IS NOT NULL')
+      .andWhere('license.expires_at > NOW()')
+      .andWhere('license.expires_at <= :warning30Cutoff', { warning30Cutoff })
+      .andWhere('license.status != :revokedStatus', {
+        revokedStatus: LicenseStatus.REVOKED,
+      })
+      .orderBy('license.expiresAt', 'ASC')
+      .take(25);
+
+    const [rawCounts, warningLicenses] = await Promise.all([
+      aggregateQb.getRawOne<{
+        total: string;
+        active: string;
+        suspended: string;
+        revoked: string;
+        expiredByDate: string;
+        expiringWithin7Days: string;
+        expiringWithin30Days: string;
+      }>(),
+      warningQb.getMany(),
     ]);
+
+    const total = Number(rawCounts?.total ?? 0);
+    const active = Number(rawCounts?.active ?? 0);
+    const suspended = Number(rawCounts?.suspended ?? 0);
+    const revoked = Number(rawCounts?.revoked ?? 0);
+    const expiredByDate = Number(rawCounts?.expiredByDate ?? 0);
+    const expiringWithin7Days = Number(rawCounts?.expiringWithin7Days ?? 0);
+    const expiringWithin30Days = Number(rawCounts?.expiringWithin30Days ?? 0);
 
     const now = Date.now();
     const expirationWarnings = warningLicenses.map((license) => ({

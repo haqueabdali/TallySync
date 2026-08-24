@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-08-21T10:58:11.235Z",
+  "profile": "platform",
+  "baseUrl": "http://127.0.0.1:3000",
+  "durationSeconds": 10.003,
+  "concurrency": 2,
+  "thresholds": {
+    "maxErrorRate": 0.01,
+    "maxP95Ms": 1500
+  },
+  "summary": {
+    "requests": 1143,
+    "successful": 1143,
+    "throttled": 0,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 114.27,
+    "latencyMs": {
+      "min": 8.42,
+      "mean": 17.32,
+      "p50": 13.21,
+      "p95": 41.75,
+      "p99": 50.71,
+      "max": 85.6
+    },
+    "statuses": {
+      "200": 1143
+    }
+  },
+  "byRequest": {
+    "platform.dashboard": {
+      "requests": 762,
+      "successful": 762,
+      "throttled": 0,
+      "failed": 0,
+      "errorRate": 0,
+      "requestsPerSecond": 76.18,
+      "latencyMs": {
+        "min": 8.42,
+        "mean": 15.69,
+        "p50": 11.42,
+        "p95": 37.64,
+        "p99": 47.2,
+        "max": 85.6
+      },
+      "statuses": {
+        "200": 762
+      }
+    },
+    "platform.licenseUsage": {
+      "requests": 381,
+      "successful": 381,
+      "throttled": 0,
+      "failed": 0,
+      "errorRate": 0,
+      "requestsPerSecond": 38.09,
+      "latencyMs": {
+        "min": 11.43,
+        "mean": 20.58,
+        "p50": 15.4,
+        "p95": 46.64,
+        "p99": 57.65,
+        "max": 75.95
+      },
+      "statuses": {
+        "200": 381
+      }
+    }
+  },
+  "errors": {
+    "count": 0,
+    "errors": {}
+  },
+  "errorsByRequest": {},
+  "thresholdResult": {
+    "passed": true,
+    "failures": []
+  }
+}

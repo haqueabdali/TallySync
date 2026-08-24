@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-08-23T15:03:42.327Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "composeFile": "docker-compose.production.yml",
+  "targetService": "api-a",
+  "steps": [
+    {
+      "name": "load balancer health before failure",
+      "status": "PASS"
+    },
+    {
+      "name": "application readiness before failure",
+      "status": "PASS"
+    },
+    {
+      "name": "docker compose stop api-a",
+      "status": "PASS"
+    },
+    {
+      "name": "load balancer remains healthy with one replica down",
+      "status": "PASS"
+    },
+    {
+      "name": "application remains ready with one replica down",
+      "status": "PASS"
+    },
+    {
+      "name": "docker compose start api-a",
+      "status": "PASS"
+    },
+    {
+      "name": "authenticated platform traffic after recovery",
+      "status": "PASS",
+      "detail": "Skipped because MULTI_INSTANCE_EMAIL/PASSWORD were not set."
+    },
+    {
+      "name": "failure recovery verification",
+      "status": "PASS",
+      "detail": "api-a stopped; api-b continued serving; api-a rejoined successfully."
+    }
+  ],
+  "upstreamsBefore": [
+    "172.19.0.3:3000, 172.19.0.4:3000",
+    "172.19.0.4:3000"
+  ],
+  "upstreamsDuringFailure": [
+    "172.19.0.4:3000"
+  ],
+  "upstreamsAfterRecovery": [
+    "172.19.0.3:3000",
+    "172.19.0.4:3000"
+  ],
+  "passed": true
+}

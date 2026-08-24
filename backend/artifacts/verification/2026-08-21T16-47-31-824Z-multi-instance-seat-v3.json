@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-08-21T16:47:31.823Z",
+  "instanceA": "http://127.0.0.1:3200",
+  "instanceB": "http://127.0.0.1:3201",
+  "companyId": "71fb386e-c326-422e-8864-24930e06d80f",
+  "licenseId": "d89d55a0-c7f3-466c-a086-6a5a04c97fd9",
+  "licenseNumber": "TS-20260821-D78E577A1465",
+  "expectedMaxConcurrentUsers": 1,
+  "users": [
+    {
+      "side": "A",
+      "id": "8799c5c1-1925-476c-afbc-72dba403b4a8",
+      "email": "user1@gmail.com"
+    },
+    {
+      "side": "B",
+      "id": "d4fdb464-7fab-42b5-85d3-870c981d5779",
+      "email": "user2@gmail.com"
+    }
+  ],
+  "preRaceConcurrentUsers": 0,
+  "race": [
+    {
+      "side": "A",
+      "email": "user1@gmail.com",
+      "status": 403,
+      "durationMs": 530.86,
+      "body": {
+        "statusCode": 403,
+        "error": "Forbidden",
+        "message": "Concurrent user limit reached (1/1)",
+        "path": "/api/v1/auth/login",
+        "timestamp": "2026-08-21T16:47:31.793Z",
+        "requestId": "df7940c0-0544-46f9-b0f0-0ee3d0ea45af"
+      }
+    },
+    {
+      "side": "B",
+      "email": "user2@gmail.com",
+      "status": 200,
+      "durationMs": 531.04,
+      "body": {
+        "accessToken": "[REDACTED]",
+        "refreshToken": "[REDACTED]",
+        "expiresIn": 900,
+        "tokenType": "Bearer",
+        "user": {
+          "id": "d4fdb464-7fab-42b5-85d3-870c981d5779",
+          "fullName": "user2",
+          "email": "user2@gmail.com",
+          "role": "sales_rep",
+          "companyId": "71fb386e-c326-422e-8864-24930e06d80f"
+        }
+      }
+    }
+  ],
+  "postRaceConcurrentUsers": 1,
+  "cleanupConcurrentUsers": 0,
+  "passed": true,
+  "notes": [
+    "Database=tallysync_db, user=postgres",
+    "Exactly one of two simultaneous distinct-user logins obtained the final seat.",
+    "The losing instance returned HTTP 403.",
+    "PostgreSQL reported exactly one distinct concurrent user after the race.",
+    "The winning test session was logged out and the company returned to zero concurrent users."
+  ]
+}

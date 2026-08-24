@@ -24,6 +24,8 @@ import { PlatformAdminGuard } from '../src/licensing/guards/platform-admin.guard
 import { LicenseSessionService } from '../src/licensing/license-session.service';
 import { PlatformCompaniesController } from '../src/platform-admin/platform-companies.controller';
 import { PlatformCompaniesService } from '../src/platform-admin/platform-companies.service';
+import { ApplicationLifecycleService } from '../src/health/application-lifecycle.service';
+
 
 describe('Bootstrap Smoke', () => {
   let app: INestApplication | undefined;
@@ -44,6 +46,7 @@ describe('Bootstrap Smoke', () => {
       controllers: [HealthController],
       providers: [
         HealthService,
+        ApplicationLifecycleService,
         {
           provide: DataSource,
           useValue: dataSource,

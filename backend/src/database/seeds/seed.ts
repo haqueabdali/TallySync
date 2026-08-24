@@ -85,11 +85,16 @@ async function seedRoles(
   return roles;
 }
 
-async function seedCompany(dataSource: DataSource): Promise<CompanyEntity> {
-  const companyRepository = dataSource.getRepository(CompanyEntity);
+async function seedCompany(
+  dataSource: DataSource,
+): Promise<CompanyEntity> {
+  const companyRepository =
+    dataSource.getRepository(CompanyEntity);
 
   const companyName =
-    process.env.SEED_COMPANY_NAME?.trim() || DEFAULT_COMPANY_NAME;
+    process.env.SEED_COMPANY_NAME?.trim() ||
+    DEFAULT_COMPANY_NAME;
+
   const tallyCompanyName =
     process.env.SEED_TALLY_COMPANY_NAME?.trim() ||
     DEFAULT_TALLY_COMPANY_NAME;
@@ -139,28 +144,64 @@ async function seedCompany(dataSource: DataSource): Promise<CompanyEntity> {
   return company;
 }
 
+function resolveAdminPassword(
+  requiresPassword: boolean,
+): string {
+  const configured =
+    process.env.SEED_ADMIN_PASSWORD;
+
+  if (configured) {
+    return configured;
+  }
+
+  if (
+    process.env.NODE_ENV === 'production' &&
+    requiresPassword
+  ) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD is required in production when creating or resetting the seed administrator.',
+    );
+  }
+
+  return DEFAULT_ADMIN_PASSWORD;
+}
+
 async function seedAdmin(
   dataSource: DataSource,
   adminRole: RoleEntity,
   company: CompanyEntity,
 ): Promise<UserEntity> {
-  const userRepository = dataSource.getRepository(UserEntity);
+  const userRepository =
+    dataSource.getRepository(UserEntity);
 
   const email = (
-    process.env.SEED_ADMIN_EMAIL?.trim() || DEFAULT_ADMIN_EMAIL
+    process.env.SEED_ADMIN_EMAIL?.trim() ||
+    DEFAULT_ADMIN_EMAIL
   ).toLowerCase();
-  const password =
-    process.env.SEED_ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+
   const fullName =
-    process.env.SEED_ADMIN_NAME?.trim() || DEFAULT_ADMIN_NAME;
+    process.env.SEED_ADMIN_NAME?.trim() ||
+    DEFAULT_ADMIN_NAME;
 
   let admin = await userRepository.findOne({
     where: { email },
     withDeleted: true,
   });
 
+  const shouldResetPassword =
+    process.env.SEED_RESET_ADMIN_PASSWORD === 'true';
+
+  const requiresPassword =
+    !admin || shouldResetPassword;
+
+  const password =
+    resolveAdminPassword(requiresPassword);
+
   if (!admin) {
-    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const passwordHash = await bcrypt.hash(
+      password,
+      BCRYPT_ROUNDS,
+    );
 
     admin = userRepository.create({
       companyId: company.id,
@@ -176,7 +217,9 @@ async function seedAdmin(
     });
 
     admin = await userRepository.save(admin);
-    console.log(`Created administrator: ${admin.email}`);
+    console.log(
+      `Created administrator: ${admin.email}`,
+    );
     return admin;
   }
 
@@ -208,16 +251,23 @@ async function seedAdmin(
     changed = true;
   }
 
-  if (process.env.SEED_RESET_ADMIN_PASSWORD === 'true') {
-    admin.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  if (shouldResetPassword) {
+    admin.passwordHash = await bcrypt.hash(
+      password,
+      BCRYPT_ROUNDS,
+    );
     changed = true;
   }
 
   if (changed) {
     admin = await userRepository.save(admin);
-    console.log(`Updated administrator: ${admin.email}`);
+    console.log(
+      `Updated administrator: ${admin.email}`,
+    );
   } else {
-    console.log(`Administrator already exists: ${admin.email}`);
+    console.log(
+      `Administrator already exists: ${admin.email}`,
+    );
   }
 
   return admin;
@@ -232,41 +282,67 @@ async function runSeed(): Promise<void> {
       initializedHere = true;
     }
 
-    await AppDataSource.transaction(async (transactionManager) => {
-      const transactionDataSource = transactionManager.connection;
+    await AppDataSource.transaction(
+      async (transactionManager) => {
+        const transactionDataSource =
+          transactionManager.connection;
 
-      const roles = await seedRoles(transactionDataSource);
-      const adminRole = roles.get('admin');
+        const roles =
+          await seedRoles(transactionDataSource);
 
-      if (!adminRole) {
-        throw new Error('Admin role could not be created or loaded');
-      }
+        const adminRole =
+          roles.get('admin');
 
-      const company = await seedCompany(transactionDataSource);
-      await seedAdmin(transactionDataSource, adminRole, company);
-    });
+        if (!adminRole) {
+          throw new Error(
+            'Admin role could not be created or loaded',
+          );
+        }
 
-    console.log('Database seed completed successfully.');
+        const company =
+          await seedCompany(transactionDataSource);
+
+        await seedAdmin(
+          transactionDataSource,
+          adminRole,
+          company,
+        );
+      },
+    );
+
+    console.log(
+      'Database seed completed successfully.',
+    );
+
     console.log(
       `Admin login: ${
-        process.env.SEED_ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL
+        process.env.SEED_ADMIN_EMAIL ||
+        DEFAULT_ADMIN_EMAIL
       }`,
     );
 
-    if (!process.env.SEED_ADMIN_PASSWORD) {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      !process.env.SEED_ADMIN_PASSWORD
+    ) {
       console.warn(
         'Development password is Admin@123. Change it immediately after login.',
       );
     }
   } catch (error: unknown) {
     const message =
-      error instanceof Error ? error.stack ?? error.message : String(error);
+      error instanceof Error
+        ? error.stack ?? error.message
+        : String(error);
 
     console.error('Database seed failed:');
     console.error(message);
     process.exitCode = 1;
   } finally {
-    if (initializedHere && AppDataSource.isInitialized) {
+    if (
+      initializedHere &&
+      AppDataSource.isInitialized
+    ) {
       await AppDataSource.destroy();
     }
   }

@@ -1,0 +1,88 @@
+groups:
+  - name: tallysync-availability
+    rules:
+      - alert: TallySyncReadinessDown
+        expr: probe_success{job="tallysync-ready"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: TallySync readiness endpoint is down
+          description: The load-balanced /health/ready probe has failed for more than 1 minute.
+
+      - alert: TallySyncLivenessDown
+        expr: probe_success{job="tallysync-live"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: TallySync liveness endpoint is down
+          description: The load-balanced /health/live probe has failed for more than 1 minute.
+
+      - alert: TallySyncLoadBalancerDown
+        expr: probe_success{job="tallysync-load-balancer"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: TallySync Nginx load balancer is unreachable
+          description: /lb-health has been unreachable for more than 30 seconds.
+
+  - name: tallysync-postgres
+    rules:
+      - alert: PostgreSQLExporterDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL exporter is down
+          description: Prometheus cannot scrape postgres-exporter.
+
+      - alert: PostgreSQLConnectionPressure
+        expr: |
+          (
+            sum(pg_stat_activity_count)
+            /
+            scalar(pg_settings_max_connections)
+          ) > 0.75
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL connection usage is above 75%
+          description: Review API pool size, replica count and non-application connections.
+
+      - alert: PostgreSQLConnectionCritical
+        expr: |
+          (
+            sum(pg_stat_activity_count)
+            /
+            scalar(pg_settings_max_connections)
+          ) > 0.90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL connection usage is above 90%
+          description: Database connection exhaustion is imminent.
+
+  - name: tallysync-nginx
+    rules:
+      - alert: NginxExporterDown
+        expr: up{job="nginx"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Nginx exporter is down
+          description: Prometheus cannot scrape Nginx metrics.
+
+      - alert: NginxNoActiveConnections
+        expr: nginx_connections_active < 1
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: Nginx has no active connections
+          description: Informational only; verify expected traffic level before investigating.

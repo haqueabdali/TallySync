@@ -1,0 +1,14 @@
+
+# Add this location INSIDE the existing `server { ... }` block in:
+# E:\TallySync\backend\infra\nginx\nginx.conf
+#
+# It exposes only basic Nginx counters on the internal Docker network.
+# Do not publish this location as a separate host port.
+
+    location = /nginx_status {
+      access_log off;
+      stub_status;
+      allow 127.0.0.1;
+      allow 172.16.0.0/12;
+      deny all;
+    }

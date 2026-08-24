@@ -76,6 +76,7 @@ import { AdvancedReportingModule } from './advanced-reporting/advanced-reporting
 import { CostingVarianceModule } from './costing-variance/costing-variance.module';
 import { LicensingModule } from './licensing/licensing.module';
 import { PlatformAdminModule } from './platform-admin/platform-admin.module';
+import { createDatabaseOptions } from './database/config/database-options';
 
 @Module({
   imports: [
@@ -87,33 +88,7 @@ import { PlatformAdminModule } from './platform-admin/platform-admin.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres' as const,
-
-        host: configService.get<string>('DATABASE_HOST', 'localhost'),
-
-        port: configService.get<number>('DATABASE_PORT', 5432),
-
-        username: configService.get<string>('DATABASE_USER', 'postgres'),
-
-        password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
-
-        database: configService.get<string>('DATABASE_NAME', 'tallysync_db'),
-
-        autoLoadEntities: true,
-
-        synchronize: false,
-        //configService.get<string>('NODE_ENV') !== 'production',
-
-        logging: configService.get<string>('NODE_ENV') === 'development',
-
-        ssl:
-          configService.get<string>('DATABASE_SSL') === 'true'
-            ? {
-                rejectUnauthorized: false,
-              }
-            : false,
-      }),
+      useFactory: createDatabaseOptions,
     }),
 
     ThrottlerModule.forRoot({

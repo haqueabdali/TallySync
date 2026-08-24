@@ -13,7 +13,7 @@ function createService() {
     save: jest.fn(async (value) => value),
   };
   const featureRepository = {};
-  const activationRepository = {};
+  const activationRepository = { count: jest.fn() };
   const auditRepository = {
     createQueryBuilder: jest.fn(),
     create: jest.fn((value) => value),
@@ -36,6 +36,7 @@ function createService() {
     licenseRepository,
     userRepository,
     auditRepository,
+    activationRepository,
   };
 }
 
@@ -165,22 +166,24 @@ describe('LicensingService', () => {
     expect(result.data[0].actor?.email).toBe('owner@tallysync.com');
   });
 
-  it('returns upcoming expiration warnings on the platform dashboard', async () => {
+  it('returns upcoming expiration warnings on the platform dashboard with one aggregate count query', async () => {
     const { service, licenseRepository } = createService();
-    licenseRepository.count
-      .mockResolvedValueOnce(3)
-      .mockResolvedValueOnce(2)
-      .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(1);
 
-    const countQb = (value: number) => ({
+    const aggregateQb = {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getCount: jest.fn().mockResolvedValue(value),
-    });
-    const expiredQb = countQb(0);
-    const sevenDayQb = countQb(1);
-    const thirtyDayQb = countQb(2);
+      setParameters: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue({
+        total: '3',
+        active: '2',
+        suspended: '0',
+        revoked: '1',
+        expiredByDate: '0',
+        expiringWithin7Days: '1',
+        expiringWithin30Days: '2',
+      }),
+    };
     const warningQb = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -198,13 +201,14 @@ describe('LicensingService', () => {
       ]),
     };
     licenseRepository.createQueryBuilder
-      .mockReturnValueOnce(expiredQb)
-      .mockReturnValueOnce(sevenDayQb)
-      .mockReturnValueOnce(thirtyDayQb)
+      .mockReturnValueOnce(aggregateQb)
       .mockReturnValueOnce(warningQb);
 
     const result = await service.dashboard();
 
+    expect(result.total).toBe(3);
+    expect(result.active).toBe(2);
+    expect(result.revoked).toBe(1);
     expect(result.expiringWithin7Days).toBe(1);
     expect(result.expiringWithin30Days).toBe(2);
     expect(result.expirationWarnings).toHaveLength(1);
@@ -215,8 +219,31 @@ describe('LicensingService', () => {
         licenseNumber: 'TS-WARN-1',
       }),
     );
+    expect(aggregateQb.getRawOne).toHaveBeenCalledTimes(1);
     expect(warningQb.orderBy).toHaveBeenCalledWith('license.expiresAt', 'ASC');
   });
+
+  it('uses a lightweight license lookup for platform usage metrics', async () => {
+    const { service, licenseRepository, userRepository, activationRepository } =
+      createService();
+    licenseRepository.findOne.mockResolvedValue(
+      activeLicense({ company: undefined, features: undefined, activations: undefined }),
+    );
+    userRepository.count.mockResolvedValue(12);
+    activationRepository.count.mockResolvedValue(3);
+
+    const result = await service.usage('license-1');
+
+    expect(result.activeUsers).toBe(12);
+    expect(result.activeActivations).toBe(3);
+    expect(licenseRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'license-1', deletedAt: expect.anything() },
+    });
+    expect(licenseRepository.findOne.mock.calls[0][0]).not.toHaveProperty(
+      'relations',
+    );
+  });
+
 
   it('renews a license, invalidates its certificate and records audit metadata', async () => {
     const { service, licenseRepository, auditRepository } = createService();

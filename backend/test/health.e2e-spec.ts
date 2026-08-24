@@ -10,6 +10,7 @@ import { DataSource } from 'typeorm';
 
 import { HealthController } from '../src/health/health.controller';
 import { HealthService } from '../src/health/health.service';
+import { ApplicationLifecycleService } from '../src/health/application-lifecycle.service';
 
 describe('Health E2E', () => {
   let app: INestApplication;
@@ -29,6 +30,7 @@ describe('Health E2E', () => {
         ],
         providers: [
           HealthService,
+          ApplicationLifecycleService,
           {
             provide: DataSource,
             useValue: dataSource,
@@ -43,8 +45,10 @@ describe('Health E2E', () => {
   });
 
   afterEach(async () => {
+  if (app) {
     await app.close();
-  });
+  }
+});
 
   it('GET /health/live returns 200', async () => {
     const response =

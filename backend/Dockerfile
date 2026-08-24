@@ -34,15 +34,21 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./package.json
 
+# Production-safe runtime bootstrap helpers.
+COPY --from=build \
+  /app/scripts/licensing/create-platform-admin.runtime.js \
+  /app/scripts/licensing/create-platform-admin.runtime.js
+
 USER tallysync
 
 EXPOSE 3000
 
 HEALTHCHECK \
-  --interval=30s \
+  --interval=15s \
   --timeout=5s \
   --start-period=20s \
   --retries=3 \
   CMD wget -q -O - http://127.0.0.1:3000/health/ready >/dev/null 2>&1 || exit 1
 
-CMD ["node", "dist/main.js"]
+# nest-cli.json uses sourceRoot=src, therefore this project compiles to dist/src/main.js.
+CMD ["node", "dist/src/main.js"]

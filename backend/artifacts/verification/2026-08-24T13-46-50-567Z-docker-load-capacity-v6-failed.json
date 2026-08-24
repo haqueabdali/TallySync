@@ -1,0 +1,7 @@
+{
+  "generatedAt": "2026-08-24T13:46:50.568Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "targetService": "api-a",
+  "error": "Degraded phase expected exactly one upstream; observed 172.19.0.3:3000, 172.19.0.4:3000, 172.19.0.3:3000.",
+  "passed": false
+}

@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-08-21T15:48:29.317Z",
+  "instanceA": "http://127.0.0.1:3200",
+  "instanceB": "http://127.0.0.1:3201",
+  "expectedMaxConcurrentUsers": 1,
+  "users": [],
+  "race": [],
+  "passed": false,
+  "notes": [
+    "Database=tallysync_e2e_test, user=postgres"
+  ]
+}

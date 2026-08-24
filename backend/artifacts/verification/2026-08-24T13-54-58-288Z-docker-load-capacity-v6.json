@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-08-24T13:54:58.287Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "targetService": "api-a",
+  "baseline": {
+    "label": "baseline-two-replicas",
+    "requests": 8168,
+    "successful": 8168,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 544.3881631564916,
+    "p50Ms": 8.61,
+    "p95Ms": 13.49,
+    "p99Ms": 18.41,
+    "upstreams": [
+      "172.19.0.3:3000",
+      "172.19.0.4:3000"
+    ]
+  },
+  "degraded": {
+    "label": "degraded-one-replica",
+    "requests": 5625,
+    "successful": 5625,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 374.8001066098081,
+    "p50Ms": 10.12,
+    "p95Ms": 15.25,
+    "p99Ms": 18.43,
+    "upstreams": [
+      "172.19.0.3:3000"
+    ]
+  },
+  "recovered": {
+    "label": "recovered-two-replicas",
+    "requests": 6901,
+    "successful": 6901,
+    "failed": 0,
+    "errorRate": 0,
+    "requestsPerSecond": 459.8214285714286,
+    "p50Ms": 10.11,
+    "p95Ms": 17.06,
+    "p99Ms": 22.36,
+    "upstreams": [
+      "172.19.0.3:3000",
+      "172.19.0.4:3000"
+    ]
+  },
+  "degradedRpsRatio": 0.6885,
+  "degradedP95Ratio": 1.1305,
+  "passed": true,
+  "notes": [
+    "Baseline load completed through Nginx with two replicas.",
+    "Degraded load completed with api-a stopped.",
+    "Nginx retry chains are normalized to the final successful upstream address.",
+    "api-a rejoined the pool and recovery load completed."
+  ]
+}

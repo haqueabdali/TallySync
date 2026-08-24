@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-08-21T15:02:47.485Z",
+  "instanceA": "http://127.0.0.1:3100",
+  "instanceB": "http://127.0.0.1:3101",
+  "protectedPath": "/api/v1/platform/licenses/dashboard",
+  "spawnedInstances": true,
+  "appInstanceCount": 2,
+  "steps": [],
+  "passed": false
+}

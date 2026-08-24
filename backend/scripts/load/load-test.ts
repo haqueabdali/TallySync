@@ -364,6 +364,13 @@ async function buildRequestFactory(
     { headers: { authorization: `Bearer ${token}`, 'user-agent': 'TallySync-LoadTest/1.0' } },
   );
   const licenseId = process.env.LOAD_LICENSE_ID?.trim();
+  if (licenseId) {
+    await assertHttpOk(
+      'platform.licenseUsage',
+      `${baseUrl}/api/v1/platform/licenses/${encodeURIComponent(licenseId)}/usage`,
+      { headers: { authorization: `Bearer ${token}`, 'user-agent': 'TallySync-LoadTest/1.0' } },
+    );
+  }
   let counter = 0;
   return () => {
     counter += 1;

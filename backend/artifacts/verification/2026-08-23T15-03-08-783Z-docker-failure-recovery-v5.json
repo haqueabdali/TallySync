@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-08-23T15:03:08.782Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "composeFile": "docker-compose.production.yml",
+  "targetService": "api-a",
+  "steps": [
+    {
+      "name": "load balancer health before failure",
+      "status": "PASS"
+    },
+    {
+      "name": "application readiness before failure",
+      "status": "PASS"
+    },
+    {
+      "name": "docker compose stop api-a",
+      "status": "PASS"
+    },
+    {
+      "name": "load balancer remains healthy with one replica down",
+      "status": "PASS"
+    },
+    {
+      "name": "application remains ready with one replica down",
+      "status": "PASS"
+    },
+    {
+      "name": "failure recovery verification",
+      "status": "FAIL",
+      "detail": "Expected exactly one responding upstream while api-a is down; observed 172.19.0.3:3000, 172.19.0.4:3000, 172.19.0.4:3000."
+    }
+  ],
+  "upstreamsBefore": [
+    "172.19.0.3:3000",
+    "172.19.0.4:3000"
+  ],
+  "upstreamsDuringFailure": [
+    "172.19.0.3:3000, 172.19.0.4:3000",
+    "172.19.0.4:3000"
+  ],
+  "upstreamsAfterRecovery": [],
+  "passed": false
+}

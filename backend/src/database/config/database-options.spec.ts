@@ -70,4 +70,31 @@ describe('createDatabaseOptions', () => {
       rejectUnauthorized: false,
     });
   });
+  it('rejects a multi-instance pool configuration above the connection budget', () => {
+    const config = new ConfigService({
+      NODE_ENV: 'production',
+      DATABASE_PASSWORD: 'secure-database-password',
+      DATABASE_POOL_MAX: '20',
+      APP_INSTANCE_COUNT: '6',
+      DATABASE_CONNECTION_BUDGET: '100',
+    });
+
+    expect(() => createDatabaseOptions(config)).toThrow(
+      'Database pool budget exceeded',
+    );
+  });
+
+  it('accepts a pool configuration within the multi-instance budget', () => {
+    const config = new ConfigService({
+      NODE_ENV: 'production',
+      DATABASE_PASSWORD: 'secure-database-password',
+      DATABASE_POOL_MAX: '15',
+      APP_INSTANCE_COUNT: '4',
+      DATABASE_CONNECTION_BUDGET: '80',
+    });
+
+    const options = createDatabaseOptions(config);
+    expect((options.extra as { max: number }).max).toBe(15);
+  });
+
 });

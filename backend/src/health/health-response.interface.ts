@@ -4,4 +4,5 @@ export interface HealthCheckResponse {
   timestamp: string;
   uptimeSeconds: number;
   database?: 'up' | 'down';
+  lifecycle?: 'ready' | 'draining';
 }

@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-08-23T14:35:02.760Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "composeFile": "docker-compose.production.yml",
+  "targetService": "api-a",
+  "steps": [
+    {
+      "name": "failure recovery verification",
+      "status": "FAIL",
+      "detail": "load balancer health before failure: expected HTTP 200, received 404"
+    }
+  ],
+  "upstreamsBefore": [],
+  "upstreamsDuringFailure": [],
+  "upstreamsAfterRecovery": [],
+  "passed": false
+}

@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-08-21T15:15:03.869Z",
+  "instanceA": "http://127.0.0.1:3100",
+  "instanceB": "http://127.0.0.1:3101",
+  "protectedPath": "/api/v1/platform/licenses/dashboard",
+  "spawnedInstances": true,
+  "appInstanceCount": 2,
+  "compiledAppPath": "E:\\TallySync\\backend\\dist\\src\\main.js",
+  "steps": [
+    {
+      "name": "instance A readiness",
+      "instance": "A",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 3125
+    },
+    {
+      "name": "instance B readiness",
+      "instance": "B",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 3125
+    },
+    {
+      "name": "login on A",
+      "instance": "A",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 293.13
+    },
+    {
+      "name": "A-issued access token accepted by B",
+      "instance": "B",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 32.69
+    },
+    {
+      "name": "refresh token rotated on B",
+      "instance": "B",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 54.04
+    },
+    {
+      "name": "B-rotated access token accepted by A",
+      "instance": "A",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 17.12
+    },
+    {
+      "name": "session logout on A",
+      "instance": "A",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 26.1
+    },
+    {
+      "name": "revoked A session rejected immediately by B",
+      "instance": "B",
+      "status": "PASS",
+      "httpStatus": 401,
+      "durationMs": 5.69
+    },
+    {
+      "name": "instance B remains ready",
+      "instance": "B",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 2.99
+    },
+    {
+      "name": "instance A remains ready",
+      "instance": "A",
+      "status": "PASS",
+      "httpStatus": 200,
+      "durationMs": 3.81
+    }
+  ],
+  "passed": true
+}

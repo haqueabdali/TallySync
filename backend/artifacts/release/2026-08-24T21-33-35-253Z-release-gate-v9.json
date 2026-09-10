@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-08-24T21:33:35.254Z",
+  "startedAt": "2026-08-24T21:33:35.248Z",
+  "branch": "feature/mobile-order-production",
+  "commit": "079ff3bd1ef69dcb24ed28fc384bbe18d0e50cd7",
+  "dirty": true,
+  "results": [
+    {
+      "name": "build",
+      "passed": false,
+      "durationMs": 2,
+      "exitCode": null,
+      "error": "spawnSync npm.cmd EINVAL"
+    }
+  ],
+  "passed": false
+}

@@ -5,12 +5,16 @@ import {
   IsDateString,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   ValidateNested,
 } from 'class-validator';
 
 export class PreviewSalesVoucherItemDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   godownName?: string;
 
   @IsString()

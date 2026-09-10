@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -42,35 +39,28 @@ interface RawQualityTotals {
 export class AdvancedReportingService {
   constructor(
     @InjectRepository(ProductionScheduleEntity)
-    private readonly scheduleRepository:
-      Repository<ProductionScheduleEntity>,
+    private readonly scheduleRepository: Repository<ProductionScheduleEntity>,
 
     @InjectRepository(QualityInspectionEntity)
-    private readonly qualityRepository:
-      Repository<QualityInspectionEntity>,
+    private readonly qualityRepository: Repository<QualityInspectionEntity>,
 
     @InjectRepository(MaintenanceAssetEntity)
-    private readonly maintenanceAssetRepository:
-      Repository<MaintenanceAssetEntity>,
+    private readonly maintenanceAssetRepository: Repository<MaintenanceAssetEntity>,
 
     @InjectRepository(MaintenanceWorkOrderEntity)
-    private readonly maintenanceWorkOrderRepository:
-      Repository<MaintenanceWorkOrderEntity>,
+    private readonly maintenanceWorkOrderRepository: Repository<MaintenanceWorkOrderEntity>,
 
     @InjectRepository(MaintenanceDowntimeEntity)
-    private readonly downtimeRepository:
-      Repository<MaintenanceDowntimeEntity>,
+    private readonly downtimeRepository: Repository<MaintenanceDowntimeEntity>,
 
-    private readonly capacityPlanningService:
-      CapacityPlanningService,
+    private readonly capacityPlanningService: CapacityPlanningService,
   ) {}
 
   async getProductionPerformance(
     companyId: string,
     query: AdvancedReportQueryDto,
   ): Promise<ProductionPerformanceResponseDto> {
-    const { dateFrom, dateTo, rangeStart, rangeEnd } =
-      this.parseRange(query);
+    const { dateFrom, dateTo, rangeStart, rangeEnd } = this.parseRange(query);
 
     const qb = this.scheduleRepository
       .createQueryBuilder('schedule')
@@ -78,81 +68,49 @@ export class AdvancedReportingService {
         companyId,
       })
       .andWhere('schedule.deleted_at IS NULL')
-      .andWhere(
-        'schedule.planned_start_at < :rangeEnd',
-        { rangeEnd },
-      )
-      .andWhere(
-        'schedule.planned_end_at >= :rangeStart',
-        { rangeStart },
-      );
+      .andWhere('schedule.planned_start_at < :rangeEnd', { rangeEnd })
+      .andWhere('schedule.planned_end_at >= :rangeStart', { rangeStart });
 
     if (query.workCenterCode?.trim()) {
-      qb.andWhere(
-        'schedule.work_center_code = :workCenterCode',
-        {
-          workCenterCode:
-            query.workCenterCode.trim(),
-        },
-      );
+      qb.andWhere('schedule.work_center_code = :workCenterCode', {
+        workCenterCode: query.workCenterCode.trim(),
+      });
     }
 
     const schedules = await qb
       .orderBy('schedule.planned_start_at', 'ASC')
       .getMany();
 
-    const counts = this.countProductionStatuses(
-      schedules,
-    );
+    const counts = this.countProductionStatuses(schedules);
 
     const completedRows = schedules.filter(
-      (schedule) =>
-        schedule.status ===
-        ProductionScheduleStatus.COMPLETED,
+      (schedule) => schedule.status === ProductionScheduleStatus.COMPLETED,
     );
 
-    const completedOnTime =
-      completedRows.filter(
-        (schedule) =>
-          schedule.actualEndAt !== null &&
-          schedule.actualEndAt.getTime() <=
-            schedule.plannedEndAt.getTime(),
-      ).length;
+    const completedOnTime = completedRows.filter(
+      (schedule) =>
+        schedule.actualEndAt !== null &&
+        schedule.actualEndAt.getTime() <= schedule.plannedEndAt.getTime(),
+    ).length;
 
-    const completedLate =
-      completedRows.length - completedOnTime;
+    const completedLate = completedRows.length - completedOnTime;
 
-    const totalPlannedMinutes =
-      schedules.reduce(
-        (sum, schedule) =>
-          sum +
-          this.durationMinutes(
-            schedule.plannedStartAt,
-            schedule.plannedEndAt,
-          ),
-        0,
+    const totalPlannedMinutes = schedules.reduce(
+      (sum, schedule) =>
+        sum +
+        this.durationMinutes(schedule.plannedStartAt, schedule.plannedEndAt),
+      0,
+    );
+
+    const totalActualMinutes = completedRows.reduce((sum, schedule) => {
+      if (!schedule.actualStartAt || !schedule.actualEndAt) {
+        return sum;
+      }
+
+      return (
+        sum + this.durationMinutes(schedule.actualStartAt, schedule.actualEndAt)
       );
-
-    const totalActualMinutes =
-      completedRows.reduce(
-        (sum, schedule) => {
-          if (
-            !schedule.actualStartAt ||
-            !schedule.actualEndAt
-          ) {
-            return sum;
-          }
-
-          return (
-            sum +
-            this.durationMinutes(
-              schedule.actualStartAt,
-              schedule.actualEndAt,
-            )
-          );
-        },
-        0,
-      );
+    }, 0);
 
     return {
       dateFrom,
@@ -165,26 +123,20 @@ export class AdvancedReportingService {
       cancelled: counts.cancelled,
       completedOnTime,
       completedLate,
-      completionRatePercent:
-        this.percent(
-          counts.completed,
-          schedules.length -
-            counts.cancelled,
-        ),
-      onTimeCompletionPercent:
-        this.percent(
-          completedOnTime,
-          completedRows.length,
-        ),
+      completionRatePercent: this.percent(
+        counts.completed,
+        schedules.length - counts.cancelled,
+      ),
+      onTimeCompletionPercent: this.percent(
+        completedOnTime,
+        completedRows.length,
+      ),
       totalPlannedMinutes,
       totalActualMinutes,
       averageActualMinutes:
         completedRows.length === 0
           ? 0
-          : Math.round(
-              totalActualMinutes /
-                completedRows.length,
-            ),
+          : Math.round(totalActualMinutes / completedRows.length),
     };
   }
 
@@ -192,74 +144,46 @@ export class AdvancedReportingService {
     companyId: string,
     query: AdvancedReportQueryDto,
   ): Promise<QualityPerformanceResponseDto> {
-    const { dateFrom, dateTo } =
-      this.parseRange(query);
+    const { dateFrom, dateTo } = this.parseRange(query);
 
-    const statusRows =
-      await this.qualityRepository
-        .createQueryBuilder('inspection')
-        .select('inspection.status', 'status')
-        .addSelect('COUNT(*)', 'count')
-        .where(
-          'inspection.company_id = :companyId',
-          { companyId },
-        )
-        .andWhere(
-          'inspection.deleted_at IS NULL',
-        )
-        .andWhere(
-          'inspection.inspection_date BETWEEN :dateFrom AND :dateTo',
-          { dateFrom, dateTo },
-        )
-        .groupBy('inspection.status')
-        .getRawMany<RawCountRow>();
+    const statusRows = await this.qualityRepository
+      .createQueryBuilder('inspection')
+      .select('inspection.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .where('inspection.company_id = :companyId', { companyId })
+      .andWhere('inspection.deleted_at IS NULL')
+      .andWhere('inspection.inspection_date BETWEEN :dateFrom AND :dateTo', {
+        dateFrom,
+        dateTo,
+      })
+      .groupBy('inspection.status')
+      .getRawMany<RawCountRow>();
 
-    const totals =
-      await this.qualityRepository
-        .createQueryBuilder('inspection')
-        .select(
-          'COALESCE(SUM(inspection.inspected_quantity), 0)',
-          'inspected',
-        )
-        .addSelect(
-          'COALESCE(SUM(inspection.accepted_quantity), 0)',
-          'accepted',
-        )
-        .addSelect(
-          'COALESCE(SUM(inspection.rejected_quantity), 0)',
-          'rejected',
-        )
-        .where(
-          'inspection.company_id = :companyId',
-          { companyId },
-        )
-        .andWhere(
-          'inspection.deleted_at IS NULL',
-        )
-        .andWhere(
-          'inspection.inspection_date BETWEEN :dateFrom AND :dateTo',
-          { dateFrom, dateTo },
-        )
-        .getRawOne<RawQualityTotals>();
+    const totals = await this.qualityRepository
+      .createQueryBuilder('inspection')
+      .select('COALESCE(SUM(inspection.inspected_quantity), 0)', 'inspected')
+      .addSelect('COALESCE(SUM(inspection.accepted_quantity), 0)', 'accepted')
+      .addSelect('COALESCE(SUM(inspection.rejected_quantity), 0)', 'rejected')
+      .where('inspection.company_id = :companyId', { companyId })
+      .andWhere('inspection.deleted_at IS NULL')
+      .andWhere('inspection.inspection_date BETWEEN :dateFrom AND :dateTo', {
+        dateFrom,
+        dateTo,
+      })
+      .getRawOne<RawQualityTotals>();
 
-    const counts =
-      this.mapQualityStatusCounts(statusRows);
+    const counts = this.mapQualityStatusCounts(statusRows);
 
-    const inspected =
-      Number(totals?.inspected ?? 0);
-    const accepted =
-      Number(totals?.accepted ?? 0);
-    const rejected =
-      Number(totals?.rejected ?? 0);
+    const inspected = Number(totals?.inspected ?? 0);
+    const accepted = Number(totals?.accepted ?? 0);
+    const rejected = Number(totals?.rejected ?? 0);
 
-    const completed =
-      counts.passed + counts.failed;
+    const completed = counts.passed + counts.failed;
 
     return {
       dateFrom,
       dateTo,
-      totalInspections:
-        counts.total,
+      totalInspections: counts.total,
       passed: counts.passed,
       failed: counts.failed,
       open: counts.open,
@@ -267,16 +191,8 @@ export class AdvancedReportingService {
       inspectedQuantity: inspected,
       acceptedQuantity: accepted,
       rejectedQuantity: rejected,
-      passRatePercent:
-        this.percent(
-          counts.passed,
-          completed,
-        ),
-      rejectionRatePercent:
-        this.percent(
-          rejected,
-          inspected,
-        ),
+      passRatePercent: this.percent(counts.passed, completed),
+      rejectionRatePercent: this.percent(rejected, inspected),
     };
   }
 
@@ -284,8 +200,7 @@ export class AdvancedReportingService {
     companyId: string,
     query: AdvancedReportQueryDto,
   ): Promise<MaintenancePerformanceResponseDto> {
-    const { dateFrom, dateTo, rangeStart, rangeEnd } =
-      this.parseRange(query);
+    const { dateFrom, dateTo, rangeStart, rangeEnd } = this.parseRange(query);
 
     const [
       totalAssets,
@@ -300,23 +215,18 @@ export class AdvancedReportingService {
       this.maintenanceAssetRepository.count({
         where: {
           companyId,
-          status:
-            MaintenanceAssetStatus.ACTIVE,
+          status: MaintenanceAssetStatus.ACTIVE,
         },
       }),
       this.maintenanceAssetRepository.count({
         where: {
           companyId,
-          status:
-            MaintenanceAssetStatus.OUT_OF_SERVICE,
+          status: MaintenanceAssetStatus.OUT_OF_SERVICE,
         },
       }),
       this.maintenanceWorkOrderRepository
         .createQueryBuilder('workOrder')
-        .where(
-          'workOrder.company_id = :companyId',
-          { companyId },
-        )
+        .where('workOrder.company_id = :companyId', { companyId })
         .andWhere(
           `(
             workOrder.created_at < :rangeEnd
@@ -330,14 +240,8 @@ export class AdvancedReportingService {
         .getMany(),
       this.downtimeRepository
         .createQueryBuilder('downtime')
-        .where(
-          'downtime.company_id = :companyId',
-          { companyId },
-        )
-        .andWhere(
-          'downtime.started_at < :rangeEnd',
-          { rangeEnd },
-        )
+        .where('downtime.company_id = :companyId', { companyId })
+        .andWhere('downtime.started_at < :rangeEnd', { rangeEnd })
         .andWhere(
           `(
             downtime.ended_at IS NULL
@@ -348,80 +252,49 @@ export class AdvancedReportingService {
         .getMany(),
     ]);
 
-    const openWorkOrders =
-      workOrders.filter(
-        (order) =>
-          order.status ===
-            MaintenanceWorkOrderStatus.OPEN ||
-          order.status ===
-            MaintenanceWorkOrderStatus.SCHEDULED ||
-          order.status ===
-            MaintenanceWorkOrderStatus.IN_PROGRESS,
-      ).length;
+    const openWorkOrders = workOrders.filter(
+      (order) =>
+        order.status === MaintenanceWorkOrderStatus.OPEN ||
+        order.status === MaintenanceWorkOrderStatus.SCHEDULED ||
+        order.status === MaintenanceWorkOrderStatus.IN_PROGRESS,
+    ).length;
 
-    const completedOrders =
-      workOrders.filter(
-        (order) =>
-          order.status ===
-            MaintenanceWorkOrderStatus.COMPLETED &&
-          order.actualEndAt !== null &&
-          order.actualEndAt >= rangeStart &&
-          order.actualEndAt < rangeEnd,
-      );
+    const completedOrders = workOrders.filter(
+      (order) =>
+        order.status === MaintenanceWorkOrderStatus.COMPLETED &&
+        order.actualEndAt !== null &&
+        order.actualEndAt >= rangeStart &&
+        order.actualEndAt < rangeEnd,
+    );
 
-    const emergencyWorkOrders =
-      workOrders.filter(
-        (order) =>
-          order.type ===
-          MaintenanceWorkOrderType.EMERGENCY,
-      ).length;
+    const emergencyWorkOrders = workOrders.filter(
+      (order) => order.type === MaintenanceWorkOrderType.EMERGENCY,
+    ).length;
 
-    const maintenanceCost =
-      completedOrders.reduce(
-        (sum, order) =>
-          sum +
-          Number(order.laborCost) +
-          Number(order.partsCost),
-        0,
-      );
+    const maintenanceCost = completedOrders.reduce(
+      (sum, order) => sum + Number(order.laborCost) + Number(order.partsCost),
+      0,
+    );
 
     const now = new Date();
 
-    const downtimeMinutes =
-      downtimeLogs.reduce(
-        (sum, row) => {
-          const effectiveStart =
-            Math.max(
-              row.startedAt.getTime(),
-              rangeStart.getTime(),
-            );
-
-          const effectiveEnd =
-            Math.min(
-              (
-                row.endedAt ?? now
-              ).getTime(),
-              rangeEnd.getTime(),
-            );
-
-          if (
-            effectiveEnd <=
-            effectiveStart
-          ) {
-            return sum;
-          }
-
-          return (
-            sum +
-            Math.round(
-              (effectiveEnd -
-                effectiveStart) /
-                60_000,
-            )
-          );
-        },
-        0,
+    const downtimeMinutes = downtimeLogs.reduce((sum, row) => {
+      const effectiveStart = Math.max(
+        row.startedAt.getTime(),
+        rangeStart.getTime(),
       );
+
+      const effectiveEnd = Math.min(
+        (row.endedAt ?? now).getTime(),
+        rangeEnd.getTime(),
+      );
+
+      if (effectiveEnd <= effectiveStart) {
+        return sum;
+      }
+
+      return sum + Math.round((effectiveEnd - effectiveStart) / 60_000);
+    }, 0);
 
     return {
       dateFrom,
@@ -430,21 +303,14 @@ export class AdvancedReportingService {
       activeAssets,
       outOfServiceAssets,
       openWorkOrders,
-      completedWorkOrders:
-        completedOrders.length,
+      completedWorkOrders: completedOrders.length,
       emergencyWorkOrders,
       downtimeMinutes,
-      maintenanceCost:
-        this.roundMoney(
-          maintenanceCost,
-        ),
+      maintenanceCost: this.roundMoney(maintenanceCost),
       averageMaintenanceCost:
         completedOrders.length === 0
           ? 0
-          : this.roundMoney(
-              maintenanceCost /
-                completedOrders.length,
-            ),
+          : this.roundMoney(maintenanceCost / completedOrders.length),
     };
   }
 
@@ -454,53 +320,33 @@ export class AdvancedReportingService {
   ): Promise<ManufacturingDashboardResponseDto> {
     const range = this.parseRange(query);
 
-    const capacityQuery:
-      CapacityReportQueryDto = {
-        dateFrom: range.dateFrom,
-        dateTo: range.dateTo,
-        ...(query.workCenterCode?.trim()
-          ? {
-              workCenterCode:
-                query.workCenterCode.trim(),
-            }
-          : {}),
-      };
+    const capacityQuery: CapacityReportQueryDto = {
+      dateFrom: range.dateFrom,
+      dateTo: range.dateTo,
+      ...(query.workCenterCode?.trim()
+        ? {
+            workCenterCode: query.workCenterCode.trim(),
+          }
+        : {}),
+    };
 
-    const [
-      production,
-      capacityReport,
-      quality,
-      maintenance,
-    ] = await Promise.all([
-      this.getProductionPerformance(
-        companyId,
-        query,
-      ),
-      this.capacityPlanningService.getCapacityReport(
-        companyId,
-        capacityQuery,
-      ),
-      this.getQualityPerformance(
-        companyId,
-        query,
-      ),
-      this.getMaintenancePerformance(
-        companyId,
-        query,
-      ),
-    ]);
+    const [production, capacityReport, quality, maintenance] =
+      await Promise.all([
+        this.getProductionPerformance(companyId, query),
+        this.capacityPlanningService.getCapacityReport(
+          companyId,
+          capacityQuery,
+        ),
+        this.getQualityPerformance(companyId, query),
+        this.getMaintenancePerformance(companyId, query),
+      ]);
 
-    const capacity:
-      CapacityDashboardSummaryDto = {
-        totalCapacityMinutes:
-          capacityReport.totalCapacityMinutes,
-        totalScheduledMinutes:
-          capacityReport.totalScheduledMinutes,
-        utilizationPercent:
-          capacityReport.utilizationPercent,
-        bottleneckWorkCenters:
-          capacityReport.bottleneckWorkCenters,
-      };
+    const capacity: CapacityDashboardSummaryDto = {
+      totalCapacityMinutes: capacityReport.totalCapacityMinutes,
+      totalScheduledMinutes: capacityReport.totalScheduledMinutes,
+      utilizationPercent: capacityReport.utilizationPercent,
+      bottleneckWorkCenters: capacityReport.bottleneckWorkCenters,
+    };
 
     return {
       generatedAt: new Date(),
@@ -510,102 +356,67 @@ export class AdvancedReportingService {
       capacity,
       quality,
       maintenance,
-      alerts: this.buildAlerts(
-        production,
-        capacity,
-        quality,
-        maintenance,
-      ),
+      alerts: this.buildAlerts(production, capacity, quality, maintenance),
     };
   }
 
   private buildAlerts(
-    production:
-      ProductionPerformanceResponseDto,
-    capacity:
-      CapacityDashboardSummaryDto,
-    quality:
-      QualityPerformanceResponseDto,
-    maintenance:
-      MaintenancePerformanceResponseDto,
+    production: ProductionPerformanceResponseDto,
+    capacity: CapacityDashboardSummaryDto,
+    quality: QualityPerformanceResponseDto,
+    maintenance: MaintenancePerformanceResponseDto,
   ): ManufacturingAlertDto[] {
-    const alerts:
-      ManufacturingAlertDto[] = [];
+    const alerts: ManufacturingAlertDto[] = [];
 
-    if (
-      capacity.bottleneckWorkCenters >
-      0
-    ) {
+    if (capacity.bottleneckWorkCenters > 0) {
       alerts.push({
         severity: 'critical',
         code: 'CAPACITY_BOTTLENECK',
-        message:
-          'One or more work centers are overloaded.',
-        value:
-          capacity.bottleneckWorkCenters,
+        message: 'One or more work centers are overloaded.',
+        value: capacity.bottleneckWorkCenters,
       });
     }
 
-    if (
-      quality.rejectionRatePercent >
-      5
-    ) {
+    if (quality.rejectionRatePercent > 5) {
       alerts.push({
         severity: 'warning',
         code: 'HIGH_REJECTION_RATE',
-        message:
-          'Quality rejection rate exceeds 5%.',
-        value:
-          quality.rejectionRatePercent,
+        message: 'Quality rejection rate exceeds 5%.',
+        value: quality.rejectionRatePercent,
       });
     }
 
-    if (
-      production.completedLate > 0
-    ) {
+    if (production.completedLate > 0) {
       alerts.push({
         severity: 'warning',
         code: 'LATE_PRODUCTION',
-        message:
-          'Production schedules were completed late.',
-        value:
-          production.completedLate,
+        message: 'Production schedules were completed late.',
+        value: production.completedLate,
       });
     }
 
-    if (
-      maintenance.outOfServiceAssets >
-      0
-    ) {
+    if (maintenance.outOfServiceAssets > 0) {
       alerts.push({
         severity: 'critical',
         code: 'ASSETS_OUT_OF_SERVICE',
-        message:
-          'Maintenance assets are currently out of service.',
-        value:
-          maintenance.outOfServiceAssets,
+        message: 'Maintenance assets are currently out of service.',
+        value: maintenance.outOfServiceAssets,
       });
     }
 
-    if (
-      maintenance.openWorkOrders > 0
-    ) {
+    if (maintenance.openWorkOrders > 0) {
       alerts.push({
         severity: 'info',
         code: 'OPEN_MAINTENANCE',
-        message:
-          'Maintenance work orders remain open.',
-        value:
-          maintenance.openWorkOrders,
+        message: 'Maintenance work orders remain open.',
+        value: maintenance.openWorkOrders,
       });
     }
 
     return alerts;
   }
 
-  private countProductionStatuses(
-    rows: ProductionScheduleEntity[],
-  ): {
+  private countProductionStatuses(rows: ProductionScheduleEntity[]): {
     planned: number;
     scheduled: number;
     inProgress: number;
@@ -614,36 +425,24 @@ export class AdvancedReportingService {
   } {
     return {
       planned: rows.filter(
-        (row) =>
-          row.status ===
-          ProductionScheduleStatus.PLANNED,
+        (row) => row.status === ProductionScheduleStatus.PLANNED,
       ).length,
       scheduled: rows.filter(
-        (row) =>
-          row.status ===
-          ProductionScheduleStatus.SCHEDULED,
+        (row) => row.status === ProductionScheduleStatus.SCHEDULED,
       ).length,
       inProgress: rows.filter(
-        (row) =>
-          row.status ===
-          ProductionScheduleStatus.IN_PROGRESS,
+        (row) => row.status === ProductionScheduleStatus.IN_PROGRESS,
       ).length,
       completed: rows.filter(
-        (row) =>
-          row.status ===
-          ProductionScheduleStatus.COMPLETED,
+        (row) => row.status === ProductionScheduleStatus.COMPLETED,
       ).length,
       cancelled: rows.filter(
-        (row) =>
-          row.status ===
-          ProductionScheduleStatus.CANCELLED,
+        (row) => row.status === ProductionScheduleStatus.CANCELLED,
       ).length,
     };
   }
 
-  private mapQualityStatusCounts(
-    rows: RawCountRow[],
-  ): {
+  private mapQualityStatusCounts(rows: RawCountRow[]): {
     total: number;
     passed: number;
     failed: number;
@@ -660,20 +459,11 @@ export class AdvancedReportingService {
       const count = Number(row.count);
       total += count;
 
-      if (
-        row.status ===
-        QualityInspectionStatus.PASSED
-      ) {
+      if (row.status === QualityInspectionStatus.PASSED) {
         passed += count;
-      } else if (
-        row.status ===
-        QualityInspectionStatus.FAILED
-      ) {
+      } else if (row.status === QualityInspectionStatus.FAILED) {
         failed += count;
-      } else if (
-        row.status ===
-        QualityInspectionStatus.CANCELLED
-      ) {
+      } else if (row.status === QualityInspectionStatus.CANCELLED) {
         cancelled += count;
       } else {
         open += count;
@@ -689,57 +479,33 @@ export class AdvancedReportingService {
     };
   }
 
-  private parseRange(
-    query: AdvancedReportQueryDto,
-  ): {
+  private parseRange(query: AdvancedReportQueryDto): {
     dateFrom: string;
     dateTo: string;
     rangeStart: Date;
     rangeEnd: Date;
   } {
-    const dateFrom =
-      query.dateFrom.slice(0, 10);
-    const dateTo =
-      query.dateTo.slice(0, 10);
+    const dateFrom = query.dateFrom.slice(0, 10);
+    const dateTo = query.dateTo.slice(0, 10);
 
-    const rangeStart =
-      new Date(
-        `${dateFrom}T00:00:00.000Z`,
-      );
+    const rangeStart = new Date(`${dateFrom}T00:00:00.000Z`);
 
-    const inclusiveEnd =
-      new Date(
-        `${dateTo}T00:00:00.000Z`,
-      );
+    const inclusiveEnd = new Date(`${dateTo}T00:00:00.000Z`);
 
     if (
-      Number.isNaN(
-        rangeStart.getTime(),
-      ) ||
-      Number.isNaN(
-        inclusiveEnd.getTime(),
-      )
+      Number.isNaN(rangeStart.getTime()) ||
+      Number.isNaN(inclusiveEnd.getTime())
     ) {
-      throw new BadRequestException(
-        'Invalid report date range.',
-      );
+      throw new BadRequestException('Invalid report date range.');
     }
 
-    if (
-      inclusiveEnd.getTime() <
-      rangeStart.getTime()
-    ) {
-      throw new BadRequestException(
-        'dateTo must be on or after dateFrom.',
-      );
+    if (inclusiveEnd.getTime() < rangeStart.getTime()) {
+      throw new BadRequestException('dateTo must be on or after dateFrom.');
     }
 
     const rangeDays =
-      Math.floor(
-        (inclusiveEnd.getTime() -
-          rangeStart.getTime()) /
-          86_400_000,
-      ) + 1;
+      Math.floor((inclusiveEnd.getTime() - rangeStart.getTime()) / 86_400_000) +
+      1;
 
     if (rangeDays > 366) {
       throw new BadRequestException(
@@ -747,11 +513,7 @@ export class AdvancedReportingService {
       );
     }
 
-    const rangeEnd =
-      new Date(
-        inclusiveEnd.getTime() +
-          86_400_000,
-      );
+    const rangeEnd = new Date(inclusiveEnd.getTime() + 86_400_000);
 
     return {
       dateFrom,
@@ -761,46 +523,25 @@ export class AdvancedReportingService {
     };
   }
 
-  private durationMinutes(
-    start: Date,
-    end: Date,
-  ): number {
-    if (
-      end.getTime() <=
-      start.getTime()
-    ) {
+  private durationMinutes(start: Date, end: Date): number {
+    if (end.getTime() <= start.getTime()) {
       return 0;
     }
 
-    return Math.round(
-      (end.getTime() -
-        start.getTime()) /
-        60_000,
-    );
+    return Math.round((end.getTime() - start.getTime()) / 60_000);
   }
 
-  private percent(
-    numerator: number,
-    denominator: number,
-  ): number {
+  private percent(numerator: number, denominator: number): number {
     if (denominator <= 0) {
       return 0;
     }
 
-    return Math.round(
-      ((numerator / denominator) *
-        100 +
-        Number.EPSILON) *
-        100,
-    ) / 100;
+    return (
+      Math.round(((numerator / denominator) * 100 + Number.EPSILON) * 100) / 100
+    );
   }
 
-  private roundMoney(
-    value: number,
-  ): number {
-    return Math.round(
-      (value + Number.EPSILON) *
-        100,
-    ) / 100;
+  private roundMoney(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignCoreEntitySchemaContracts1788070000000
-  implements MigrationInterface
-{
-  name =
-    'AlignCoreEntitySchemaContracts1788070000000';
+export class AlignCoreEntitySchemaContracts1788070000000 implements MigrationInterface {
+  name = 'AlignCoreEntitySchemaContracts1788070000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * ------------------------------------------------------------------
      * Blocking mismatches reported by audit:entity-schema
@@ -174,9 +166,7 @@ export class AlignCoreEntitySchemaContracts1788070000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       DROP INDEX IF EXISTS
         "IDX_audit_logs_company_created"

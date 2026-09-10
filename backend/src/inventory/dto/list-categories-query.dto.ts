@@ -2,10 +2,7 @@ import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export type CategorySortField =
-  | 'createdAt'
-  | 'updatedAt'
-  | 'name'
-  | 'tallyGroup';
+  'createdAt' | 'updatedAt' | 'name' | 'tallyGroup';
 
 export type CategorySortOrder = 'ASC' | 'DESC';
 

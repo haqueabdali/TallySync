@@ -1,5 +1,7 @@
 package com.example.tallysyncapp.data.network
 
+import com.google.gson.annotations.SerializedName
+
 data class ApiResponse<T>(
     val success: Boolean,
     val message: String,
@@ -7,8 +9,17 @@ data class ApiResponse<T>(
 )
 
 data class DashboardData(
-    val tally: TallyStatus = TallyStatus(),
-    val orders: DashboardOrders = DashboardOrders()
+    val totalOrders: Int = 0,
+    val pendingSync: Int = 0,
+    val failedSync: Int = 0,
+    val totalSales: Double = 0.0,
+    val todayOrders: Int = 0,
+    val todaySales: Double = 0.0,
+    val totalCustomers: Int = 0,
+    val totalProducts: Int = 0,
+    val lowStockProducts: Int = 0,
+    val recentOrders: List<SalesOrderSummary> = emptyList(),
+    val tally: TallyStatus = TallyStatus()
 )
 
 data class TallyStatus(
@@ -19,19 +30,61 @@ data class TallyStatus(
     val error: String? = null
 )
 
-data class DashboardOrders(
-    val pending: Int = 0,
-    val failed: Int = 0,
-    val synced: Int = 0,
-    val total: Int = 0
-)
-
 data class CustomerListItem(
     val id: String,
     val name: String,
     val phone: String? = null,
     val email: String? = null,
     val address: String? = null
+)
+
+data class UpdateActiveStatusRequest(
+    val isActive: Boolean
+)
+
+data class SaveCustomerRequest(
+    val name: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val tallyLedgerName: String? = null,
+    val creditLimit: Double = 0.0
+)
+
+data class CustomerRecord(
+    val id: String,
+    val companyId: String,
+    val name: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val address: String? = null,
+    val tallyLedgerId: String? = null,
+    val tallyLedgerName: String? = null,
+    val tallyAlterId: String? = null,
+    val creditLimit: Double = 0.0,
+    val isActive: Boolean = true,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class CustomerMasterSyncResult(
+    val success: Boolean = false,
+    val customerId: String,
+    val customerName: String,
+    val tallyLedgerName: String,
+    val tallyLedgerId: String,
+    val tallyAlterId: String? = null
+)
+
+data class ProductMasterSyncResult(
+    val success: Boolean = false,
+    val itemId: String,
+    val itemName: String,
+    val tallyItemName: String,
+    val tallyStockItemId: String,
+    val tallyAlterId: String? = null,
+    val syncStatus: String = "pending"
 )
 
 data class ProductListItem(
@@ -44,24 +97,50 @@ data class ProductListItem(
     val unit: String? = null
 )
 
-/*data class CartItem(
-    val product: ProductListItem,
-    val quantity: Int = 1
-) {
-    val subtotal: Double get() = product.sellingPrice * quantity
-}
-
-data class CreateSalesOrderRequest(
-    val customerId: String,
-    val items: List<CreateSalesOrderItemRequest>,
-    val notes: String? = null
+data class SaveProductRequest(
+    val sku: String,
+    val barcode: String? = null,
+    val name: String,
+    val description: String? = null,
+    val unit: String = "PCS",
+    val purchasePrice: Double = 0.0,
+    val sellingPrice: Double = 0.0,
+    val taxRate: Double = 0.0,
+    val openingStock: Double = 0.0,
+    val minimumStock: Double = 0.0,
+    val trackInventory: Boolean = true,
+    val hsnCode: String? = null,
+    val isActive: Boolean = true
 )
 
-data class CreateSalesOrderItemRequest(
-    val productId: String,
-    val quantity: Int,
-    val unitPrice: Double
-)*/
+data class ProductRecord(
+    val id: String,
+    val companyId: String,
+    val categoryId: String? = null,
+    val sku: String,
+    val barcode: String? = null,
+    val name: String,
+    val description: String? = null,
+    val unit: String = "PCS",
+    val purchasePrice: Double = 0.0,
+    val sellingPrice: Double = 0.0,
+    val taxRate: Double = 0.0,
+    val openingStock: Double = 0.0,
+    val currentStock: Double = 0.0,
+    val minimumStock: Double = 0.0,
+    val trackInventory: Boolean = true,
+    val hsnCode: String? = null,
+    val tallyStockItemId: String? = null,
+    val syncStatus: String = "pending",
+    val syncError: String? = null,
+    val lastSyncedAt: String? = null,
+    val isActive: Boolean = true,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null,
+    val isLowStock: Boolean = false,
+    val isOutOfStock: Boolean = false
+)
 
 data class CreateSalesOrderResult(
     val id: String,
@@ -137,6 +216,13 @@ data class SalesOrderItemDetails(
     val lineTotal: Double = 0.0
 )
 
+data class SalesOrderLifecycleResult(
+    val id: String,
+    val orderNumber: String,
+    val status: String,
+    val grandTotal: Double = 0.0
+)
+
 data class SyncResult(
     val alreadySynced: Boolean? = null,
     val synced: Int? = null,
@@ -145,29 +231,169 @@ data class SyncResult(
 
 data class SupplierListItem(
     val id: String,
+    val companyId: String? = null,
+    val supplierCode: String,
     val name: String,
+    val companyName: String? = null,
     val contactPerson: String? = null,
     val email: String? = null,
     val phone: String? = null,
-    val address: String? = null,
+    val mobile: String? = null,
     val taxNumber: String? = null,
-    val paymentTermsDays: Int = 0,
+    val vatNumber: String? = null,
+    val billingAddress: String? = null,
+    val shippingAddress: String? = null,
+    val city: String? = null,
+    val state: String? = null,
+    val postalCode: String? = null,
+    val country: String? = null,
+    val creditLimit: Double = 0.0,
     val openingBalance: Double = 0.0,
-    val isActive: Boolean = true,
+    val currentBalance: Double = 0.0,
+    val currency: String = "EUR",
+    val paymentTerms: Int = 0,
     val notes: String? = null,
+    val isActive: Boolean = true,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
 )
 
 data class SaveSupplierRequest(
     val name: String,
+    val companyName: String? = null,
     val contactPerson: String? = null,
     val email: String? = null,
     val phone: String? = null,
-    val address: String? = null,
+    val mobile: String? = null,
     val taxNumber: String? = null,
-    val paymentTermsDays: Int = 0,
+    val vatNumber: String? = null,
+    val billingAddress: String? = null,
+    val shippingAddress: String? = null,
+    val city: String? = null,
+    val state: String? = null,
+    val postalCode: String? = null,
+    val country: String? = null,
+    val creditLimit: Double = 0.0,
     val openingBalance: Double = 0.0,
+    val currency: String = "EUR",
+    val paymentTerms: Int = 0,
+    val notes: String? = null,
+    val isActive: Boolean = true
+)
+
+data class WarehouseListItem(
+    val id: String,
+    val companyId: String,
+    val warehouseCode: String,
+    val name: String,
+    val description: String? = null,
+    val contactPerson: String? = null,
+    val phone: String? = null,
+    val email: String? = null,
+    val address: String? = null,
+    val city: String? = null,
+    val state: String? = null,
+    val postalCode: String? = null,
+    val country: String? = null,
+    val isDefault: Boolean = false,
     val isActive: Boolean = true,
-    val notes: String? = null
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class WarehousesPage(
+    val data: List<WarehouseListItem> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+data class PurchaseOrderItemRequest(
+    val itemId: String,
+    val quantity: Double,
+    val unitPrice: Double,
+
+    @SerializedName("discountPercent")
+    val discountPercentage: Double = 0.0,
+
+    @SerializedName("taxPercent")
+    val taxRate: Double = 0.0
+)
+
+data class SavePurchaseOrderRequest(
+    val supplierId: String,
+    val warehouseId: String,
+    val poDate: String,
+
+    @SerializedName("expectedDate")
+    val expectedDeliveryDate: String? = null,
+
+    val currency: String = "EUR",
+
+    @SerializedName("shippingTotal")
+    val shippingAmount: Double = 0.0,
+
+    val notes: String? = null,
+    val items: List<PurchaseOrderItemRequest>
+)
+
+data class PurchaseOrderItemRecord(
+    val id: String,
+    val purchaseOrderId: String? = null,
+    val itemId: String,
+    val itemName: String? = null,
+    val itemSku: String? = null,
+    val quantity: Double = 0.0,
+    val receivedQuantity: Double = 0.0,
+    val unitPrice: Double = 0.0,
+
+    @SerializedName("discountPercent")
+    val discountPercentage: Double = 0.0,
+
+    val discountAmount: Double = 0.0,
+
+    @SerializedName("taxPercent")
+    val taxRate: Double = 0.0,
+
+    val taxAmount: Double = 0.0,
+    val lineSubtotal: Double = 0.0,
+    val lineTotal: Double = 0.0
+)
+
+data class PurchaseOrderRecord(
+    val id: String,
+    val companyId: String? = null,
+    val poNumber: String,
+    val supplierId: String,
+    val supplierName: String? = null,
+    val warehouseId: String,
+    val warehouseName: String? = null,
+    val poDate: String,
+
+    @SerializedName("expectedDate")
+    val expectedDeliveryDate: String? = null,
+
+    val status: String = "draft",
+    val currency: String = "EUR",
+    val subtotal: Double = 0.0,
+
+    @SerializedName("discountTotal")
+    val discountAmount: Double = 0.0,
+
+    @SerializedName("taxTotal")
+    val taxAmount: Double = 0.0,
+
+    @SerializedName("shippingTotal")
+    val shippingAmount: Double = 0.0,
+
+    val grandTotal: Double = 0.0,
+    val notes: String? = null,
+    val items: List<PurchaseOrderItemRecord> = emptyList(),
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+
+data class PurchaseOrdersPage(
+    val data: List<PurchaseOrderRecord> = emptyList(),
+    val meta: Pagination = Pagination()
 )

@@ -24,6 +24,7 @@ class OfflineOrderRepository @Inject constructor(
     private val workManager: WorkManager
 ) {
     val pendingCount: Flow<Int> = dao.observePendingCount()
+    val pendingOrders: Flow<List<PendingOrderEntity>> = dao.observePendingOrders()
 
     suspend fun save(request: CreateSalesOrderRequest): PendingOrderEntity {
         val id = UUID.randomUUID().toString()

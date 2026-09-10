@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { ItemEntity } from '../inventory/entities/item.entity';
@@ -63,18 +59,14 @@ export class SalesReturnsService {
     companyId: string,
     userId: string,
   ): Promise<SalesReturnResponseDto> {
-    const invoice = await this.getInvoice(
-      dto.salesInvoiceId,
-      companyId,
-    );
+    const invoice = await this.getInvoice(dto.salesInvoiceId, companyId);
 
     await this.validateHeader(dto, invoice, companyId);
     await this.validateLines(dto, invoice, companyId);
 
     return this.dataSource.transaction(async (manager) => {
       const returnRepository = manager.getRepository(SalesReturnEntity);
-      const returnItemRepository =
-        manager.getRepository(SalesReturnItemEntity);
+      const returnItemRepository = manager.getRepository(SalesReturnItemEntity);
 
       const salesReturn = returnRepository.create({
         companyId,
@@ -119,10 +111,7 @@ export class SalesReturnsService {
           }
 
           const previouslyReturnedQuantity =
-            await this.getPreviouslyReturnedQuantity(
-              invoiceItem.id,
-              companyId,
-            );
+            await this.getPreviouslyReturnedQuantity(invoiceItem.id, companyId);
 
           const totals = this.calculateLine(
             line.returnQuantity,
@@ -136,26 +125,14 @@ export class SalesReturnsService {
             salesInvoiceItemId: invoiceItem.id,
             itemId: invoiceItem.itemId,
             itemName:
-              this.optional(line.itemName) ??
-              invoiceItem.itemName ??
-              null,
-            sku:
-              this.optional(line.sku) ??
-              invoiceItem.sku ??
-              null,
-            unit:
-              this.optional(line.unit) ??
-              invoiceItem.unit ??
-              null,
+              this.optional(line.itemName) ?? invoiceItem.itemName ?? null,
+            sku: this.optional(line.sku) ?? invoiceItem.sku ?? null,
+            unit: this.optional(line.unit) ?? invoiceItem.unit ?? null,
             invoicedQuantity: Number(invoiceItem.quantity),
             previouslyReturnedQuantity,
             returnQuantity: Number(line.returnQuantity),
-            unitPrice: Number(
-              line.unitPrice ?? invoiceItem.unitPrice,
-            ),
-            discountPercent: Number(
-              invoiceItem.discountPercent,
-            ),
+            unitPrice: Number(line.unitPrice ?? invoiceItem.unitPrice),
+            discountPercent: Number(invoiceItem.discountPercent),
             taxPercent: Number(invoiceItem.taxPercent),
             ...totals,
             reason: this.optional(line.reason),
@@ -163,15 +140,11 @@ export class SalesReturnsService {
         }),
       );
 
-      savedReturn.items = await returnItemRepository.save(
-        savedReturn.items,
-      );
+      savedReturn.items = await returnItemRepository.save(savedReturn.items);
 
       this.calculateReturnTotals(savedReturn);
 
-      return this.toResponse(
-        await returnRepository.save(savedReturn),
-      );
+      return this.toResponse(await returnRepository.save(savedReturn));
     });
   }
 
@@ -208,24 +181,21 @@ export class SalesReturnsService {
     }
 
     if (filter.customerId) {
-      query.andWhere(
-        'salesReturn.customer_id = :customerId',
-        { customerId: filter.customerId },
-      );
+      query.andWhere('salesReturn.customer_id = :customerId', {
+        customerId: filter.customerId,
+      });
     }
 
     if (filter.warehouseId) {
-      query.andWhere(
-        'salesReturn.warehouse_id = :warehouseId',
-        { warehouseId: filter.warehouseId },
-      );
+      query.andWhere('salesReturn.warehouse_id = :warehouseId', {
+        warehouseId: filter.warehouseId,
+      });
     }
 
     if (filter.salesInvoiceId) {
-      query.andWhere(
-        'salesReturn.sales_invoice_id = :salesInvoiceId',
-        { salesInvoiceId: filter.salesInvoiceId },
-      );
+      query.andWhere('salesReturn.sales_invoice_id = :salesInvoiceId', {
+        salesInvoiceId: filter.salesInvoiceId,
+      });
     }
 
     if (filter.status) {
@@ -235,17 +205,15 @@ export class SalesReturnsService {
     }
 
     if (filter.dateFrom) {
-      query.andWhere(
-        'salesReturn.return_date >= :dateFrom',
-        { dateFrom: filter.dateFrom },
-      );
+      query.andWhere('salesReturn.return_date >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
     }
 
     if (filter.dateTo) {
-      query.andWhere(
-        'salesReturn.return_date <= :dateTo',
-        { dateTo: filter.dateTo },
-      );
+      query.andWhere('salesReturn.return_date <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
     }
 
     const sortColumns: Record<string, string> = {
@@ -258,8 +226,7 @@ export class SalesReturnsService {
 
     query
       .orderBy(
-        sortColumns[filter.sortBy] ??
-          'salesReturn.created_at',
+        sortColumns[filter.sortBy] ?? 'salesReturn.created_at',
         filter.sortOrder,
       )
       .addOrderBy('salesReturn.id', 'DESC')
@@ -271,9 +238,7 @@ export class SalesReturnsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: returns.map((salesReturn) =>
-        this.toResponse(salesReturn),
-      ),
+      data: returns.map((salesReturn) => this.toResponse(salesReturn)),
       meta: {
         page,
         limit,
@@ -300,8 +265,7 @@ export class SalesReturnsService {
   ): Promise<SalesReturnResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const returnRepository = manager.getRepository(SalesReturnEntity);
-      const returnItemRepository =
-        manager.getRepository(SalesReturnItemEntity);
+      const returnItemRepository = manager.getRepository(SalesReturnItemEntity);
 
       const salesReturn = await returnRepository.findOne({
         where: { id, companyId },
@@ -321,14 +285,10 @@ export class SalesReturnsService {
 
       const mergedDto: CreateSalesReturnDto = {
         salesInvoiceId: invoice.id,
-        warehouseId:
-          dto.warehouseId ?? salesReturn.warehouseId,
-        returnDate:
-          dto.returnDate ?? salesReturn.returnDate,
-        reason:
-          dto.reason ?? salesReturn.reason ?? undefined,
-        notes:
-          dto.notes ?? salesReturn.notes ?? undefined,
+        warehouseId: dto.warehouseId ?? salesReturn.warehouseId,
+        returnDate: dto.returnDate ?? salesReturn.returnDate,
+        reason: dto.reason ?? salesReturn.reason ?? undefined,
+        notes: dto.notes ?? salesReturn.notes ?? undefined,
         items:
           dto.items ??
           salesReturn.items.map((item) => ({
@@ -343,17 +303,8 @@ export class SalesReturnsService {
           })),
       };
 
-      await this.validateHeader(
-        mergedDto,
-        invoice,
-        companyId,
-      );
-      await this.validateLines(
-        mergedDto,
-        invoice,
-        companyId,
-        salesReturn.id,
-      );
+      await this.validateHeader(mergedDto, invoice, companyId);
+      await this.validateLines(mergedDto, invoice, companyId, salesReturn.id);
 
       if (dto.items) {
         await returnItemRepository.delete({
@@ -363,8 +314,7 @@ export class SalesReturnsService {
         salesReturn.items = await Promise.all(
           dto.items.map(async (line) => {
             const invoiceItem = invoice.items.find(
-              (item) =>
-                item.id === line.salesInvoiceItemId,
+              (item) => item.id === line.salesInvoiceItemId,
             );
 
             if (!invoiceItem) {
@@ -382,8 +332,7 @@ export class SalesReturnsService {
 
             const totals = this.calculateLine(
               line.returnQuantity,
-              line.unitPrice ??
-                Number(invoiceItem.unitPrice),
+              line.unitPrice ?? Number(invoiceItem.unitPrice),
               Number(invoiceItem.discountPercent),
               Number(invoiceItem.taxPercent),
             );
@@ -393,44 +342,22 @@ export class SalesReturnsService {
               salesInvoiceItemId: invoiceItem.id,
               itemId: invoiceItem.itemId,
               itemName:
-                this.optional(line.itemName) ??
-                invoiceItem.itemName ??
-                null,
-              sku:
-                this.optional(line.sku) ??
-                invoiceItem.sku ??
-                null,
-              unit:
-                this.optional(line.unit) ??
-                invoiceItem.unit ??
-                null,
-              invoicedQuantity: Number(
-                invoiceItem.quantity,
-              ),
+                this.optional(line.itemName) ?? invoiceItem.itemName ?? null,
+              sku: this.optional(line.sku) ?? invoiceItem.sku ?? null,
+              unit: this.optional(line.unit) ?? invoiceItem.unit ?? null,
+              invoicedQuantity: Number(invoiceItem.quantity),
               previouslyReturnedQuantity,
-              returnQuantity: Number(
-                line.returnQuantity,
-              ),
-              unitPrice: Number(
-                line.unitPrice ??
-                  invoiceItem.unitPrice,
-              ),
-              discountPercent: Number(
-                invoiceItem.discountPercent,
-              ),
-              taxPercent: Number(
-                invoiceItem.taxPercent,
-              ),
+              returnQuantity: Number(line.returnQuantity),
+              unitPrice: Number(line.unitPrice ?? invoiceItem.unitPrice),
+              discountPercent: Number(invoiceItem.discountPercent),
+              taxPercent: Number(invoiceItem.taxPercent),
               ...totals,
               reason: this.optional(line.reason),
             });
           }),
         );
 
-        salesReturn.items =
-          await returnItemRepository.save(
-            salesReturn.items,
-          );
+        salesReturn.items = await returnItemRepository.save(salesReturn.items);
       }
 
       if (dto.salesInvoiceId !== undefined) {
@@ -458,9 +385,7 @@ export class SalesReturnsService {
       salesReturn.updatedBy = userId;
       this.calculateReturnTotals(salesReturn);
 
-      return this.toResponse(
-        await returnRepository.save(salesReturn),
-      );
+      return this.toResponse(await returnRepository.save(salesReturn));
     });
   }
 
@@ -471,11 +396,9 @@ export class SalesReturnsService {
   ): Promise<SalesReturnResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const returnRepository = manager.getRepository(SalesReturnEntity);
-      const invoiceRepository =
-        manager.getRepository(SalesInvoiceEntity);
+      const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
       const itemRepository = manager.getRepository(ItemEntity);
-      const customerRepository =
-        manager.getRepository(CustomerEntity);
+      const customerRepository = manager.getRepository(CustomerEntity);
 
       const salesReturn = await returnRepository.findOne({
         where: { id, companyId },
@@ -521,16 +444,13 @@ export class SalesReturnsService {
           );
         }
 
-        const previouslyReturned =
-          await this.getPreviouslyReturnedQuantity(
-            invoiceItem.id,
-            companyId,
-            salesReturn.id,
-          );
+        const previouslyReturned = await this.getPreviouslyReturnedQuantity(
+          invoiceItem.id,
+          companyId,
+          salesReturn.id,
+        );
 
-        const remaining =
-          Number(invoiceItem.quantity) -
-          previouslyReturned;
+        const remaining = Number(invoiceItem.quantity) - previouslyReturned;
 
         if (Number(line.returnQuantity) > remaining) {
           throw new BadRequestException(
@@ -552,26 +472,20 @@ export class SalesReturnsService {
         }
 
         item.stockQty = this.roundQuantity(
-          Number(item.stockQty ?? 0) +
-            Number(line.returnQuantity),
+          Number(item.stockQty ?? 0) + Number(line.returnQuantity),
         );
 
         await itemRepository.save(item);
       }
 
-      const returnTotal = this.round(
-        Number(salesReturn.grandTotal),
-      );
+      const returnTotal = this.round(Number(salesReturn.grandTotal));
 
       invoice.grandTotal = this.round(
         Math.max(0, Number(invoice.grandTotal) - returnTotal),
       );
 
       invoice.balanceDue = this.round(
-        Math.max(
-          0,
-          Number(invoice.balanceDue) - returnTotal,
-        ),
+        Math.max(0, Number(invoice.balanceDue) - returnTotal),
       );
 
       if (Number(invoice.paidAmount) > Number(invoice.grandTotal)) {
@@ -581,8 +495,7 @@ export class SalesReturnsService {
       if (invoice.balanceDue === 0) {
         invoice.status = SalesInvoiceStatus.PAID;
       } else if (Number(invoice.paidAmount) > 0) {
-        invoice.status =
-          SalesInvoiceStatus.PARTIALLY_PAID;
+        invoice.status = SalesInvoiceStatus.PARTIALLY_PAID;
       } else {
         invoice.status = SalesInvoiceStatus.POSTED;
       }
@@ -625,9 +538,7 @@ export class SalesReturnsService {
       salesReturn.postedAt = new Date();
       salesReturn.updatedBy = userId;
 
-      return this.toResponse(
-        await returnRepository.save(salesReturn),
-      );
+      return this.toResponse(await returnRepository.save(salesReturn));
     });
   }
 
@@ -639,11 +550,9 @@ export class SalesReturnsService {
   ): Promise<SalesReturnResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const returnRepository = manager.getRepository(SalesReturnEntity);
-      const invoiceRepository =
-        manager.getRepository(SalesInvoiceEntity);
+      const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
       const itemRepository = manager.getRepository(ItemEntity);
-      const customerRepository =
-        manager.getRepository(CustomerEntity);
+      const customerRepository = manager.getRepository(CustomerEntity);
 
       const salesReturn = await returnRepository.findOne({
         where: { id, companyId },
@@ -687,9 +596,7 @@ export class SalesReturnsService {
         }
 
         const currentStock = Number(item.stockQty ?? 0);
-        const reverseQuantity = Number(
-          line.returnQuantity,
-        );
+        const reverseQuantity = Number(line.returnQuantity);
 
         if (currentStock < reverseQuantity) {
           throw new ConflictException(
@@ -697,29 +604,20 @@ export class SalesReturnsService {
           );
         }
 
-        item.stockQty = this.roundQuantity(
-          currentStock - reverseQuantity,
-        );
+        item.stockQty = this.roundQuantity(currentStock - reverseQuantity);
 
         await itemRepository.save(item);
       }
 
-      const returnTotal = this.round(
-        Number(salesReturn.grandTotal),
-      );
+      const returnTotal = this.round(Number(salesReturn.grandTotal));
 
-      invoice.grandTotal = this.round(
-        Number(invoice.grandTotal) + returnTotal,
-      );
-      invoice.balanceDue = this.round(
-        Number(invoice.balanceDue) + returnTotal,
-      );
+      invoice.grandTotal = this.round(Number(invoice.grandTotal) + returnTotal);
+      invoice.balanceDue = this.round(Number(invoice.balanceDue) + returnTotal);
 
       invoice.status =
         Number(invoice.paidAmount) === 0
           ? SalesInvoiceStatus.POSTED
-          : Number(invoice.paidAmount) >=
-              Number(invoice.grandTotal)
+          : Number(invoice.paidAmount) >= Number(invoice.grandTotal)
             ? SalesInvoiceStatus.PAID
             : SalesInvoiceStatus.PARTIALLY_PAID;
 
@@ -749,9 +647,7 @@ export class SalesReturnsService {
           customer as CustomerEntity & {
             currentBalance: number;
           }
-        ).currentBalance = this.round(
-          currentBalance + returnTotal,
-        );
+        ).currentBalance = this.round(currentBalance + returnTotal);
 
         await customerRepository.save(customer);
       }
@@ -759,13 +655,10 @@ export class SalesReturnsService {
       salesReturn.status = SalesReturnStatus.REVERSED;
       salesReturn.reversedBy = userId;
       salesReturn.reversedAt = new Date();
-      salesReturn.reversalReason =
-        dto.reversalReason.trim();
+      salesReturn.reversalReason = dto.reversalReason.trim();
       salesReturn.updatedBy = userId;
 
-      return this.toResponse(
-        await returnRepository.save(salesReturn),
-      );
+      return this.toResponse(await returnRepository.save(salesReturn));
     });
   }
 
@@ -785,15 +678,10 @@ export class SalesReturnsService {
     salesReturn.status = SalesReturnStatus.CANCELLED;
     salesReturn.updatedBy = userId;
 
-    return this.toResponse(
-      await this.salesReturnRepository.save(salesReturn),
-    );
+    return this.toResponse(await this.salesReturnRepository.save(salesReturn));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const salesReturn = await this.getEntity(id, companyId);
     this.ensureDraft(salesReturn);
 
@@ -845,16 +733,10 @@ export class SalesReturnsService {
     companyId: string,
     excludedReturnId?: string,
   ): Promise<void> {
-    const invoiceItemIds = dto.items.map(
-      (line) => line.salesInvoiceItemId,
-    );
+    const invoiceItemIds = dto.items.map((line) => line.salesInvoiceItemId);
 
-    if (
-      new Set(invoiceItemIds).size !== invoiceItemIds.length
-    ) {
-      throw new BadRequestException(
-        'Duplicate invoice items are not allowed.',
-      );
+    if (new Set(invoiceItemIds).size !== invoiceItemIds.length) {
+      throw new BadRequestException('Duplicate invoice items are not allowed.');
     }
 
     for (const line of dto.items) {
@@ -874,16 +756,13 @@ export class SalesReturnsService {
         );
       }
 
-      const previouslyReturned =
-        await this.getPreviouslyReturnedQuantity(
-          invoiceItem.id,
-          companyId,
-          excludedReturnId,
-        );
+      const previouslyReturned = await this.getPreviouslyReturnedQuantity(
+        invoiceItem.id,
+        companyId,
+        excludedReturnId,
+      );
 
-      const remaining =
-        Number(invoiceItem.quantity) -
-        previouslyReturned;
+      const remaining = Number(invoiceItem.quantity) - previouslyReturned;
 
       if (Number(line.returnQuantity) > remaining) {
         throw new BadRequestException(
@@ -899,9 +778,7 @@ export class SalesReturnsService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Inventory item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Inventory item ${line.itemId} not found.`);
       }
     }
   }
@@ -918,14 +795,10 @@ export class SalesReturnsService {
         'salesReturn',
         'salesReturn.id = returnItem.sales_return_id',
       )
-      .select(
-        'COALESCE(SUM(returnItem.return_quantity), 0)',
-        'quantity',
-      )
-      .where(
-        'returnItem.sales_invoice_item_id = :salesInvoiceItemId',
-        { salesInvoiceItemId },
-      )
+      .select('COALESCE(SUM(returnItem.return_quantity), 0)', 'quantity')
+      .where('returnItem.sales_invoice_item_id = :salesInvoiceItemId', {
+        salesInvoiceItemId,
+      })
       .andWhere('salesReturn.company_id = :companyId', {
         companyId,
       })
@@ -981,13 +854,9 @@ export class SalesReturnsService {
     return salesReturn;
   }
 
-  private ensureDraft(
-    salesReturn: SalesReturnEntity,
-  ): void {
+  private ensureDraft(salesReturn: SalesReturnEntity): void {
     if (salesReturn.status !== SalesReturnStatus.DRAFT) {
-      throw new ConflictException(
-        'Only draft sales returns can be modified.',
-      );
+      throw new ConflictException('Only draft sales returns can be modified.');
     }
   }
 
@@ -1000,21 +869,11 @@ export class SalesReturnsService {
     SalesReturnItemEntity,
     'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
   > {
-    const lineSubtotal = this.round(
-      quantity * unitPrice,
-    );
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
-    const lineTotal = this.round(
-      taxableAmount + taxAmount,
-    );
+    const lineSubtotal = this.round(quantity * unitPrice);
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
+    const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
       lineSubtotal,
@@ -1024,37 +883,27 @@ export class SalesReturnsService {
     };
   }
 
-  private calculateReturnTotals(
-    salesReturn: SalesReturnEntity,
-  ): void {
+  private calculateReturnTotals(salesReturn: SalesReturnEntity): void {
     salesReturn.subtotal = this.round(
       salesReturn.items.reduce(
-        (sum, item) =>
-          sum + Number(item.lineSubtotal),
+        (sum, item) => sum + Number(item.lineSubtotal),
         0,
       ),
     );
 
     salesReturn.discountTotal = this.round(
       salesReturn.items.reduce(
-        (sum, item) =>
-          sum + Number(item.discountAmount),
+        (sum, item) => sum + Number(item.discountAmount),
         0,
       ),
     );
 
     salesReturn.taxTotal = this.round(
-      salesReturn.items.reduce(
-        (sum, item) =>
-          sum + Number(item.taxAmount),
-        0,
-      ),
+      salesReturn.items.reduce((sum, item) => sum + Number(item.taxAmount), 0),
     );
 
     salesReturn.grandTotal = this.round(
-      salesReturn.subtotal -
-        salesReturn.discountTotal +
-        salesReturn.taxTotal,
+      salesReturn.subtotal - salesReturn.discountTotal + salesReturn.taxTotal,
     );
   }
 
@@ -1068,31 +917,21 @@ export class SalesReturnsService {
     const latest = await this.salesReturnRepository
       .createQueryBuilder('salesReturn')
       .withDeleted()
-      .select(
-        'salesReturn.return_number',
-        'returnNumber',
-      )
+      .select('salesReturn.return_number', 'returnNumber')
       .where('salesReturn.company_id = :companyId', {
         companyId,
       })
-      .andWhere(
-        'salesReturn.return_number LIKE :prefix',
-        { prefix: `${prefix}%` },
-      )
-      .orderBy(
-        'salesReturn.return_number',
-        'DESC',
-      )
+      .andWhere('salesReturn.return_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
+      .orderBy('salesReturn.return_number', 'DESC')
       .getRawOne<{ returnNumber?: string }>();
 
     const current = latest?.returnNumber
       ? Number(latest.returnNumber.replace(prefix, ''))
       : 0;
 
-    return `${prefix}${String(current + 1).padStart(
-      6,
-      '0',
-    )}`;
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
   }
 
   private optional(value?: string): string | null {
@@ -1105,10 +944,7 @@ export class SalesReturnsService {
   }
 
   private roundQuantity(value: number): number {
-    return (
-      Math.round((value + Number.EPSILON) * 10000) /
-      10000
-    );
+    return Math.round((value + Number.EPSILON) * 10000) / 10000;
   }
 
   private toItemResponse(
@@ -1122,9 +958,7 @@ export class SalesReturnsService {
       sku: item.sku,
       unit: item.unit,
       invoicedQuantity: Number(item.invoicedQuantity),
-      previouslyReturnedQuantity: Number(
-        item.previouslyReturnedQuantity,
-      ),
+      previouslyReturnedQuantity: Number(item.previouslyReturnedQuantity),
       returnQuantity: Number(item.returnQuantity),
       unitPrice: Number(item.unitPrice),
       discountPercent: Number(item.discountPercent),
@@ -1137,9 +971,7 @@ export class SalesReturnsService {
     };
   }
 
-  private toResponse(
-    salesReturn: SalesReturnEntity,
-  ): SalesReturnResponseDto {
+  private toResponse(salesReturn: SalesReturnEntity): SalesReturnResponseDto {
     return {
       id: salesReturn.id,
       companyId: salesReturn.companyId,
@@ -1151,16 +983,12 @@ export class SalesReturnsService {
       status: salesReturn.status,
       currency: salesReturn.currency,
       subtotal: Number(salesReturn.subtotal),
-      discountTotal: Number(
-        salesReturn.discountTotal,
-      ),
+      discountTotal: Number(salesReturn.discountTotal),
       taxTotal: Number(salesReturn.taxTotal),
       grandTotal: Number(salesReturn.grandTotal),
       reason: salesReturn.reason,
       notes: salesReturn.notes,
-      items: (salesReturn.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (salesReturn.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: salesReturn.createdBy,
       updatedBy: salesReturn.updatedBy,
       postedBy: salesReturn.postedBy,

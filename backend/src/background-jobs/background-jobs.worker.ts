@@ -10,12 +10,8 @@ import { randomUUID } from 'crypto';
 import { BackgroundJobsService } from './background-jobs.service';
 
 @Injectable()
-export class BackgroundJobsWorker
-  implements OnModuleInit, OnModuleDestroy
-{
-  private readonly logger = new Logger(
-    BackgroundJobsWorker.name,
-  );
+export class BackgroundJobsWorker implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(BackgroundJobsWorker.name);
 
   private readonly workerId = `worker-${randomUUID()}`;
 
@@ -29,15 +25,10 @@ export class BackgroundJobsWorker
   ) {}
 
   onModuleInit(): void {
-    const nodeEnv = this.configService.get<string>(
-      'NODE_ENV',
-      'development',
-    );
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
 
     if (nodeEnv.toLowerCase() === 'test') {
-      this.logger.log(
-        'Background job worker is disabled in test environment',
-      );
+      this.logger.log('Background job worker is disabled in test environment');
       return;
     }
 
@@ -47,9 +38,7 @@ export class BackgroundJobsWorker
     );
 
     if (enabled.toLowerCase() !== 'true') {
-      this.logger.log(
-        'Background job worker is disabled',
-      );
+      this.logger.log('Background job worker is disabled');
       return;
     }
 
@@ -69,9 +58,7 @@ export class BackgroundJobsWorker
       .recoverStaleJobs(staleSeconds)
       .catch((error: unknown) => {
         if (!this.stopping) {
-          this.logger.error(
-            this.getErrorMessage(error),
-          );
+          this.logger.error(this.getErrorMessage(error));
         }
       });
 
@@ -106,15 +93,8 @@ export class BackgroundJobsWorker
         10,
       );
 
-      for (
-        let index = 0;
-        index < batchSize && !this.stopping;
-        index += 1
-      ) {
-        const processed =
-          await this.jobsService.processNext(
-            this.workerId,
-          );
+      for (let index = 0; index < batchSize && !this.stopping; index += 1) {
+        const processed = await this.jobsService.processNext(this.workerId);
 
         if (!processed) {
           break;
@@ -122,37 +102,22 @@ export class BackgroundJobsWorker
       }
     } catch (error: unknown) {
       if (!this.stopping) {
-        this.logger.error(
-          this.getErrorMessage(error),
-        );
+        this.logger.error(this.getErrorMessage(error));
       }
     } finally {
       this.running = false;
     }
   }
 
-  private getPositiveInteger(
-    key: string,
-    fallback: number,
-  ): number {
-    const raw =
-      this.configService.get<string>(key);
+  private getPositiveInteger(key: string, fallback: number): number {
+    const raw = this.configService.get<string>(key);
 
-    const parsed = raw
-      ? Number.parseInt(raw, 10)
-      : fallback;
+    const parsed = raw ? Number.parseInt(raw, 10) : fallback;
 
-    return Number.isInteger(parsed) &&
-      parsed > 0
-      ? parsed
-      : fallback;
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
 
-  private getErrorMessage(
-    error: unknown,
-  ): string {
-    return error instanceof Error
-      ? error.message
-      : 'Unknown worker error';
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Unknown worker error';
   }
 }

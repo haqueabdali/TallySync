@@ -1,10 +1,5 @@
-import {
-  type INestApplication,
-} from '@nestjs/common';
-import {
-  Test,
-  type TestingModule,
-} from '@nestjs/testing';
+import { type INestApplication } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 
@@ -23,40 +18,33 @@ describe('Health E2E', () => {
       query: jest.fn(),
     };
 
-    const moduleFixture: TestingModule =
-      await Test.createTestingModule({
-        controllers: [
-          HealthController,
-        ],
-        providers: [
-          HealthService,
-          ApplicationLifecycleService,
-          {
-            provide: DataSource,
-            useValue: dataSource,
-          },
-        ],
-      }).compile();
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      controllers: [HealthController],
+      providers: [
+        HealthService,
+        ApplicationLifecycleService,
+        {
+          provide: DataSource,
+          useValue: dataSource,
+        },
+      ],
+    }).compile();
 
-    app =
-      moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication();
 
     await app.init();
   });
 
   afterEach(async () => {
-  if (app) {
-    await app.close();
-  }
-});
+    if (app) {
+      await app.close();
+    }
+  });
 
   it('GET /health/live returns 200', async () => {
-    const response =
-      await request(
-        app.getHttpServer(),
-      )
-        .get('/health/live')
-        .expect(200);
+    const response = await request(app.getHttpServer())
+      .get('/health/live')
+      .expect(200);
 
     expect(response.body).toEqual(
       expect.objectContaining({
@@ -67,20 +55,13 @@ describe('Health E2E', () => {
   });
 
   it('GET /health/ready returns 200 when DB is up', async () => {
-    dataSource.query.mockResolvedValue([
-      { result: 1 },
-    ]);
+    dataSource.query.mockResolvedValue([{ result: 1 }]);
 
-    const response =
-      await request(
-        app.getHttpServer(),
-      )
-        .get('/health/ready')
-        .expect(200);
+    const response = await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200);
 
-    expect(
-      dataSource.query,
-    ).toHaveBeenCalledWith('SELECT 1');
+    expect(dataSource.query).toHaveBeenCalledWith('SELECT 1');
 
     expect(response.body).toEqual(
       expect.objectContaining({
@@ -91,16 +72,11 @@ describe('Health E2E', () => {
   });
 
   it('GET /health/ready returns 503 when DB is down', async () => {
-    dataSource.query.mockRejectedValue(
-      new Error('database unavailable'),
-    );
+    dataSource.query.mockRejectedValue(new Error('database unavailable'));
 
-    const response =
-      await request(
-        app.getHttpServer(),
-      )
-        .get('/health/ready')
-        .expect(503);
+    const response = await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(503);
 
     expect(response.body).toEqual(
       expect.objectContaining({

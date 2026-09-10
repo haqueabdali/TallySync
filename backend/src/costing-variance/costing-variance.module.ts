@@ -13,14 +13,8 @@ import { ProductionCostMaterialLineEntity } from './entities/production-cost-mat
       ProductionCostMaterialLineEntity,
     ]),
   ],
-  controllers: [
-    CostingVarianceController,
-  ],
-  providers: [
-    CostingVarianceService,
-  ],
-  exports: [
-    CostingVarianceService,
-  ],
+  controllers: [CostingVarianceController],
+  providers: [CostingVarianceService],
+  exports: [CostingVarianceService],
 })
 export class CostingVarianceModule {}

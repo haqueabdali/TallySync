@@ -22,8 +22,7 @@ export const SALES_RETURN_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type SalesReturnSortField =
-  (typeof SALES_RETURN_SORT_FIELDS)[number];
+export type SalesReturnSortField = (typeof SALES_RETURN_SORT_FIELDS)[number];
 
 export class SalesReturnFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

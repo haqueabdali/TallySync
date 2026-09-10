@@ -36,21 +36,38 @@ describe('LandedCostsService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          LandedCostsService,
-          { provide: DataSource, useValue: dataSourceMock },
-          { provide: getRepositoryToken(LandedCostEntity), useValue: repositoryMock },
-          { provide: getRepositoryToken(LandedCostChargeEntity), useValue: repositoryMock },
-          { provide: getRepositoryToken(LandedCostItemAllocationEntity), useValue: repositoryMock },
-          { provide: getRepositoryToken(GoodsReceipt), useValue: repositoryMock },
-          { provide: getRepositoryToken(GoodsReceiptItem), useValue: repositoryMock },
-          { provide: getRepositoryToken(PurchaseInvoiceEntity), useValue: repositoryMock },
-          { provide: getRepositoryToken(SupplierEntity), useValue: repositoryMock },
-          { provide: getRepositoryToken(ItemEntity), useValue: repositoryMock },
-        ],
-      }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        LandedCostsService,
+        { provide: DataSource, useValue: dataSourceMock },
+        {
+          provide: getRepositoryToken(LandedCostEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(LandedCostChargeEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(LandedCostItemAllocationEntity),
+          useValue: repositoryMock,
+        },
+        { provide: getRepositoryToken(GoodsReceipt), useValue: repositoryMock },
+        {
+          provide: getRepositoryToken(GoodsReceiptItem),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(SupplierEntity),
+          useValue: repositoryMock,
+        },
+        { provide: getRepositoryToken(ItemEntity), useValue: repositoryMock },
+      ],
+    }).compile();
 
     service = module.get<LandedCostsService>(LandedCostsService);
   });

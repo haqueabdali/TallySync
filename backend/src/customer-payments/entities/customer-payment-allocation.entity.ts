@@ -38,14 +38,10 @@ export class CustomerPaymentAllocationEntity {
   })
   customerPaymentId!: string;
 
-  @ManyToOne(
-    () => CustomerPaymentEntity,
-    (payment) => payment.allocations,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => CustomerPaymentEntity, (payment) => payment.allocations, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'customer_payment_id' })
   customerPayment!: CustomerPaymentEntity;
 

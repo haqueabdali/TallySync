@@ -25,7 +25,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.STARTER,
     label: 'Starter',
-    description: 'Core ERP access for small teams with essential accounting, sales, purchasing, inventory and reporting.',
+    description:
+      'Core ERP access for small teams with essential accounting, sales, purchasing, inventory and reporting.',
     maxUsers: 5,
     maxConcurrentUsers: 3,
     validityDays: 365,
@@ -36,7 +37,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.BUSINESS,
     label: 'Business',
-    description: 'Expanded commercial operations with VAT, banking, notifications and mobile access.',
+    description:
+      'Expanded commercial operations with VAT, banking, notifications and mobile access.',
     maxUsers: 25,
     maxConcurrentUsers: 10,
     validityDays: 365,
@@ -53,7 +55,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.PROFESSIONAL,
     label: 'Professional',
-    description: 'Broader operational control for growing businesses, including assets, costing and API access.',
+    description:
+      'Broader operational control for growing businesses, including assets, costing and API access.',
     maxUsers: 100,
     maxConcurrentUsers: 40,
     validityDays: 365,
@@ -73,7 +76,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.MANUFACTURING,
     label: 'Manufacturing',
-    description: 'Professional ERP plus manufacturing, WIP and costing controls for production companies.',
+    description:
+      'Professional ERP plus manufacturing, WIP and costing controls for production companies.',
     maxUsers: 100,
     maxConcurrentUsers: 50,
     validityDays: 365,
@@ -95,7 +99,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.ENTERPRISE,
     label: 'Enterprise',
-    description: 'Full TallySync commercial feature set with higher user and concurrency allowances.',
+    description:
+      'Full TallySync commercial feature set with higher user and concurrency allowances.',
     maxUsers: 500,
     maxConcurrentUsers: 200,
     validityDays: 365,
@@ -106,7 +111,8 @@ export const LICENSE_PLAN_TEMPLATES: readonly LicensePlanTemplate[] = [
   {
     plan: LicensePlan.CUSTOM,
     label: 'Custom',
-    description: 'Editable baseline for negotiated contracts and customer-specific entitlement combinations.',
+    description:
+      'Editable baseline for negotiated contracts and customer-specific entitlement combinations.',
     maxUsers: 25,
     maxConcurrentUsers: 10,
     validityDays: 365,

@@ -2,8 +2,13 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
+# Pin npm because npm 10.9.x incorrectly rejects the current lockfile
+# peer/optional dependency graph involving @emnapi packages.
+RUN npm install -g npm@11.5.1
+
 COPY package*.json ./
 RUN npm ci
+
 
 # ---------- build ----------
 FROM node:22-alpine AS build
@@ -14,12 +19,17 @@ COPY . .
 
 RUN npm run build
 
+
 # ---------- production dependencies ----------
 FROM node:22-alpine AS prod-deps
 WORKDIR /app
 
+# Keep dependency installation consistent with the deps stage.
+RUN npm install -g npm@11.5.1
+
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
+
 
 # ---------- runtime ----------
 FROM node:22-alpine AS runtime

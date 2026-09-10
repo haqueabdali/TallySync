@@ -61,9 +61,15 @@ describe('CommercialNotificationsService', () => {
     const module = await Test.createTestingModule({
       providers: [
         CommercialNotificationsService,
-        { provide: getRepositoryToken(NotificationEntity), useValue: notificationRepository },
+        {
+          provide: getRepositoryToken(NotificationEntity),
+          useValue: notificationRepository,
+        },
         { provide: getRepositoryToken(UserEntity), useValue: userRepository },
-        { provide: getRepositoryToken(LicenseEntity), useValue: licenseRepository },
+        {
+          provide: getRepositoryToken(LicenseEntity),
+          useValue: licenseRepository,
+        },
       ],
     }).compile();
     service = module.get(CommercialNotificationsService);

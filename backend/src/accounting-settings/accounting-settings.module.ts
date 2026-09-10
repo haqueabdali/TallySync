@@ -8,10 +8,7 @@ import { AccountingSettingsService } from './accounting-settings.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      AccountingSettingsEntity,
-      AccountEntity,
-    ]),
+    TypeOrmModule.forFeature([AccountingSettingsEntity, AccountEntity]),
   ],
   controllers: [AccountingSettingsController],
   providers: [AccountingSettingsService],

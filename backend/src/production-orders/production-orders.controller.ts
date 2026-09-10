@@ -117,11 +117,7 @@ export class ProductionOrdersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() request: AuthenticatedProductionOrderRequest,
   ): Promise<ProductionOrderResponseDto> {
-    return this.service.complete(
-      id,
-      request.user.companyId,
-      request.user.id,
-    );
+    return this.service.complete(id, request.user.companyId, request.user.id);
   }
 
   @Post(':id/cancel')

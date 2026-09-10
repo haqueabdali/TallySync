@@ -26,7 +26,10 @@ export class MaintenancePlanEntity {
   @Column({ name: 'asset_id', type: 'uuid' })
   assetId!: string;
 
-  @ManyToOne(() => MaintenanceAssetEntity, { onDelete: 'CASCADE', nullable: false })
+  @ManyToOne(() => MaintenanceAssetEntity, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinColumn({ name: 'asset_id' })
   asset!: MaintenanceAssetEntity;
 

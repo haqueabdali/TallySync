@@ -61,11 +61,7 @@ describe('AccountingEngineService auto-post policy', () => {
       service.autoPostSalesInvoice('invoice-1', 'company-1', 'user-1'),
     ).resolves.toBe(expected);
 
-    expect(postSpy).toHaveBeenCalledWith(
-      'invoice-1',
-      'company-1',
-      'user-1',
-    );
+    expect(postSpy).toHaveBeenCalledWith('invoice-1', 'company-1', 'user-1');
   });
 
   it('delegates customer-payment auto-post when enabled', async () => {
@@ -82,10 +78,6 @@ describe('AccountingEngineService auto-post policy', () => {
       service.autoPostCustomerPayment('payment-1', 'company-1', 'user-1'),
     ).resolves.toBe(expected);
 
-    expect(postSpy).toHaveBeenCalledWith(
-      'payment-1',
-      'company-1',
-      'user-1',
-    );
+    expect(postSpy).toHaveBeenCalledWith('payment-1', 'company-1', 'user-1');
   });
 });

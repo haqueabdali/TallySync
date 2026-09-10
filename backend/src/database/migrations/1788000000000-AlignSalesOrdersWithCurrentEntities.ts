@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignSalesOrdersWithCurrentEntities1788000000000
-  implements MigrationInterface
-{
-  name =
-    'AlignSalesOrdersWithCurrentEntities1788000000000';
+export class AlignSalesOrdersWithCurrentEntities1788000000000 implements MigrationInterface {
+  name = 'AlignSalesOrdersWithCurrentEntities1788000000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * The original 178410 CreateSalesOrders migration created:
      *
@@ -166,9 +158,7 @@ export class AlignSalesOrdersWithCurrentEntities1788000000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     /*
      * PostgreSQL enum values cannot be safely removed in-place without
      * rebuilding the enum type, so down() intentionally does not attempt to

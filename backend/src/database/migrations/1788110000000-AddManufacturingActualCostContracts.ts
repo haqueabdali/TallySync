@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddManufacturingActualCostContracts1788110000000
-  implements MigrationInterface
-{
-  name =
-    'AddManufacturingActualCostContracts1788110000000';
+export class AddManufacturingActualCostContracts1788110000000 implements MigrationInterface {
+  name = 'AddManufacturingActualCostContracts1788110000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "production_orders"
       ADD COLUMN IF NOT EXISTS
@@ -133,9 +125,7 @@ export class AddManufacturingActualCostContracts1788110000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "production_orders"
       DROP CONSTRAINT IF EXISTS

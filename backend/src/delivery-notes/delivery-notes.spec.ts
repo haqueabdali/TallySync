@@ -45,9 +45,7 @@ describe('DeliveryNotesService', () => {
       ],
     }).compile();
 
-    service = module.get<DeliveryNotesService>(
-      DeliveryNotesService,
-    );
+    service = module.get<DeliveryNotesService>(DeliveryNotesService);
   });
 
   it('should be defined', () => {

@@ -27,14 +27,10 @@ const decimalTransformer = {
 @Index('IDX_purchase_returns_supplier', ['supplierId'])
 @Index('IDX_purchase_returns_warehouse', ['warehouseId'])
 @Index('IDX_purchase_returns_purchase_invoice', ['purchaseInvoiceId'])
-@Index(
-  'UQ_purchase_returns_company_number',
-  ['companyId', 'returnNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_purchase_returns_company_number', ['companyId', 'returnNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class PurchaseReturn {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -149,14 +145,10 @@ export class PurchaseReturn {
    * String-based relation targets avoid loading the two entity modules
    * recursively while decorators are being evaluated by Jest/Nest.
    */
-  @OneToMany(
-    'PurchaseReturnItem',
-    'purchaseReturn',
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany('PurchaseReturnItem', 'purchaseReturn', {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: PurchaseReturnItem[];
 
   @CreateDateColumn({

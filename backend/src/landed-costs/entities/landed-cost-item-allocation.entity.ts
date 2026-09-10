@@ -19,14 +19,8 @@ const decimalTransformer = {
 };
 
 @Entity('landed_cost_item_allocations')
-@Index(
-  'IDX_landed_cost_item_allocations_landed_cost',
-  ['landedCostId'],
-)
-@Index(
-  'IDX_landed_cost_item_allocations_item',
-  ['itemId'],
-)
+@Index('IDX_landed_cost_item_allocations_landed_cost', ['landedCostId'])
+@Index('IDX_landed_cost_item_allocations_item', ['itemId'])
 @Index(
   'UQ_landed_cost_item_allocation_source',
   ['landedCostId', 'goodsReceiptItemId'],
@@ -39,14 +33,10 @@ export class LandedCostItemAllocationEntity {
   @Column({ name: 'landed_cost_id', type: 'uuid' })
   landedCostId!: string;
 
-  @ManyToOne(
-    'LandedCostEntity',
-    'itemAllocations',
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne('LandedCostEntity', 'itemAllocations', {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'landed_cost_id' })
   landedCost!: LandedCostEntity;
 

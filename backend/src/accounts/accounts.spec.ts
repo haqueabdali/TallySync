@@ -26,9 +26,7 @@ describe('AccountsService', () => {
       ],
     }).compile();
 
-    service = module.get<AccountsService>(
-      AccountsService,
-    );
+    service = module.get<AccountsService>(AccountsService);
   });
 
   it('should be defined', () => {

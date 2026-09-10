@@ -13,30 +13,40 @@ export const INVENTORY_AGING_BUCKET_KEYS = [
   'daysOver365',
 ] as const;
 
-export type InventoryAgingBucketKey = (typeof INVENTORY_AGING_BUCKET_KEYS)[number];
+export type InventoryAgingBucketKey =
+  (typeof INVENTORY_AGING_BUCKET_KEYS)[number];
 
-export type InventoryAgingBuckets = Record<InventoryAgingBucketKey, InventoryAgingBucketResult>;
+export type InventoryAgingBuckets = Record<
+  InventoryAgingBucketKey,
+  InventoryAgingBucketResult
+>;
 
 export function calculateRemainingFifoLayers(
   movements: readonly InventoryAgingMovement[],
 ): InventoryAgingRemainingLayer[] {
-  const layers: Array<InventoryAgingRemainingLayer & { remainingQuantity: number }> = [];
+  const layers: Array<
+    InventoryAgingRemainingLayer & { remainingQuantity: number }
+  > = [];
 
   const ordered = [...movements].sort((left, right) => {
-    const dateDifference = left.transactionDate.getTime() - right.transactionDate.getTime();
-    return dateDifference !== 0 ? dateDifference : left.id.localeCompare(right.id);
+    const dateDifference =
+      left.transactionDate.getTime() - right.transactionDate.getTime();
+    return dateDifference !== 0
+      ? dateDifference
+      : left.id.localeCompare(right.id);
   });
 
   for (const movement of ordered) {
     if (!Number.isFinite(movement.quantity) || movement.quantity < 0) {
-      throw new Error('Inventory aging movement quantity must be a non-negative finite number.');
+      throw new Error(
+        'Inventory aging movement quantity must be a non-negative finite number.',
+      );
     }
 
     if (movement.direction === 'in') {
       if (movement.quantity === 0) continue;
-      const unitCost = movement.quantity === 0
-        ? 0
-        : movement.totalCost / movement.quantity;
+      const unitCost =
+        movement.quantity === 0 ? 0 : movement.totalCost / movement.quantity;
       layers.push({
         transactionDate: movement.transactionDate,
         quantity: movement.quantity,
@@ -57,7 +67,9 @@ export function calculateRemainingFifoLayers(
     }
 
     if (quantityToConsume > 0.000001) {
-      throw new Error('Inventory aging cannot allocate outbound quantity beyond available inbound layers.');
+      throw new Error(
+        'Inventory aging cannot allocate outbound quantity beyond available inbound layers.',
+      );
     }
   }
 
@@ -80,7 +92,9 @@ export function classifyInventoryAging(
   for (const layer of layers) {
     const ageDays = Math.max(
       0,
-      Math.floor((asOfDate.getTime() - layer.transactionDate.getTime()) / 86_400_000),
+      Math.floor(
+        (asOfDate.getTime() - layer.transactionDate.getTime()) / 86_400_000,
+      ),
     );
     const key = getBucketKey(ageDays);
     buckets[key].quantity = round4(buckets[key].quantity + layer.quantity);

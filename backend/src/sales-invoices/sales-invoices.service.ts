@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { CustomerEntity } from '../customers/entities/customer.entity';
@@ -74,8 +70,9 @@ export class SalesInvoicesService {
 
     return this.dataSource.transaction(async (manager) => {
       const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
-      const invoiceItemRepository =
-        manager.getRepository(SalesInvoiceItemEntity);
+      const invoiceItemRepository = manager.getRepository(
+        SalesInvoiceItemEntity,
+      );
 
       const invoice = invoiceRepository.create({
         companyId,
@@ -86,9 +83,7 @@ export class SalesInvoicesService {
           companyId,
           dto.invoiceDate,
         ),
-        customerInvoiceReference: this.optional(
-          dto.customerInvoiceReference,
-        ),
+        customerInvoiceReference: this.optional(dto.customerInvoiceReference),
         invoiceDate: dto.invoiceDate,
         dueDate: dto.dueDate ?? null,
         status: SalesInvoiceStatus.DRAFT,
@@ -139,15 +134,11 @@ export class SalesInvoicesService {
         });
       });
 
-      savedInvoice.items = await invoiceItemRepository.save(
-        savedInvoice.items,
-      );
+      savedInvoice.items = await invoiceItemRepository.save(savedInvoice.items);
 
       this.calculateInvoiceTotals(savedInvoice);
 
-      return this.toResponse(
-        await invoiceRepository.save(savedInvoice),
-      );
+      return this.toResponse(await invoiceRepository.save(savedInvoice));
     });
   }
 
@@ -171,10 +162,9 @@ export class SalesInvoicesService {
           qb.where('invoice.invoice_number ILIKE :search', {
             search,
           })
-            .orWhere(
-              'invoice.customer_invoice_reference ILIKE :search',
-              { search },
-            )
+            .orWhere('invoice.customer_invoice_reference ILIKE :search', {
+              search,
+            })
             .orWhere('invoice.notes ILIKE :search', { search });
         }),
       );
@@ -193,10 +183,9 @@ export class SalesInvoicesService {
     }
 
     if (filter.deliveryNoteId) {
-      query.andWhere(
-        'invoice.delivery_note_id = :deliveryNoteId',
-        { deliveryNoteId: filter.deliveryNoteId },
-      );
+      query.andWhere('invoice.delivery_note_id = :deliveryNoteId', {
+        deliveryNoteId: filter.deliveryNoteId,
+      });
     }
 
     if (filter.status) {
@@ -280,8 +269,9 @@ export class SalesInvoicesService {
   ): Promise<SalesInvoiceResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
-      const invoiceItemRepository =
-        manager.getRepository(SalesInvoiceItemEntity);
+      const invoiceItemRepository = manager.getRepository(
+        SalesInvoiceItemEntity,
+      );
 
       const invoice = await invoiceRepository.findOne({
         where: { id, companyId },
@@ -296,15 +286,13 @@ export class SalesInvoicesService {
 
       const mergedDto: CreateSalesInvoiceDto = {
         customerId: dto.customerId ?? invoice.customerId,
-        salesOrderId:
-          dto.salesOrderId ?? invoice.salesOrderId ?? undefined,
+        salesOrderId: dto.salesOrderId ?? invoice.salesOrderId ?? undefined,
         deliveryNoteId:
           dto.deliveryNoteId ?? invoice.deliveryNoteId ?? undefined,
         invoiceDate: dto.invoiceDate ?? invoice.invoiceDate,
         dueDate: dto.dueDate ?? invoice.dueDate ?? undefined,
         currency: dto.currency ?? invoice.currency,
-        shippingTotal:
-          dto.shippingTotal ?? Number(invoice.shippingTotal),
+        shippingTotal: dto.shippingTotal ?? Number(invoice.shippingTotal),
         customerInvoiceReference:
           dto.customerInvoiceReference ??
           invoice.customerInvoiceReference ??
@@ -319,8 +307,7 @@ export class SalesInvoicesService {
           invoice.items.map((item) => ({
             itemId: item.itemId,
             salesOrderItemId: item.salesOrderItemId ?? undefined,
-            deliveryNoteItemId:
-              item.deliveryNoteItemId ?? undefined,
+            deliveryNoteItemId: item.deliveryNoteItemId ?? undefined,
             itemName: item.itemName ?? undefined,
             sku: item.sku ?? undefined,
             unit: item.unit ?? undefined,
@@ -366,9 +353,7 @@ export class SalesInvoicesService {
           });
         });
 
-        invoice.items = await invoiceItemRepository.save(
-          invoice.items,
-        );
+        invoice.items = await invoiceItemRepository.save(invoice.items);
       }
 
       if (dto.customerId !== undefined) {
@@ -410,9 +395,7 @@ export class SalesInvoicesService {
       }
 
       if (dto.shippingAddress !== undefined) {
-        invoice.shippingAddress = this.optional(
-          dto.shippingAddress,
-        );
+        invoice.shippingAddress = this.optional(dto.shippingAddress);
       }
 
       if (dto.notes !== undefined) {
@@ -422,9 +405,7 @@ export class SalesInvoicesService {
       invoice.updatedBy = userId;
       this.calculateInvoiceTotals(invoice);
 
-      return this.toResponse(
-        await invoiceRepository.save(invoice),
-      );
+      return this.toResponse(await invoiceRepository.save(invoice));
     });
   }
 
@@ -490,9 +471,11 @@ export class SalesInvoicesService {
 
       if ('currentBalance' in customer) {
         const currentBalance = Number(
-          (customer as CustomerEntity & {
-            currentBalance?: number | string | null;
-          }).currentBalance ?? 0,
+          (
+            customer as CustomerEntity & {
+              currentBalance?: number | string | null;
+            }
+          ).currentBalance ?? 0,
         );
 
         (
@@ -506,9 +489,7 @@ export class SalesInvoicesService {
         await customerRepository.save(customer);
       }
 
-      return this.toResponse(
-        await invoiceRepository.save(invoice),
-      );
+      return this.toResponse(await invoiceRepository.save(invoice));
     });
 
     await this.accountingEngineService.autoPostSalesInvoice(
@@ -565,9 +546,11 @@ export class SalesInvoicesService {
 
         if ('currentBalance' in customer) {
           const currentBalance = Number(
-            (customer as CustomerEntity & {
-              currentBalance?: number | string | null;
-            }).currentBalance ?? 0,
+            (
+              customer as CustomerEntity & {
+                currentBalance?: number | string | null;
+              }
+            ).currentBalance ?? 0,
           );
 
           (
@@ -587,16 +570,11 @@ export class SalesInvoicesService {
       invoice.cancelledAt = new Date();
       invoice.updatedBy = userId;
 
-      return this.toResponse(
-        await invoiceRepository.save(invoice),
-      );
+      return this.toResponse(await invoiceRepository.save(invoice));
     });
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const invoice = await this.getEntity(id, companyId);
     this.ensureDraft(invoice);
 
@@ -624,8 +602,7 @@ export class SalesInvoicesService {
 
     if (
       dto.dueDate &&
-      new Date(dto.dueDate).getTime() <
-        new Date(dto.invoiceDate).getTime()
+      new Date(dto.dueDate).getTime() < new Date(dto.invoiceDate).getTime()
     ) {
       throw new BadRequestException(
         'Due date cannot be earlier than invoice date.',
@@ -670,10 +647,7 @@ export class SalesInvoicesService {
         );
       }
 
-      if (
-        dto.salesOrderId &&
-        deliveryNote.salesOrderId !== dto.salesOrderId
-      ) {
+      if (dto.salesOrderId && deliveryNote.salesOrderId !== dto.salesOrderId) {
         throw new BadRequestException(
           'Delivery note does not belong to the selected sales order.',
         );
@@ -689,19 +663,16 @@ export class SalesInvoicesService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Item ${line.itemId} not found.`);
       }
 
       if (line.salesOrderItemId) {
-        const orderItem =
-          await this.salesOrderItemRepository.findOne({
-            where: {
-              id: line.salesOrderItemId,
-              itemId: line.itemId,
-            },
-          });
+        const orderItem = await this.salesOrderItemRepository.findOne({
+          where: {
+            id: line.salesOrderItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!orderItem) {
           throw new BadRequestException(
@@ -709,10 +680,7 @@ export class SalesInvoicesService {
           );
         }
 
-        if (
-          salesOrder &&
-          orderItem.salesOrderId !== salesOrder.id
-        ) {
+        if (salesOrder && orderItem.salesOrderId !== salesOrder.id) {
           throw new BadRequestException(
             'Sales order item does not belong to the selected sales order.',
           );
@@ -726,13 +694,12 @@ export class SalesInvoicesService {
       }
 
       if (line.deliveryNoteItemId) {
-        const deliveryItem =
-          await this.deliveryNoteItemRepository.findOne({
-            where: {
-              id: line.deliveryNoteItemId,
-              itemId: line.itemId,
-            },
-          });
+        const deliveryItem = await this.deliveryNoteItemRepository.findOne({
+          where: {
+            id: line.deliveryNoteItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!deliveryItem) {
           throw new BadRequestException(
@@ -740,19 +707,13 @@ export class SalesInvoicesService {
           );
         }
 
-        if (
-          deliveryNote &&
-          deliveryItem.deliveryNoteId !== deliveryNote.id
-        ) {
+        if (deliveryNote && deliveryItem.deliveryNoteId !== deliveryNote.id) {
           throw new BadRequestException(
             'Delivery note item does not belong to the selected delivery note.',
           );
         }
 
-        if (
-          Number(line.quantity) >
-          Number(deliveryItem.deliveredQuantity)
-        ) {
+        if (Number(line.quantity) > Number(deliveryItem.deliveredQuantity)) {
           throw new BadRequestException(
             `Invoice quantity exceeds delivered quantity for item ${line.itemId}.`,
           );
@@ -779,17 +740,13 @@ export class SalesInvoicesService {
 
   private ensureDraft(invoice: SalesInvoiceEntity): void {
     if (invoice.status !== SalesInvoiceStatus.DRAFT) {
-      throw new ConflictException(
-        'Only draft sales invoices can be modified.',
-      );
+      throw new ConflictException('Only draft sales invoices can be modified.');
     }
   }
 
   private ensureUniqueItems(itemIds: string[]): void {
     if (new Set(itemIds).size !== itemIds.length) {
-      throw new BadRequestException(
-        'Duplicate items are not allowed.',
-      );
+      throw new BadRequestException('Duplicate items are not allowed.');
     }
   }
 
@@ -803,15 +760,9 @@ export class SalesInvoicesService {
     'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitPrice);
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
     const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
@@ -822,33 +773,20 @@ export class SalesInvoicesService {
     };
   }
 
-  private calculateInvoiceTotals(
-    invoice: SalesInvoiceEntity,
-  ): void {
+  private calculateInvoiceTotals(invoice: SalesInvoiceEntity): void {
     invoice.subtotal = this.round(
-      invoice.items.reduce(
-        (sum, item) => sum + Number(item.lineSubtotal),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.lineSubtotal), 0),
     );
 
     invoice.discountTotal = this.round(
-      invoice.items.reduce(
-        (sum, item) => sum + Number(item.discountAmount),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.discountAmount), 0),
     );
 
     invoice.taxTotal = this.round(
-      invoice.items.reduce(
-        (sum, item) => sum + Number(item.taxAmount),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.taxAmount), 0),
     );
 
-    invoice.shippingTotal = this.round(
-      Number(invoice.shippingTotal ?? 0),
-    );
+    invoice.shippingTotal = this.round(Number(invoice.shippingTotal ?? 0));
 
     invoice.grandTotal = this.round(
       invoice.subtotal -
@@ -921,9 +859,7 @@ export class SalesInvoicesService {
     };
   }
 
-  private toResponse(
-    invoice: SalesInvoiceEntity,
-  ): SalesInvoiceResponseDto {
+  private toResponse(invoice: SalesInvoiceEntity): SalesInvoiceResponseDto {
     return {
       id: invoice.id,
       companyId: invoice.companyId,
@@ -931,8 +867,7 @@ export class SalesInvoicesService {
       salesOrderId: invoice.salesOrderId,
       deliveryNoteId: invoice.deliveryNoteId,
       invoiceNumber: invoice.invoiceNumber,
-      customerInvoiceReference:
-        invoice.customerInvoiceReference,
+      customerInvoiceReference: invoice.customerInvoiceReference,
       invoiceDate: invoice.invoiceDate,
       dueDate: invoice.dueDate,
       status: invoice.status,
@@ -947,9 +882,7 @@ export class SalesInvoicesService {
       billingAddress: invoice.billingAddress,
       shippingAddress: invoice.shippingAddress,
       notes: invoice.notes,
-      items: (invoice.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (invoice.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: invoice.createdBy,
       updatedBy: invoice.updatedBy,
       postedBy: invoice.postedBy,

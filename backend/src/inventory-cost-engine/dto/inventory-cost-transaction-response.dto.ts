@@ -4,8 +4,10 @@ import { InventoryCostTransactionType } from '../enums/inventory-cost-transactio
 
 export class InventoryCostTransactionResponseDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ enum: InventoryCostTransactionType }) transactionType!: InventoryCostTransactionType;
-  @ApiProperty({ enum: InventoryCostSourceType }) sourceType!: InventoryCostSourceType;
+  @ApiProperty({ enum: InventoryCostTransactionType })
+  transactionType!: InventoryCostTransactionType;
+  @ApiProperty({ enum: InventoryCostSourceType })
+  sourceType!: InventoryCostSourceType;
   @ApiProperty({ format: 'uuid' }) sourceId!: string;
   @ApiProperty({ format: 'uuid' }) sourceLineId!: string;
   @ApiProperty() transactionDate!: string;

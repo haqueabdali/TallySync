@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-08-25T11:34:04.506Z",
+  "startedAt": "2026-08-25T11:30:02.407Z",
+  "branch": "feature/mobile-order-production",
+  "commit": "079ff3bd1ef69dcb24ed28fc384bbe18d0e50cd7",
+  "dirty": true,
+  "e2eDatabaseName": "tallysync_e2e_test",
+  "results": [
+    {
+      "name": "build",
+      "passed": true,
+      "durationMs": 23361,
+      "exitCode": 0
+    },
+    {
+      "name": "unit-tests",
+      "passed": true,
+      "durationMs": 56707,
+      "exitCode": 0
+    },
+    {
+      "name": "e2e-database-prepare",
+      "passed": true,
+      "durationMs": 2492,
+      "exitCode": 0
+    },
+    {
+      "name": "e2e-database-migrate",
+      "passed": true,
+      "durationMs": 13379,
+      "exitCode": 0
+    },
+    {
+      "name": "e2e-release-integrity",
+      "passed": true,
+      "durationMs": 19752,
+      "exitCode": 0
+    },
+    {
+      "name": "production-config",
+      "passed": true,
+      "durationMs": 2409,
+      "exitCode": 0
+    },
+    {
+      "name": "tracked-secret-scan",
+      "passed": true,
+      "durationMs": 99518,
+      "exitCode": 0
+    },
+    {
+      "name": "production-dependency-audit",
+      "passed": true,
+      "durationMs": 19642,
+      "exitCode": 0
+    },
+    {
+      "name": "observability",
+      "passed": false,
+      "durationMs": 4826,
+      "exitCode": 1
+    }
+  ],
+  "passed": false
+}

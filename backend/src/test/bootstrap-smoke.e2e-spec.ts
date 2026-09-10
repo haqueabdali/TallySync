@@ -19,15 +19,14 @@ describe('Bootstrap Smoke', () => {
   });
 
   it('creates and initializes the Nest application', async () => {
-    const moduleFixture: TestingModule =
-      await Test.createTestingModule({
-        imports: [SmokeTestModule],
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [SmokeTestModule],
+    })
+      .overrideProvider(DataSource)
+      .useValue({
+        query: jest.fn().mockResolvedValue([{ result: 1 }]),
       })
-        .overrideProvider(DataSource)
-        .useValue({
-          query: jest.fn().mockResolvedValue([{ result: 1 }]),
-        })
-        .compile();
+      .compile();
 
     app = moduleFixture.createNestApplication();
 

@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, Length, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  MaxLength,
+} from 'class-validator';
 import { AccountNormalBalance } from '../enums/account-normal-balance.enum';
 import { AccountStatus } from '../enums/account-status.enum';
 import { AccountType } from '../enums/account-type.enum';

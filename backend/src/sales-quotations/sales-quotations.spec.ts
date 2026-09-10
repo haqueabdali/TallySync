@@ -40,9 +40,7 @@ describe('SalesQuotationsService', () => {
       ],
     }).compile();
 
-    service = module.get<SalesQuotationsService>(
-      SalesQuotationsService,
-    );
+    service = module.get<SalesQuotationsService>(SalesQuotationsService);
   });
 
   it('should be defined', () => {

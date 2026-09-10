@@ -38,10 +38,25 @@ export class TallyHttpService {
               signal: AbortSignal.timeout(timeoutMilliseconds),
             });
           } catch (error: unknown) {
+            const cause =
+              error instanceof Error &&
+              'cause' in error &&
+              error.cause &&
+              typeof error.cause === 'object'
+                ? (error.cause as {
+                    code?: string;
+                    message?: string;
+                  })
+                : undefined;
+
+            const causeDetails = [cause?.code, cause?.message]
+              .filter(Boolean)
+              .join(': ');
+
             const failure = new Error(
               `Unable to connect to Tally at ${tallyUrl}: ${this.getErrorMessage(
                 error,
-              )}`,
+              )}${causeDetails ? ` (${causeDetails})` : ''}`,
             ) as TallyHttpFailure;
 
             failure.retryable = true;

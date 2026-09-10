@@ -33,23 +33,51 @@ export class CreateFinishedGoodsReceipts1787603000000 implements MigrationInterf
         CONSTRAINT "PK_finished_goods_receipts" PRIMARY KEY ("id")
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_finished_goods_receipts_company_id" ON "finished_goods_receipts" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_finished_goods_receipts_production_order_id" ON "finished_goods_receipts" ("production_order_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_finished_goods_receipts_item_id" ON "finished_goods_receipts" ("item_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_finished_goods_receipts_warehouse_id" ON "finished_goods_receipts" ("warehouse_id")`);
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_production_order" FOREIGN KEY ("production_order_id") REFERENCES "production_orders"("id") ON DELETE RESTRICT`);
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_item" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE RESTRICT`);
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_warehouse" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE RESTRICT`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_finished_goods_receipts_company_id" ON "finished_goods_receipts" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_finished_goods_receipts_production_order_id" ON "finished_goods_receipts" ("production_order_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_finished_goods_receipts_item_id" ON "finished_goods_receipts" ("item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_finished_goods_receipts_warehouse_id" ON "finished_goods_receipts" ("warehouse_id")`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_production_order" FOREIGN KEY ("production_order_id") REFERENCES "production_orders"("id") ON DELETE RESTRICT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_item" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE RESTRICT`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" ADD CONSTRAINT "FK_finished_goods_receipts_warehouse" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE RESTRICT`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_warehouse"`);
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_item"`);
-    await queryRunner.query(`ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_production_order"`);
-    await queryRunner.query(`DROP INDEX "public"."idx_finished_goods_receipts_warehouse_id"`);
-    await queryRunner.query(`DROP INDEX "public"."idx_finished_goods_receipts_item_id"`);
-    await queryRunner.query(`DROP INDEX "public"."idx_finished_goods_receipts_production_order_id"`);
-    await queryRunner.query(`DROP INDEX "public"."idx_finished_goods_receipts_company_id"`);
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_warehouse"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_item"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "finished_goods_receipts" DROP CONSTRAINT "FK_finished_goods_receipts_production_order"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."idx_finished_goods_receipts_warehouse_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."idx_finished_goods_receipts_item_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."idx_finished_goods_receipts_production_order_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."idx_finished_goods_receipts_company_id"`,
+    );
     await queryRunner.query(`DROP TABLE "finished_goods_receipts"`);
     await queryRunner.query(`DROP TYPE "finished_goods_receipt_status_enum"`);
   }

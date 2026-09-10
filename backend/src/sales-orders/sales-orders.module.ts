@@ -21,7 +21,6 @@ import { SalesOrdersService } from './sales-orders.service';
       ItemEntity,
       SalesQuotation,
       SalesQuotationItem,
-
     ]),
   ],
   controllers: [SalesOrdersController],

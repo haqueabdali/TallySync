@@ -1,11 +1,28 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 import { AccountNormalBalance } from '../enums/account-normal-balance.enum';
 import { AccountStatus } from '../enums/account-status.enum';
 import { AccountType } from '../enums/account-type.enum';
 
-export const ACCOUNT_SORT_FIELDS = ['code','name','type','status','createdAt','updatedAt'] as const;
+export const ACCOUNT_SORT_FIELDS = [
+  'code',
+  'name',
+  'type',
+  'status',
+  'createdAt',
+  'updatedAt',
+] as const;
 export type AccountSortField = (typeof ACCOUNT_SORT_FIELDS)[number];
 
 export class AccountFilterDto {

@@ -1,0 +1,47 @@
+
+PASS test/procure-to-pay.e2e-spec.ts (6.263 s)
+PASS test/sales-to-cash.e2e-spec.ts
+PASS test/manufacturing-core-lifecycle.e2e-spec.ts
+PASS test/manufacturing-accounting.e2e-spec.ts
+  ● Console
+
+    console.log
+      Manufacturing accounting engine smoke PASSED.
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:860:13)
+
+    console.log
+      Database: tallysync_e2e_test
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:864:13)
+
+    console.log
+      Company: 41b7ec94-71c2-404b-aacf-493125d6cb8a
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:868:13)
+
+    console.log
+      Source journals: 3
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:872:13)
+
+    console.log
+      Retry uniqueness: PASS
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:876:13)
+
+    console.log
+      WIP reconciliation: DR=120.00 CR=120.00 NET=0.00
+
+      at runManufacturingAccountingEngineSmoke (../scripts/e2e/manufacturing-accounting-engine-smoke.ts:880:13)
+
+PASS test/app.e2e-spec.ts
+PASS test/bootstrap-smoke.e2e-spec.ts
+PASS test/health.e2e-spec.ts
+PASS test/manufacturing.e2e-spec.ts
+
+Test Suites: 8 passed, 8 total
+Tests:       12 todo, 11 passed, 23 total
+Snapshots:   0 total
+Time:        16.687 s, estimated 32 s
+Ran all test suites.

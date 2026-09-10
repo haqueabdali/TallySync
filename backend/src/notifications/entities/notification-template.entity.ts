@@ -10,7 +10,11 @@ import {
 import { NotificationChannel } from '../enums/notification-channel.enum';
 
 @Entity('notification_templates')
-@Index('UQ_notification_templates_company_code_channel', ['companyId', 'code', 'channel'], { unique: true, where: '"deletedAt" IS NULL' })
+@Index(
+  'UQ_notification_templates_company_code_channel',
+  ['companyId', 'code', 'channel'],
+  { unique: true, where: '"deletedAt" IS NULL' },
+)
 export class NotificationTemplateEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

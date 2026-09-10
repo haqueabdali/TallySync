@@ -6,5 +6,17 @@ import { DepreciationController } from './depreciation.controller';
 import { DepreciationService } from './depreciation.service';
 import { DepreciationEntryEntity } from './entities/depreciation-entry.entity';
 import { DepreciationRunEntity } from './entities/depreciation-run.entity';
-@Module({ imports: [TypeOrmModule.forFeature([DepreciationRunEntity, DepreciationEntryEntity, FixedAssetEntity]), JournalEntriesModule], controllers: [DepreciationController], providers: [DepreciationService], exports: [DepreciationService] })
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      DepreciationRunEntity,
+      DepreciationEntryEntity,
+      FixedAssetEntity,
+    ]),
+    JournalEntriesModule,
+  ],
+  controllers: [DepreciationController],
+  providers: [DepreciationService],
+  exports: [DepreciationService],
+})
 export class DepreciationModule {}

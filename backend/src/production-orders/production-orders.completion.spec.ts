@@ -1,20 +1,11 @@
-import {
-  BadRequestException,
-} from '@nestjs/common';
-import {
-  ProductionOrdersService,
-} from './production-orders.service';
-import {
-  ProductionOrderStatus,
-} from './enums/production-order-status.enum';
+import { BadRequestException } from '@nestjs/common';
+import { ProductionOrdersService } from './production-orders.service';
+import { ProductionOrderStatus } from './enums/production-order-status.enum';
 
 describe('ProductionOrdersService.complete', () => {
-  const companyId =
-    '11111111-1111-4111-8111-111111111111';
-  const userId =
-    '22222222-2222-4222-8222-222222222222';
-  const orderId =
-    '33333333-3333-4333-8333-333333333333';
+  const companyId = '11111111-1111-4111-8111-111111111111';
+  const userId = '22222222-2222-4222-8222-222222222222';
+  const orderId = '33333333-3333-4333-8333-333333333333';
 
   let accountingSettingsRepository: { findOne: jest.Mock };
   let accountingEngineService: { postProductionCompletion: jest.Mock };
@@ -86,9 +77,7 @@ describe('ProductionOrdersService.complete', () => {
     dataSource = {
       transaction: jest.fn(
         async (
-          callback: (
-            manager: typeof transactionManager,
-          ) => Promise<unknown>,
+          callback: (manager: typeof transactionManager) => Promise<unknown>,
         ) => callback(transactionManager),
       ),
     };
@@ -114,12 +103,8 @@ describe('ProductionOrdersService.complete', () => {
   });
 
   it('completes an in-progress order and posts accounting', async () => {
-    const existing = makeOrder(
-      ProductionOrderStatus.IN_PROGRESS,
-    );
-    const locked = makeOrder(
-      ProductionOrderStatus.IN_PROGRESS,
-    );
+    const existing = makeOrder(ProductionOrderStatus.IN_PROGRESS);
+    const locked = makeOrder(ProductionOrderStatus.IN_PROGRESS);
 
     orderRepository.findOne.mockResolvedValueOnce(existing);
     txOrderRepository.findOne.mockResolvedValueOnce(locked);
@@ -135,9 +120,7 @@ describe('ProductionOrdersService.complete', () => {
       }),
     );
 
-    expect(locked.status).toBe(
-      ProductionOrderStatus.COMPLETED,
-    );
+    expect(locked.status).toBe(ProductionOrderStatus.COMPLETED);
     expect(locked.completedQuantity).toBe(10);
     expect(locked.actualEndDate).toBeInstanceOf(Date);
     expect(locked.actualTotalCost).toBe(100);
@@ -149,85 +132,71 @@ describe('ProductionOrdersService.complete', () => {
     ).toHaveBeenCalledWith(orderId, companyId, userId);
   });
 
-  it(
-    'retries only accounting for an already-completed order',
-    async () => {
-      orderRepository.findOne.mockResolvedValueOnce(
-        makeOrder(ProductionOrderStatus.COMPLETED),
-      );
-
-      await service.complete(orderId, companyId, userId);
-
-      expect(dataSource.transaction).not.toHaveBeenCalled();
-
-      expect(
-        accountingEngineService.postProductionCompletion,
-      ).toHaveBeenCalledWith(orderId, companyId, userId);
-    },
-  );
-
-  it.each([
-    ProductionOrderStatus.DRAFT,
-    ProductionOrderStatus.RELEASED,
-  ])('rejects completion from %s', async (status) => {
+  it('retries only accounting for an already-completed order', async () => {
     orderRepository.findOne.mockResolvedValueOnce(
-      makeOrder(status),
+      makeOrder(ProductionOrderStatus.COMPLETED),
     );
 
-    await expect(
-      service.complete(orderId, companyId, userId),
-    ).rejects.toThrow(BadRequestException);
+    await service.complete(orderId, companyId, userId);
 
     expect(dataSource.transaction).not.toHaveBeenCalled();
+
     expect(
       accountingEngineService.postProductionCompletion,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenCalledWith(orderId, companyId, userId);
   });
 
-  it(
-    'skips accounting when auto-post completion is disabled',
-    async () => {
-      accountingSettingsRepository.findOne.mockResolvedValueOnce({
-        autoPostProductionCompletion: false,
-      });
+  it.each([ProductionOrderStatus.DRAFT, ProductionOrderStatus.RELEASED])(
+    'rejects completion from %s',
+    async (status) => {
+      orderRepository.findOne.mockResolvedValueOnce(makeOrder(status));
 
-      orderRepository.findOne.mockResolvedValueOnce(
-        makeOrder(ProductionOrderStatus.IN_PROGRESS),
-      );
+      await expect(
+        service.complete(orderId, companyId, userId),
+      ).rejects.toThrow(BadRequestException);
 
-      txOrderRepository.findOne.mockResolvedValueOnce(
-        makeOrder(ProductionOrderStatus.IN_PROGRESS),
-      );
-
-      await service.complete(orderId, companyId, userId);
-
-      expect(txOrderRepository.save).toHaveBeenCalled();
+      expect(dataSource.transaction).not.toHaveBeenCalled();
       expect(
         accountingEngineService.postProductionCompletion,
       ).not.toHaveBeenCalled();
     },
   );
 
-  it(
-    'does not reduce an already-higher completed quantity',
-    async () => {
-      orderRepository.findOne.mockResolvedValueOnce(
-        makeOrder(ProductionOrderStatus.IN_PROGRESS),
-      );
+  it('skips accounting when auto-post completion is disabled', async () => {
+    accountingSettingsRepository.findOne.mockResolvedValueOnce({
+      autoPostProductionCompletion: false,
+    });
 
-      const locked = makeOrder(
-        ProductionOrderStatus.IN_PROGRESS,
-        {
-          plannedQuantity: 10,
-          completedQuantity: 12,
-        },
-      );
+    orderRepository.findOne.mockResolvedValueOnce(
+      makeOrder(ProductionOrderStatus.IN_PROGRESS),
+    );
 
-      txOrderRepository.findOne.mockResolvedValueOnce(locked);
+    txOrderRepository.findOne.mockResolvedValueOnce(
+      makeOrder(ProductionOrderStatus.IN_PROGRESS),
+    );
 
-      await service.complete(orderId, companyId, userId);
+    await service.complete(orderId, companyId, userId);
 
-      expect(locked.completedQuantity).toBe(12);
-    },
-  );
+    expect(txOrderRepository.save).toHaveBeenCalled();
+    expect(
+      accountingEngineService.postProductionCompletion,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not reduce an already-higher completed quantity', async () => {
+    orderRepository.findOne.mockResolvedValueOnce(
+      makeOrder(ProductionOrderStatus.IN_PROGRESS),
+    );
+
+    const locked = makeOrder(ProductionOrderStatus.IN_PROGRESS, {
+      plannedQuantity: 10,
+      completedQuantity: 12,
+    });
+
+    txOrderRepository.findOne.mockResolvedValueOnce(locked);
+
+    await service.complete(orderId, companyId, userId);
+
+    expect(locked.completedQuantity).toBe(12);
+  });
 });

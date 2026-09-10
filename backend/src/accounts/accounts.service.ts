@@ -5,12 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  IsNull,
-  Not,
-  Repository,
-} from 'typeorm';
+import { Brackets, IsNull, Not, Repository } from 'typeorm';
 
 import { AccountFilterDto } from './dto/account-filter.dto';
 import {
@@ -54,9 +49,7 @@ export class AccountsService {
       }
 
       if (parent.status !== AccountStatus.ACTIVE) {
-        throw new ConflictException(
-          'The selected parent account is inactive.',
-        );
+        throw new ConflictException('The selected parent account is inactive.');
       }
 
       if (parent.type !== dto.type) {
@@ -90,18 +83,14 @@ export class AccountsService {
       parentId: dto.parentId ?? null,
       isGroup,
       isSystemAccount: dto.isSystemAccount ?? false,
-      allowManualEntry: isGroup
-        ? false
-        : (dto.allowManualEntry ?? true),
+      allowManualEntry: isGroup ? false : (dto.allowManualEntry ?? true),
       currency: (dto.currency ?? 'EUR').toUpperCase(),
       description: this.optional(dto.description),
       createdBy: userId,
       updatedBy: userId,
     });
 
-    return this.toResponse(
-      await this.accountRepository.save(account),
-    );
+    return this.toResponse(await this.accountRepository.save(account));
   }
 
   async findAll(
@@ -124,10 +113,7 @@ export class AccountsService {
         new Brackets((qb) => {
           qb.where('account.code ILIKE :search', { search })
             .orWhere('account.name ILIKE :search', { search })
-            .orWhere(
-              'account.description ILIKE :search',
-              { search },
-            );
+            .orWhere('account.description ILIKE :search', { search });
         }),
       );
     }
@@ -139,12 +125,9 @@ export class AccountsService {
     }
 
     if (filter.normalBalance) {
-      query.andWhere(
-        'account.normal_balance = :normalBalance',
-        {
-          normalBalance: filter.normalBalance,
-        },
-      );
+      query.andWhere('account.normal_balance = :normalBalance', {
+        normalBalance: filter.normalBalance,
+      });
     }
 
     if (filter.status) {
@@ -166,21 +149,15 @@ export class AccountsService {
     }
 
     if (filter.isSystemAccount !== undefined) {
-      query.andWhere(
-        'account.is_system_account = :isSystemAccount',
-        {
-          isSystemAccount: filter.isSystemAccount,
-        },
-      );
+      query.andWhere('account.is_system_account = :isSystemAccount', {
+        isSystemAccount: filter.isSystemAccount,
+      });
     }
 
     if (filter.allowManualEntry !== undefined) {
-      query.andWhere(
-        'account.allow_manual_entry = :allowManualEntry',
-        {
-          allowManualEntry: filter.allowManualEntry,
-        },
-      );
+      query.andWhere('account.allow_manual_entry = :allowManualEntry', {
+        allowManualEntry: filter.allowManualEntry,
+      });
     }
 
     const sortColumns: Record<string, string> = {
@@ -193,10 +170,7 @@ export class AccountsService {
     };
 
     query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'account.code',
-        filter.sortOrder,
-      )
+      .orderBy(sortColumns[filter.sortBy] ?? 'account.code', filter.sortOrder)
       .addOrderBy('account.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -205,9 +179,7 @@ export class AccountsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: accounts.map((account) =>
-        this.toResponse(account),
-      ),
+      data: accounts.map((account) => this.toResponse(account)),
       meta: {
         page,
         limit,
@@ -219,9 +191,7 @@ export class AccountsService {
     };
   }
 
-  async findTree(
-    companyId: string,
-  ): Promise<AccountTreeNodeResponseDto[]> {
+  async findTree(companyId: string): Promise<AccountTreeNodeResponseDto[]> {
     const accounts = await this.accountRepository.find({
       where: {
         companyId,
@@ -231,10 +201,7 @@ export class AccountsService {
       },
     });
 
-    const nodeMap = new Map<
-      string,
-      AccountTreeNodeResponseDto
-    >();
+    const nodeMap = new Map<string, AccountTreeNodeResponseDto>();
 
     for (const account of accounts) {
       nodeMap.set(account.id, {
@@ -269,10 +236,7 @@ export class AccountsService {
     return roots;
   }
 
-  async findOne(
-    id: string,
-    companyId: string,
-  ): Promise<AccountResponseDto> {
+  async findOne(id: string, companyId: string): Promise<AccountResponseDto> {
     return this.toResponse(await this.getEntity(id, companyId));
   }
 
@@ -291,38 +255,24 @@ export class AccountsService {
     if (dto.code !== undefined) {
       const code = this.normalizeCode(dto.code);
 
-      await this.ensureUniqueCode(
-        code,
-        companyId,
-        account.id,
-      );
+      await this.ensureUniqueCode(code, companyId, account.id);
 
       account.code = code;
     }
 
     const nextType = dto.type ?? account.type;
-    const nextNormalBalance =
-      dto.normalBalance ?? account.normalBalance;
+    const nextNormalBalance = dto.normalBalance ?? account.normalBalance;
     const nextParentId =
-      dto.parentId !== undefined
-        ? dto.parentId
-        : account.parentId;
+      dto.parentId !== undefined ? dto.parentId : account.parentId;
     const nextIsGroup =
-      dto.isGroup !== undefined
-        ? dto.isGroup
-        : account.isGroup;
+      dto.isGroup !== undefined ? dto.isGroup : account.isGroup;
 
     if (nextParentId) {
       if (nextParentId === account.id) {
-        throw new BadRequestException(
-          'An account cannot be its own parent.',
-        );
+        throw new BadRequestException('An account cannot be its own parent.');
       }
 
-      const parent = await this.getEntity(
-        nextParentId,
-        companyId,
-      );
+      const parent = await this.getEntity(nextParentId, companyId);
 
       if (!parent.isGroup) {
         throw new BadRequestException(
@@ -331,9 +281,7 @@ export class AccountsService {
       }
 
       if (parent.status !== AccountStatus.ACTIVE) {
-        throw new ConflictException(
-          'The selected parent account is inactive.',
-        );
+        throw new ConflictException('The selected parent account is inactive.');
       }
 
       if (parent.type !== nextType) {
@@ -348,17 +296,10 @@ export class AccountsService {
         );
       }
 
-      await this.ensureNoCircularReference(
-        account.id,
-        parent.id,
-        companyId,
-      );
+      await this.ensureNoCircularReference(account.id, parent.id, companyId);
     }
 
-    if (
-      dto.isGroup === false &&
-      account.isGroup
-    ) {
+    if (dto.isGroup === false && account.isGroup) {
       const childCount = await this.accountRepository.count({
         where: {
           companyId,
@@ -412,9 +353,7 @@ export class AccountsService {
     }
 
     if (dto.allowManualEntry !== undefined) {
-      account.allowManualEntry = nextIsGroup
-        ? false
-        : dto.allowManualEntry;
+      account.allowManualEntry = nextIsGroup ? false : dto.allowManualEntry;
     }
 
     if (dto.currency !== undefined) {
@@ -427,9 +366,7 @@ export class AccountsService {
 
     account.updatedBy = userId;
 
-    return this.toResponse(
-      await this.accountRepository.save(account),
-    );
+    return this.toResponse(await this.accountRepository.save(account));
   }
 
   async activate(
@@ -442,9 +379,7 @@ export class AccountsService {
     account.status = AccountStatus.ACTIVE;
     account.updatedBy = userId;
 
-    return this.toResponse(
-      await this.accountRepository.save(account),
-    );
+    return this.toResponse(await this.accountRepository.save(account));
   }
 
   async deactivate(
@@ -455,9 +390,7 @@ export class AccountsService {
     const account = await this.getEntity(id, companyId);
 
     if (account.isSystemAccount) {
-      throw new ConflictException(
-        'System accounts cannot be deactivated.',
-      );
+      throw new ConflictException('System accounts cannot be deactivated.');
     }
 
     const activeChildren = await this.accountRepository.count({
@@ -469,29 +402,20 @@ export class AccountsService {
     });
 
     if (activeChildren > 0) {
-      throw new ConflictException(
-        'Deactivate all child accounts first.',
-      );
+      throw new ConflictException('Deactivate all child accounts first.');
     }
 
     account.status = AccountStatus.INACTIVE;
     account.updatedBy = userId;
 
-    return this.toResponse(
-      await this.accountRepository.save(account),
-    );
+    return this.toResponse(await this.accountRepository.save(account));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const account = await this.getEntity(id, companyId);
 
     if (account.isSystemAccount) {
-      throw new ConflictException(
-        'System accounts cannot be deleted.',
-      );
+      throw new ConflictException('System accounts cannot be deleted.');
     }
 
     const childCount = await this.accountRepository.count({
@@ -719,8 +643,7 @@ export class AccountsService {
       ),
     ];
 
-    const savedChildren =
-      await this.accountRepository.save(children);
+    const savedChildren = await this.accountRepository.save(children);
 
     return [...savedRoots, ...savedChildren].map((account) =>
       this.toResponse(account),
@@ -760,9 +683,7 @@ export class AccountsService {
     });
 
     if (existing && !existing.deletedAt) {
-      throw new ConflictException(
-        `Account code ${code} already exists.`,
-      );
+      throw new ConflictException(`Account code ${code} already exists.`);
     }
   }
 
@@ -809,9 +730,7 @@ export class AccountsService {
     }
 
     if (dto.status === AccountStatus.INACTIVE) {
-      throw new ConflictException(
-        'System accounts cannot be deactivated.',
-      );
+      throw new ConflictException('System accounts cannot be deactivated.');
     }
 
     if (
@@ -862,9 +781,7 @@ export class AccountsService {
     return normalized ? normalized : null;
   }
 
-  private toResponse(
-    account: AccountEntity,
-  ): AccountResponseDto {
+  private toResponse(account: AccountEntity): AccountResponseDto {
     return {
       id: account.id,
       companyId: account.companyId,

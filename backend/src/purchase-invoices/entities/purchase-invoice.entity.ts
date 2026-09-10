@@ -32,14 +32,10 @@ const decimalTransformer = {
 @Index('IDX_purchase_invoices_purchase_order', ['purchaseOrderId'])
 @Index('IDX_purchase_invoices_goods_receipt', ['goodsReceiptId'])
 @Index('IDX_purchase_invoices_status', ['companyId', 'status'])
-@Index(
-  'UQ_purchase_invoices_company_number',
-  ['companyId', 'invoiceNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_purchase_invoices_company_number', ['companyId', 'invoiceNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class PurchaseInvoiceEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -221,14 +217,10 @@ export class PurchaseInvoiceEntity {
   @Column({ name: 'cancelled_at', type: 'timestamptz', nullable: true })
   cancelledAt!: Date | null;
 
-  @OneToMany(
-    () => PurchaseInvoiceItemEntity,
-    (item) => item.purchaseInvoice,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => PurchaseInvoiceItemEntity, (item) => item.purchaseInvoice, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: PurchaseInvoiceItemEntity[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

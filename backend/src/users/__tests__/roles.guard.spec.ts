@@ -12,9 +12,7 @@ function makeContext(
 } {
   const reflector = new Reflector();
 
-  jest
-    .spyOn(reflector, 'getAllAndOverride')
-    .mockReturnValue(requiredRoles);
+  jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(requiredRoles);
 
   const context = {
     getHandler: jest.fn(),
@@ -40,48 +38,34 @@ function makeContext(
 
 describe('RolesGuard', () => {
   it('allows access when no roles metadata exists', () => {
-    const { guard, context } = makeContext(
-      'sales_rep',
-      undefined,
-    );
+    const { guard, context } = makeContext('sales_rep', undefined);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('allows access when the user has the required role', () => {
-    const { guard, context } = makeContext(
-      'admin',
-      ['admin'],
-    );
+    const { guard, context } = makeContext('admin', ['admin']);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('allows access when the role matches one of several roles', () => {
-    const { guard, context } = makeContext(
+    const { guard, context } = makeContext('company_owner', [
+      'admin',
       'company_owner',
-      ['admin', 'company_owner'],
-    );
+    ]);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('throws when the user lacks the required role', () => {
-    const { guard, context } = makeContext(
-      'sales_rep',
-      ['admin'],
-    );
+    const { guard, context } = makeContext('sales_rep', ['admin']);
 
-    expect(() => guard.canActivate(context)).toThrow(
-      ForbiddenException,
-    );
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
 
   it('allows access when the required roles array is empty', () => {
-    const { guard, context } = makeContext(
-      'sales_rep',
-      [],
-    );
+    const { guard, context } = makeContext('sales_rep', []);
 
     expect(guard.canActivate(context)).toBe(true);
   });

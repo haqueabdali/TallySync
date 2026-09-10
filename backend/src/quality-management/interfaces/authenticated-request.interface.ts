@@ -5,7 +5,6 @@ export interface QualityManagementUser {
   companyId: string;
 }
 
-export interface AuthenticatedQualityManagementRequest
-  extends Request {
+export interface AuthenticatedQualityManagementRequest extends Request {
   user: QualityManagementUser;
 }

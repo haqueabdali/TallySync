@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Res } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -19,9 +13,7 @@ import { HealthService } from './health.service';
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
-  constructor(
-    private readonly healthService: HealthService,
-  ) {}
+  constructor(private readonly healthService: HealthService) {}
 
   @Get('live')
   @HttpCode(HttpStatus.OK)
@@ -40,24 +32,19 @@ export class HealthController {
     summary: 'Application readiness check',
   })
   @ApiOkResponse({
-    description:
-      'Application and database are ready',
+    description: 'Application and database are ready',
   })
   @ApiServiceUnavailableResponse({
-    description:
-      'Database is unavailable',
+    description: 'Database is unavailable',
   })
   async ready(
     @Res({ passthrough: true })
     response: Response,
   ): Promise<HealthCheckResponse> {
-    const result =
-      await this.healthService.ready();
+    const result = await this.healthService.ready();
 
     response.status(
-      result.status === 'ok'
-        ? HttpStatus.OK
-        : HttpStatus.SERVICE_UNAVAILABLE,
+      result.status === 'ok' ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE,
     );
 
     return result;

@@ -1,35 +1,15 @@
-import {
-  Module,
-} from '@nestjs/common';
-import {
-  TypeOrmModule,
-} from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import {
-  AccountingEngineModule,
-} from '../accounting-engine/accounting-engine.module';
-import {
-  AccountingSettingsEntity,
-} from '../accounting-settings/entities/accounting-settings.entity';
-import {
-  BillOfMaterialEntity,
-} from '../bill-of-materials/entities/bill-of-material.entity';
-import {
-  WarehouseEntity,
-} from '../warehouses/entities/warehouse.entity';
+import { AccountingEngineModule } from '../accounting-engine/accounting-engine.module';
+import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
+import { BillOfMaterialEntity } from '../bill-of-materials/entities/bill-of-material.entity';
+import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
 
-import {
-  ProductionOrderComponentEntity,
-} from './entities/production-order-component.entity';
-import {
-  ProductionOrderEntity,
-} from './entities/production-order.entity';
-import {
-  ProductionOrdersController,
-} from './production-orders.controller';
-import {
-  ProductionOrdersService,
-} from './production-orders.service';
+import { ProductionOrderComponentEntity } from './entities/production-order-component.entity';
+import { ProductionOrderEntity } from './entities/production-order.entity';
+import { ProductionOrdersController } from './production-orders.controller';
+import { ProductionOrdersService } from './production-orders.service';
 
 @Module({
   imports: [
@@ -49,16 +29,10 @@ import {
     AccountingEngineModule,
   ],
 
-  controllers: [
-    ProductionOrdersController,
-  ],
+  controllers: [ProductionOrdersController],
 
-  providers: [
-    ProductionOrdersService,
-  ],
+  providers: [ProductionOrdersService],
 
-  exports: [
-    ProductionOrdersService,
-  ],
+  exports: [ProductionOrdersService],
 })
 export class ProductionOrdersModule {}

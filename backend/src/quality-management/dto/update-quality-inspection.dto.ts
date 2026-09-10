@@ -1,15 +1,6 @@
-import {
-  ApiPropertyOptional,
-  PartialType,
-} from '@nestjs/swagger';
+import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsNumber,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsNumber, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 import { CreateQualityInspectionDto } from './create-quality-inspection.dto';
 

@@ -5,12 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  EntityManager,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, EntityManager, Repository } from 'typeorm';
 
 import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.entity';
 import { GoodsReceipt } from '../goods-receipts/entities/goods-receipt.entity';
@@ -50,36 +45,28 @@ export class LandedCostsService {
     private readonly dataSource: DataSource,
 
     @InjectRepository(LandedCostEntity)
-    private readonly landedCostRepository:
-      Repository<LandedCostEntity>,
+    private readonly landedCostRepository: Repository<LandedCostEntity>,
 
     @InjectRepository(LandedCostChargeEntity)
-    private readonly chargeRepository:
-      Repository<LandedCostChargeEntity>,
+    private readonly chargeRepository: Repository<LandedCostChargeEntity>,
 
     @InjectRepository(LandedCostItemAllocationEntity)
-    private readonly allocationRepository:
-      Repository<LandedCostItemAllocationEntity>,
+    private readonly allocationRepository: Repository<LandedCostItemAllocationEntity>,
 
     @InjectRepository(GoodsReceipt)
-    private readonly goodsReceiptRepository:
-      Repository<GoodsReceipt>,
+    private readonly goodsReceiptRepository: Repository<GoodsReceipt>,
 
     @InjectRepository(GoodsReceiptItem)
-    private readonly goodsReceiptItemRepository:
-      Repository<GoodsReceiptItem>,
+    private readonly goodsReceiptItemRepository: Repository<GoodsReceiptItem>,
 
     @InjectRepository(PurchaseInvoiceEntity)
-    private readonly purchaseInvoiceRepository:
-      Repository<PurchaseInvoiceEntity>,
+    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoiceEntity>,
 
     @InjectRepository(SupplierEntity)
-    private readonly supplierRepository:
-      Repository<SupplierEntity>,
+    private readonly supplierRepository: Repository<SupplierEntity>,
 
     @InjectRepository(ItemEntity)
-    private readonly itemRepository:
-      Repository<ItemEntity>,
+    private readonly itemRepository: Repository<ItemEntity>,
   ) {}
 
   async create(
@@ -89,38 +76,27 @@ export class LandedCostsService {
   ): Promise<LandedCostResponseDto> {
     this.ensureSourceDocument(dto.goodsReceiptId);
 
-    const source = await this.validateReferences(
-      dto,
-      companyId,
-    );
+    const source = await this.validateReferences(dto, companyId);
 
     return this.dataSource.transaction(async (manager) => {
-      const landedCostRepository =
-        manager.getRepository(LandedCostEntity);
-      const chargeRepository =
-        manager.getRepository(LandedCostChargeEntity);
-      const allocationRepository =
-        manager.getRepository(
-          LandedCostItemAllocationEntity,
-        );
+      const landedCostRepository = manager.getRepository(LandedCostEntity);
+      const chargeRepository = manager.getRepository(LandedCostChargeEntity);
+      const allocationRepository = manager.getRepository(
+        LandedCostItemAllocationEntity,
+      );
 
       const totalCost = this.round(
-        dto.charges.reduce(
-          (sum, charge) => sum + Number(charge.amount),
-          0,
-        ),
+        dto.charges.reduce((sum, charge) => sum + Number(charge.amount), 0),
       );
 
       const landedCost = landedCostRepository.create({
         companyId,
         goodsReceiptId: dto.goodsReceiptId ?? null,
-        purchaseInvoiceId:
-          dto.purchaseInvoiceId ?? null,
-        landedCostNumber:
-          await this.generateLandedCostNumber(
-            companyId,
-            dto.costDate,
-          ),
+        purchaseInvoiceId: dto.purchaseInvoiceId ?? null,
+        landedCostNumber: await this.generateLandedCostNumber(
+          companyId,
+          dto.costDate,
+        ),
         costDate: dto.costDate,
         status: LandedCostStatus.Draft,
         allocationMethod: dto.allocationMethod,
@@ -141,9 +117,7 @@ export class LandedCostsService {
         itemAllocations: [],
       });
 
-      const saved = await landedCostRepository.save(
-        landedCost,
-      );
+      const saved = await landedCostRepository.save(landedCost);
 
       saved.charges = await chargeRepository.save(
         dto.charges.map((charge) =>
@@ -151,36 +125,28 @@ export class LandedCostsService {
             landedCostId: saved.id,
             costType: charge.costType,
             supplierId: charge.supplierId ?? null,
-            referenceNumber: this.optional(
-              charge.referenceNumber,
-            ),
+            referenceNumber: this.optional(charge.referenceNumber),
             amount: this.round(charge.amount),
-            description: this.optional(
-              charge.description,
-            ),
+            description: this.optional(charge.description),
           }),
         ),
       );
 
-      const allocationSources =
-        this.buildAllocationSources(
-          source.goodsReceipt.items,
-          dto.allocationMethod,
-        );
-
-      saved.itemAllocations =
-        await allocationRepository.save(
-          this.allocateCosts(
-            allocationRepository,
-            saved.id,
-            allocationSources,
-            totalCost,
-          ),
-        );
-
-      return this.toResponse(
-        await landedCostRepository.save(saved),
+      const allocationSources = this.buildAllocationSources(
+        source.goodsReceipt.items,
+        dto.allocationMethod,
       );
+
+      saved.itemAllocations = await allocationRepository.save(
+        this.allocateCosts(
+          allocationRepository,
+          saved.id,
+          allocationSources,
+          totalCost,
+        ),
+      );
+
+      return this.toResponse(await landedCostRepository.save(saved));
     });
   }
 
@@ -193,14 +159,8 @@ export class LandedCostsService {
 
     const query = this.landedCostRepository
       .createQueryBuilder('landedCost')
-      .leftJoinAndSelect(
-        'landedCost.charges',
-        'charges',
-      )
-      .leftJoinAndSelect(
-        'landedCost.itemAllocations',
-        'itemAllocations',
-      )
+      .leftJoinAndSelect('landedCost.charges', 'charges')
+      .leftJoinAndSelect('landedCost.itemAllocations', 'itemAllocations')
       .where('landedCost.company_id = :companyId', {
         companyId,
       });
@@ -210,70 +170,49 @@ export class LandedCostsService {
 
       query.andWhere(
         new Brackets((qb) => {
-          qb.where(
-            'landedCost.landed_cost_number ILIKE :search',
-            { search },
-          ).orWhere(
-            'landedCost.notes ILIKE :search',
-            { search },
-          );
+          qb.where('landedCost.landed_cost_number ILIKE :search', {
+            search,
+          }).orWhere('landedCost.notes ILIKE :search', { search });
         }),
       );
     }
 
     if (filter.goodsReceiptId) {
-      query.andWhere(
-        'landedCost.goods_receipt_id = :goodsReceiptId',
-        {
-          goodsReceiptId: filter.goodsReceiptId,
-        },
-      );
+      query.andWhere('landedCost.goods_receipt_id = :goodsReceiptId', {
+        goodsReceiptId: filter.goodsReceiptId,
+      });
     }
 
     if (filter.purchaseInvoiceId) {
-      query.andWhere(
-        'landedCost.purchase_invoice_id = :purchaseInvoiceId',
-        {
-          purchaseInvoiceId:
-            filter.purchaseInvoiceId,
-        },
-      );
+      query.andWhere('landedCost.purchase_invoice_id = :purchaseInvoiceId', {
+        purchaseInvoiceId: filter.purchaseInvoiceId,
+      });
     }
 
     if (filter.status) {
-      query.andWhere(
-        'landedCost.status = :status',
-        { status: filter.status },
-      );
+      query.andWhere('landedCost.status = :status', { status: filter.status });
     }
 
     if (filter.allocationMethod) {
-      query.andWhere(
-        'landedCost.allocation_method = :allocationMethod',
-        {
-          allocationMethod:
-            filter.allocationMethod,
-        },
-      );
+      query.andWhere('landedCost.allocation_method = :allocationMethod', {
+        allocationMethod: filter.allocationMethod,
+      });
     }
 
     if (filter.dateFrom) {
-      query.andWhere(
-        'landedCost.cost_date >= :dateFrom',
-        { dateFrom: filter.dateFrom },
-      );
+      query.andWhere('landedCost.cost_date >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
     }
 
     if (filter.dateTo) {
-      query.andWhere(
-        'landedCost.cost_date <= :dateTo',
-        { dateTo: filter.dateTo },
-      );
+      query.andWhere('landedCost.cost_date <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
     }
 
     const sortColumns: Record<string, string> = {
-      landedCostNumber:
-        'landedCost.landed_cost_number',
+      landedCostNumber: 'landedCost.landed_cost_number',
       costDate: 'landedCost.cost_date',
       totalCost: 'landedCost.total_cost',
       createdAt: 'landedCost.created_at',
@@ -282,8 +221,7 @@ export class LandedCostsService {
 
     query
       .orderBy(
-        sortColumns[filter.sortBy] ??
-          'landedCost.created_at',
+        sortColumns[filter.sortBy] ?? 'landedCost.created_at',
         filter.sortOrder ?? 'DESC',
       )
       .addOrderBy('landedCost.id', 'DESC')
@@ -291,16 +229,12 @@ export class LandedCostsService {
       .take(limit)
       .distinct(true);
 
-    const [records, total] =
-      await query.getManyAndCount();
+    const [records, total] = await query.getManyAndCount();
 
-    const totalPages =
-      total === 0 ? 0 : Math.ceil(total / limit);
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: records.map((record) =>
-        this.toResponse(record),
-      ),
+      data: records.map((record) => this.toResponse(record)),
       meta: {
         page,
         limit,
@@ -312,13 +246,8 @@ export class LandedCostsService {
     };
   }
 
-  async findOne(
-    id: string,
-    companyId: string,
-  ): Promise<LandedCostResponseDto> {
-    return this.toResponse(
-      await this.getEntity(id, companyId),
-    );
+  async findOne(id: string, companyId: string): Promise<LandedCostResponseDto> {
+    return this.toResponse(await this.getEntity(id, companyId));
   }
 
   async update(
@@ -328,72 +257,53 @@ export class LandedCostsService {
     userId: string,
   ): Promise<LandedCostResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const landedCostRepository =
-        manager.getRepository(LandedCostEntity);
-      const chargeRepository =
-        manager.getRepository(LandedCostChargeEntity);
-      const allocationRepository =
-        manager.getRepository(
-          LandedCostItemAllocationEntity,
-        );
+      const landedCostRepository = manager.getRepository(LandedCostEntity);
+      const chargeRepository = manager.getRepository(LandedCostChargeEntity);
+      const allocationRepository = manager.getRepository(
+        LandedCostItemAllocationEntity,
+      );
 
-      const landedCost =
-        await landedCostRepository.findOne({
-          where: { id, companyId },
-          relations: {
-            charges: true,
-            itemAllocations: true,
-          },
-        });
+      const landedCost = await landedCostRepository.findOne({
+        where: { id, companyId },
+        relations: {
+          charges: true,
+          itemAllocations: true,
+        },
+      });
 
       if (!landedCost) {
-        throw new NotFoundException(
-          'Landed cost not found.',
-        );
+        throw new NotFoundException('Landed cost not found.');
       }
 
       this.ensureDraft(landedCost);
 
       const goodsReceiptId =
-        dto.goodsReceiptId ??
-        landedCost.goodsReceiptId ??
-        undefined;
+        dto.goodsReceiptId ?? landedCost.goodsReceiptId ?? undefined;
 
       this.ensureSourceDocument(goodsReceiptId);
 
       const purchaseInvoiceId =
-        dto.purchaseInvoiceId ??
-        landedCost.purchaseInvoiceId ??
-        undefined;
+        dto.purchaseInvoiceId ?? landedCost.purchaseInvoiceId ?? undefined;
 
       const allocationMethod =
-        dto.allocationMethod ??
-        landedCost.allocationMethod;
+        dto.allocationMethod ?? landedCost.allocationMethod;
 
       const source = await this.validateReferences(
         {
           goodsReceiptId,
           purchaseInvoiceId,
-          costDate:
-            dto.costDate ?? landedCost.costDate,
+          costDate: dto.costDate ?? landedCost.costDate,
           allocationMethod,
-          currency:
-            dto.currency ?? landedCost.currency,
-          notes:
-            dto.notes ??
-            landedCost.notes ??
-            undefined,
+          currency: dto.currency ?? landedCost.currency,
+          notes: dto.notes ?? landedCost.notes ?? undefined,
           charges:
             dto.charges ??
             landedCost.charges.map((charge) => ({
               costType: charge.costType,
-              supplierId:
-                charge.supplierId ?? undefined,
-              referenceNumber:
-                charge.referenceNumber ?? undefined,
+              supplierId: charge.supplierId ?? undefined,
+              referenceNumber: charge.referenceNumber ?? undefined,
               amount: Number(charge.amount),
-              description:
-                charge.description ?? undefined,
+              description: charge.description ?? undefined,
             })),
         },
         companyId,
@@ -404,36 +314,24 @@ export class LandedCostsService {
           landedCostId: landedCost.id,
         });
 
-        landedCost.charges =
-          await chargeRepository.save(
-            dto.charges.map((charge) =>
-              chargeRepository.create({
-                landedCostId: landedCost.id,
-                costType: charge.costType,
-                supplierId:
-                  charge.supplierId ?? null,
-                referenceNumber: this.optional(
-                  charge.referenceNumber,
-                ),
-                amount: this.round(
-                  charge.amount,
-                ),
-                description: this.optional(
-                  charge.description,
-                ),
-              }),
-            ),
-          );
+        landedCost.charges = await chargeRepository.save(
+          dto.charges.map((charge) =>
+            chargeRepository.create({
+              landedCostId: landedCost.id,
+              costType: charge.costType,
+              supplierId: charge.supplierId ?? null,
+              referenceNumber: this.optional(charge.referenceNumber),
+              amount: this.round(charge.amount),
+              description: this.optional(charge.description),
+            }),
+          ),
+        );
       }
 
-      landedCost.goodsReceiptId =
-        goodsReceiptId ?? null;
-      landedCost.purchaseInvoiceId =
-        purchaseInvoiceId ?? null;
-      landedCost.costDate =
-        dto.costDate ?? landedCost.costDate;
-      landedCost.allocationMethod =
-        allocationMethod;
+      landedCost.goodsReceiptId = goodsReceiptId ?? null;
+      landedCost.purchaseInvoiceId = purchaseInvoiceId ?? null;
+      landedCost.costDate = dto.costDate ?? landedCost.costDate;
+      landedCost.allocationMethod = allocationMethod;
       landedCost.currency = (
         dto.currency ??
         source.purchaseInvoice?.currency ??
@@ -441,15 +339,12 @@ export class LandedCostsService {
       ).toUpperCase();
 
       if (dto.notes !== undefined) {
-        landedCost.notes = this.optional(
-          dto.notes,
-        );
+        landedCost.notes = this.optional(dto.notes);
       }
 
       landedCost.totalCost = this.round(
         landedCost.charges.reduce(
-          (sum, charge) =>
-            sum + Number(charge.amount),
+          (sum, charge) => sum + Number(charge.amount),
           0,
         ),
       );
@@ -458,29 +353,23 @@ export class LandedCostsService {
         landedCostId: landedCost.id,
       });
 
-      const allocationSources =
-        this.buildAllocationSources(
-          source.goodsReceipt.items,
-          allocationMethod,
-        );
+      const allocationSources = this.buildAllocationSources(
+        source.goodsReceipt.items,
+        allocationMethod,
+      );
 
-      landedCost.itemAllocations =
-        await allocationRepository.save(
-          this.allocateCosts(
-            allocationRepository,
-            landedCost.id,
-            allocationSources,
-            landedCost.totalCost,
-          ),
-        );
+      landedCost.itemAllocations = await allocationRepository.save(
+        this.allocateCosts(
+          allocationRepository,
+          landedCost.id,
+          allocationSources,
+          landedCost.totalCost,
+        ),
+      );
 
       landedCost.updatedBy = userId;
 
-      return this.toResponse(
-        await landedCostRepository.save(
-          landedCost,
-        ),
-      );
+      return this.toResponse(await landedCostRepository.save(landedCost));
     });
   }
 
@@ -490,48 +379,34 @@ export class LandedCostsService {
     userId: string,
   ): Promise<LandedCostResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const landedCostRepository =
-        manager.getRepository(LandedCostEntity);
+      const landedCostRepository = manager.getRepository(LandedCostEntity);
 
-      const landedCost =
-        await landedCostRepository.findOne({
-          where: { id, companyId },
-          relations: {
-            charges: true,
-            itemAllocations: true,
-          },
-        });
+      const landedCost = await landedCostRepository.findOne({
+        where: { id, companyId },
+        relations: {
+          charges: true,
+          itemAllocations: true,
+        },
+      });
 
       if (!landedCost) {
-        throw new NotFoundException(
-          'Landed cost not found.',
-        );
+        throw new NotFoundException('Landed cost not found.');
       }
 
       this.ensureDraft(landedCost);
 
       if (!landedCost.itemAllocations.length) {
-        throw new ConflictException(
-          'Landed cost has no item allocations.',
-        );
+        throw new ConflictException('Landed cost has no item allocations.');
       }
 
-      await this.applyInventoryCost(
-        manager,
-        landedCost,
-        false,
-      );
+      await this.applyInventoryCost(manager, landedCost, false);
 
       landedCost.status = LandedCostStatus.Posted;
       landedCost.postedBy = userId;
       landedCost.postedAt = new Date();
       landedCost.updatedBy = userId;
 
-      return this.toResponse(
-        await landedCostRepository.save(
-          landedCost,
-        ),
-      );
+      return this.toResponse(await landedCostRepository.save(landedCost));
     });
   }
 
@@ -541,72 +416,46 @@ export class LandedCostsService {
     userId: string,
   ): Promise<LandedCostResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const landedCostRepository =
-        manager.getRepository(LandedCostEntity);
+      const landedCostRepository = manager.getRepository(LandedCostEntity);
 
-      const landedCost =
-        await landedCostRepository.findOne({
-          where: { id, companyId },
-          relations: {
-            charges: true,
-            itemAllocations: true,
-          },
-        });
+      const landedCost = await landedCostRepository.findOne({
+        where: { id, companyId },
+        relations: {
+          charges: true,
+          itemAllocations: true,
+        },
+      });
 
       if (!landedCost) {
-        throw new NotFoundException(
-          'Landed cost not found.',
-        );
+        throw new NotFoundException('Landed cost not found.');
       }
 
-      if (
-        landedCost.status ===
-        LandedCostStatus.Cancelled
-      ) {
+      if (landedCost.status === LandedCostStatus.Cancelled) {
         return this.toResponse(landedCost);
       }
 
-      if (
-        landedCost.status ===
-        LandedCostStatus.Posted
-      ) {
-        await this.applyInventoryCost(
-          manager,
-          landedCost,
-          true,
-        );
+      if (landedCost.status === LandedCostStatus.Posted) {
+        await this.applyInventoryCost(manager, landedCost, true);
       }
 
-      landedCost.status =
-        LandedCostStatus.Cancelled;
+      landedCost.status = LandedCostStatus.Cancelled;
       landedCost.cancelledBy = userId;
       landedCost.cancelledAt = new Date();
       landedCost.updatedBy = userId;
 
-      return this.toResponse(
-        await landedCostRepository.save(
-          landedCost,
-        ),
-      );
+      return this.toResponse(await landedCostRepository.save(landedCost));
     });
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
-    const landedCost =
-      await this.getEntity(id, companyId);
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
+    const landedCost = await this.getEntity(id, companyId);
 
     this.ensureDraft(landedCost);
 
-    await this.landedCostRepository.softRemove(
-      landedCost,
-    );
+    await this.landedCostRepository.softRemove(landedCost);
 
     return {
-      message:
-        'Landed cost deleted successfully.',
+      message: 'Landed cost deleted successfully.',
     };
   }
 
@@ -615,9 +464,7 @@ export class LandedCostsService {
     companyId: string,
   ): Promise<{
     goodsReceipt: GoodsReceipt;
-    purchaseInvoice:
-      | PurchaseInvoiceEntity
-      | null;
+    purchaseInvoice: PurchaseInvoiceEntity | null;
   }> {
     if (!dto.goodsReceiptId) {
       throw new BadRequestException(
@@ -625,64 +472,48 @@ export class LandedCostsService {
       );
     }
 
-    const goodsReceipt =
-      await this.goodsReceiptRepository.findOne({
-        where: {
-          id: dto.goodsReceiptId,
-          companyId,
-        },
-        relations: {
-          items: true,
-        },
-      });
+    const goodsReceipt = await this.goodsReceiptRepository.findOne({
+      where: {
+        id: dto.goodsReceiptId,
+        companyId,
+      },
+      relations: {
+        items: true,
+      },
+    });
 
     if (!goodsReceipt) {
-      throw new NotFoundException(
-        'Goods receipt not found.',
-      );
+      throw new NotFoundException('Goods receipt not found.');
     }
 
-    if (
-      goodsReceipt.status !==
-      GoodsReceiptStatus.Posted
-    ) {
+    if (goodsReceipt.status !== GoodsReceiptStatus.Posted) {
       throw new ConflictException(
         'Only posted goods receipts can receive landed costs.',
       );
     }
 
     if (!goodsReceipt.items?.length) {
-      throw new ConflictException(
-        'Goods receipt has no items.',
-      );
+      throw new ConflictException('Goods receipt has no items.');
     }
 
-    let purchaseInvoice:
-      | PurchaseInvoiceEntity
-      | null = null;
+    let purchaseInvoice: PurchaseInvoiceEntity | null = null;
 
     if (dto.purchaseInvoiceId) {
-      purchaseInvoice =
-        await this.purchaseInvoiceRepository.findOne({
-          where: {
-            id: dto.purchaseInvoiceId,
-            companyId,
-          },
-        });
+      purchaseInvoice = await this.purchaseInvoiceRepository.findOne({
+        where: {
+          id: dto.purchaseInvoiceId,
+          companyId,
+        },
+      });
 
       if (!purchaseInvoice) {
-        throw new NotFoundException(
-          'Purchase invoice not found.',
-        );
+        throw new NotFoundException('Purchase invoice not found.');
       }
 
       if (
-        purchaseInvoice.status !==
-          PurchaseInvoiceStatus.Posted &&
-        purchaseInvoice.status !==
-          PurchaseInvoiceStatus.PartiallyPaid &&
-        purchaseInvoice.status !==
-          PurchaseInvoiceStatus.Paid
+        purchaseInvoice.status !== PurchaseInvoiceStatus.Posted &&
+        purchaseInvoice.status !== PurchaseInvoiceStatus.PartiallyPaid &&
+        purchaseInvoice.status !== PurchaseInvoiceStatus.Paid
       ) {
         throw new ConflictException(
           'Only posted purchase invoices can be linked to landed costs.',
@@ -691,8 +522,7 @@ export class LandedCostsService {
 
       if (
         purchaseInvoice.goodsReceiptId &&
-        purchaseInvoice.goodsReceiptId !==
-          goodsReceipt.id
+        purchaseInvoice.goodsReceiptId !== goodsReceipt.id
       ) {
         throw new BadRequestException(
           'Purchase invoice does not belong to the selected goods receipt.',
@@ -704,26 +534,20 @@ export class LandedCostsService {
       ...new Set(
         dto.charges
           .map((charge) => charge.supplierId)
-          .filter(
-            (supplierId): supplierId is string =>
-              Boolean(supplierId),
-          ),
+          .filter((supplierId): supplierId is string => Boolean(supplierId)),
       ),
     ];
 
     for (const supplierId of supplierIds) {
-      const supplier =
-        await this.supplierRepository.findOne({
-          where: {
-            id: supplierId,
-            companyId,
-          },
-        });
+      const supplier = await this.supplierRepository.findOne({
+        where: {
+          id: supplierId,
+          companyId,
+        },
+      });
 
       if (!supplier) {
-        throw new NotFoundException(
-          `Supplier ${supplierId} not found.`,
-        );
+        throw new NotFoundException(`Supplier ${supplierId} not found.`);
       }
     }
 
@@ -738,12 +562,8 @@ export class LandedCostsService {
     method: LandedCostAllocationMethod,
   ): AllocationSource[] {
     const sources = items.map((item) => {
-      const quantity = Number(
-        item.acceptedQty,
-      );
-      const baseValue = this.round(
-        quantity * Number(item.unitCost),
-      );
+      const quantity = Number(item.acceptedQty);
+      const baseValue = this.round(quantity * Number(item.unitCost));
 
       let allocationBasis: number;
 
@@ -779,9 +599,7 @@ export class LandedCostsService {
 
     if (
       sources.some(
-        (source) =>
-          source.quantity <= 0 ||
-          source.allocationBasis < 0,
+        (source) => source.quantity <= 0 || source.allocationBasis < 0,
       )
     ) {
       throw new BadRequestException(
@@ -790,8 +608,7 @@ export class LandedCostsService {
     }
 
     const totalBasis = sources.reduce(
-      (sum, source) =>
-        sum + source.allocationBasis,
+      (sum, source) => sum + source.allocationBasis,
       0,
     );
 
@@ -811,8 +628,7 @@ export class LandedCostsService {
     totalCost: number,
   ): LandedCostItemAllocationEntity[] {
     const totalBasis = sources.reduce(
-      (sum, source) =>
-        sum + source.allocationBasis,
+      (sum, source) => sum + source.allocationBasis,
       0,
     );
 
@@ -821,39 +637,27 @@ export class LandedCostsService {
     return sources.map((source, index) => {
       const allocatedCost =
         index === sources.length - 1
-          ? this.round(
-              totalCost - allocatedSoFar,
-            )
-          : this.round(
-              totalCost *
-                (source.allocationBasis /
-                  totalBasis),
-            );
+          ? this.round(totalCost - allocatedSoFar)
+          : this.round(totalCost * (source.allocationBasis / totalBasis));
 
-      allocatedSoFar = this.round(
-        allocatedSoFar + allocatedCost,
-      );
+      allocatedSoFar = this.round(allocatedSoFar + allocatedCost);
 
       const landedUnitCost =
         source.quantity > 0
           ? this.roundFour(
-              source.baseValue /
-                source.quantity +
-                allocatedCost /
-                  source.quantity,
+              source.baseValue / source.quantity +
+                allocatedCost / source.quantity,
             )
           : 0;
 
       return repository.create({
         landedCostId,
-        goodsReceiptItemId:
-          source.goodsReceiptItemId,
+        goodsReceiptItemId: source.goodsReceiptItemId,
         itemId: source.itemId,
         quantity: source.quantity,
         baseValue: source.baseValue,
         weightValue: source.weightValue,
-        allocationBasis:
-          source.allocationBasis,
+        allocationBasis: source.allocationBasis,
         allocatedCost,
         landedUnitCost,
       });
@@ -861,92 +665,66 @@ export class LandedCostsService {
   }
 
   private async applyInventoryCost(
-  manager: EntityManager,
-  landedCost: LandedCostEntity,
-  reverse: boolean,
-): Promise<void> {
-  const itemRepository =
-    manager.getRepository(ItemEntity);
-
-  for (const allocation of landedCost.itemAllocations) {
-    const item = await itemRepository.findOne({
-      where: {
-        id: allocation.itemId,
-        companyId: landedCost.companyId,
-      },
-    });
-
-    if (!item) {
-      throw new NotFoundException(
-        `Item ${allocation.itemId} not found.`,
-      );
-    }
-
-    /*
-     * ItemEntity currently has no currentStock property.
-     * Use the Goods Receipt allocation quantity as the
-     * valuation quantity for this landed-cost document.
-     */
-    const valuationQuantity = Number(
-      allocation.quantity ?? 0,
-    );
-
-    if (valuationQuantity <= 0) {
-      throw new ConflictException(
-        `Item ${item.name} has an invalid landed-cost quantity.`,
-      );
-    }
-
-    const currentUnitCost = Number(
-      item.purchasePrice ?? 0,
-    );
-
-    const currentValue = this.round(
-      currentUnitCost * valuationQuantity,
-    );
-
-    const adjustment =
-      Number(allocation.allocatedCost) *
-      (reverse ? -1 : 1);
-
-    const nextValue = this.round(
-      currentValue + adjustment,
-    );
-
-    if (nextValue < 0) {
-      throw new ConflictException(
-        `Reversing landed cost would make the inventory value negative for item ${item.name}.`,
-      );
-    }
-
-    item.purchasePrice = this.round(
-      nextValue / valuationQuantity,
-    );
-
-    await itemRepository.save(item);
-  }
-}
-
-  private ensureSourceDocument(
-    goodsReceiptId?: string,
-  ): void {
-    if (!goodsReceiptId) {
-      throw new BadRequestException(
-        'A Goods Receipt is required.',
-      );
-    }
-  }
-
-  private ensureDraft(
+    manager: EntityManager,
     landedCost: LandedCostEntity,
-  ): void {
-    if (
-      landedCost.status !==
-      LandedCostStatus.Draft
-    ) {
-      throw new ConflictException(
-        'Only draft landed costs can be modified.',
-      );
+    reverse: boolean,
+  ): Promise<void> {
+    const itemRepository = manager.getRepository(ItemEntity);
+
+    for (const allocation of landedCost.itemAllocations) {
+      const item = await itemRepository.findOne({
+        where: {
+          id: allocation.itemId,
+          companyId: landedCost.companyId,
+        },
+      });
+
+      if (!item) {
+        throw new NotFoundException(`Item ${allocation.itemId} not found.`);
+      }
+
+      /*
+       * ItemEntity currently has no currentStock property.
+       * Use the Goods Receipt allocation quantity as the
+       * valuation quantity for this landed-cost document.
+       */
+      const valuationQuantity = Number(allocation.quantity ?? 0);
+
+      if (valuationQuantity <= 0) {
+        throw new ConflictException(
+          `Item ${item.name} has an invalid landed-cost quantity.`,
+        );
+      }
+
+      const currentUnitCost = Number(item.purchasePrice ?? 0);
+
+      const currentValue = this.round(currentUnitCost * valuationQuantity);
+
+      const adjustment = Number(allocation.allocatedCost) * (reverse ? -1 : 1);
+
+      const nextValue = this.round(currentValue + adjustment);
+
+      if (nextValue < 0) {
+        throw new ConflictException(
+          `Reversing landed cost would make the inventory value negative for item ${item.name}.`,
+        );
+      }
+
+      item.purchasePrice = this.round(nextValue / valuationQuantity);
+
+      await itemRepository.save(item);
+    }
+  }
+
+  private ensureSourceDocument(goodsReceiptId?: string): void {
+    if (!goodsReceiptId) {
+      throw new BadRequestException('A Goods Receipt is required.');
+    }
+  }
+
+  private ensureDraft(landedCost: LandedCostEntity): void {
+    if (landedCost.status !== LandedCostStatus.Draft) {
+      throw new ConflictException('Only draft landed costs can be modified.');
     }
   }
 
@@ -954,19 +732,16 @@ export class LandedCostsService {
     id: string,
     companyId: string,
   ): Promise<LandedCostEntity> {
-    const landedCost =
-      await this.landedCostRepository.findOne({
-        where: { id, companyId },
-        relations: {
-          charges: true,
-          itemAllocations: true,
-        },
-      });
+    const landedCost = await this.landedCostRepository.findOne({
+      where: { id, companyId },
+      relations: {
+        charges: true,
+        itemAllocations: true,
+      },
+    });
 
     if (!landedCost) {
-      throw new NotFoundException(
-        'Landed cost not found.',
-      );
+      throw new NotFoundException('Landed cost not found.');
     }
 
     return landedCost;
@@ -976,49 +751,28 @@ export class LandedCostsService {
     companyId: string,
     costDate: string,
   ): Promise<string> {
-    const year = new Date(
-      costDate,
-    ).getUTCFullYear();
+    const year = new Date(costDate).getUTCFullYear();
 
     const prefix = `LC-${year}-`;
 
-    const latest =
-      await this.landedCostRepository
-        .createQueryBuilder('landedCost')
-        .withDeleted()
-        .select(
-          'landedCost.landed_cost_number',
-          'landedCostNumber',
-        )
-        .where(
-          'landedCost.company_id = :companyId',
-          { companyId },
-        )
-        .andWhere(
-          'landedCost.landed_cost_number LIKE :prefix',
-          { prefix: `${prefix}%` },
-        )
-        .orderBy(
-          'landedCost.landed_cost_number',
-          'DESC',
-        )
-        .getRawOne<{
-          landedCostNumber?: string;
-        }>();
+    const latest = await this.landedCostRepository
+      .createQueryBuilder('landedCost')
+      .withDeleted()
+      .select('landedCost.landed_cost_number', 'landedCostNumber')
+      .where('landedCost.company_id = :companyId', { companyId })
+      .andWhere('landedCost.landed_cost_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
+      .orderBy('landedCost.landed_cost_number', 'DESC')
+      .getRawOne<{
+        landedCostNumber?: string;
+      }>();
 
-    const current =
-      latest?.landedCostNumber
-        ? Number(
-            latest.landedCostNumber.replace(
-              prefix,
-              '',
-            ),
-          )
-        : 0;
+    const current = latest?.landedCostNumber
+      ? Number(latest.landedCostNumber.replace(prefix, ''))
+      : 0;
 
-    return `${prefix}${String(
-      current + 1,
-    ).padStart(6, '0')}`;
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
   }
 
   private toChargeResponse(
@@ -1028,100 +782,69 @@ export class LandedCostsService {
       id: charge.id,
       costType: charge.costType,
       supplierId: charge.supplierId,
-      referenceNumber:
-        charge.referenceNumber,
+      referenceNumber: charge.referenceNumber,
       amount: Number(charge.amount),
       description: charge.description,
     };
   }
 
   private toAllocationResponse(
-    allocation:
-      LandedCostItemAllocationEntity,
+    allocation: LandedCostItemAllocationEntity,
   ): LandedCostItemAllocationResponseDto {
     return {
       id: allocation.id,
-      goodsReceiptItemId:
-        allocation.goodsReceiptItemId,
+      goodsReceiptItemId: allocation.goodsReceiptItemId,
       itemId: allocation.itemId,
       quantity: Number(allocation.quantity),
       baseValue: Number(allocation.baseValue),
-      weightValue: Number(
-        allocation.weightValue,
-      ),
-      allocationBasis: Number(
-        allocation.allocationBasis,
-      ),
-      allocatedCost: Number(
-        allocation.allocatedCost,
-      ),
-      landedUnitCost: Number(
-        allocation.landedUnitCost,
-      ),
+      weightValue: Number(allocation.weightValue),
+      allocationBasis: Number(allocation.allocationBasis),
+      allocatedCost: Number(allocation.allocatedCost),
+      landedUnitCost: Number(allocation.landedUnitCost),
     };
   }
 
-  private toResponse(
-    landedCost: LandedCostEntity,
-  ): LandedCostResponseDto {
+  private toResponse(landedCost: LandedCostEntity): LandedCostResponseDto {
     return {
       id: landedCost.id,
       companyId: landedCost.companyId,
-      goodsReceiptId:
-        landedCost.goodsReceiptId,
-      purchaseInvoiceId:
-        landedCost.purchaseInvoiceId,
-      landedCostNumber:
-        landedCost.landedCostNumber,
+      goodsReceiptId: landedCost.goodsReceiptId,
+      purchaseInvoiceId: landedCost.purchaseInvoiceId,
+      landedCostNumber: landedCost.landedCostNumber,
       costDate: landedCost.costDate,
       status: landedCost.status,
-      allocationMethod:
-        landedCost.allocationMethod,
+      allocationMethod: landedCost.allocationMethod,
       currency: landedCost.currency,
-      totalCost: Number(
-        landedCost.totalCost,
-      ),
+      totalCost: Number(landedCost.totalCost),
       notes: landedCost.notes,
-      charges: (
-        landedCost.charges ?? []
-      ).map((charge) =>
+      charges: (landedCost.charges ?? []).map((charge) =>
         this.toChargeResponse(charge),
       ),
-      itemAllocations: (
-        landedCost.itemAllocations ?? []
-      ).map((allocation) =>
+      itemAllocations: (landedCost.itemAllocations ?? []).map((allocation) =>
         this.toAllocationResponse(allocation),
       ),
       createdBy: landedCost.createdBy,
       updatedBy: landedCost.updatedBy,
       postedBy: landedCost.postedBy,
       postedAt: landedCost.postedAt,
-      cancelledBy:
-        landedCost.cancelledBy,
-      cancelledAt:
-        landedCost.cancelledAt,
+      cancelledBy: landedCost.cancelledBy,
+      cancelledAt: landedCost.cancelledAt,
       createdAt: landedCost.createdAt,
       updatedAt: landedCost.updatedAt,
       deletedAt: landedCost.deletedAt,
     };
   }
 
-  private optional(
-    value?: string | null,
-  ): string | null {
+  private optional(value?: string | null): string | null {
     const normalized = value?.trim();
     return normalized || null;
   }
 
   private round(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 100,
-    ) / 100;
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
   private roundFour(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 10000,
-    ) / 10000;
+    return Math.round((value + Number.EPSILON) * 10000) / 10000;
   }
 }

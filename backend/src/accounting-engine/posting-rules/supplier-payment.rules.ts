@@ -15,9 +15,7 @@ import { PostingDocument } from '../interfaces/posting-document.interface';
 import { PostingRule } from '../interfaces/posting-rule.interface';
 
 @Injectable()
-export class SupplierPaymentPostingRule
-  implements PostingRule<SupplierPayment>
-{
+export class SupplierPaymentPostingRule implements PostingRule<SupplierPayment> {
   constructor(
     @InjectRepository(SupplierPayment)
     private readonly supplierPaymentRepository: Repository<SupplierPayment>,
@@ -26,25 +24,19 @@ export class SupplierPaymentPostingRule
     private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
-  async load(
-    sourceId: string,
-    companyId: string,
-  ): Promise<SupplierPayment> {
-    const payment =
-      await this.supplierPaymentRepository.findOne({
-        where: {
-          id: sourceId,
-          companyId,
-        },
-        relations: {
-          allocations: true,
-        },
-      });
+  async load(sourceId: string, companyId: string): Promise<SupplierPayment> {
+    const payment = await this.supplierPaymentRepository.findOne({
+      where: {
+        id: sourceId,
+        companyId,
+      },
+      relations: {
+        allocations: true,
+      },
+    });
 
     if (!payment) {
-      throw new NotFoundException(
-        'Supplier payment not found.',
-      );
+      throw new NotFoundException('Supplier payment not found.');
     }
 
     return payment;
@@ -55,9 +47,7 @@ export class SupplierPaymentPostingRule
     companyId: string,
   ): Promise<PostingDocument> {
     if (payment.companyId !== companyId) {
-      throw new NotFoundException(
-        'Supplier payment not found.',
-      );
+      throw new NotFoundException('Supplier payment not found.');
     }
 
     if (payment.status !== SupplierPaymentStatus.Posted) {
@@ -76,14 +66,12 @@ export class SupplierPaymentPostingRule
       );
     }
 
-    const accountsPayableAccountId =
-      this.requireAccount(
-        settings.accountsPayableAccountId,
-        'Accounts Payable',
-      );
+    const accountsPayableAccountId = this.requireAccount(
+      settings.accountsPayableAccountId,
+      'Accounts Payable',
+    );
 
-    const paymentAccountId =
-      this.resolvePaymentAccount(payment, settings);
+    const paymentAccountId = this.resolvePaymentAccount(payment, settings);
 
     const amount = this.round(Number(payment.amount));
 
@@ -95,23 +83,18 @@ export class SupplierPaymentPostingRule
 
     return {
       companyId,
-      sourceType:
-        JournalEntrySourceType.SUPPLIER_PAYMENT,
+      sourceType: JournalEntrySourceType.SUPPLIER_PAYMENT,
       sourceId: payment.id,
       entryDate: payment.paymentDate,
-      referenceNumber:
-        payment.referenceNumber ??
-        payment.paymentNumber,
+      referenceNumber: payment.referenceNumber ?? payment.paymentNumber,
       currency: payment.currency,
-      narration:
-        `Automatic posting for supplier payment ${payment.paymentNumber}`,
+      narration: `Automatic posting for supplier payment ${payment.paymentNumber}`,
       lines: [
         {
           accountId: accountsPayableAccountId,
           debit: amount,
           credit: 0,
-          description:
-            `Accounts payable settlement for ${payment.paymentNumber}`,
+          description: `Accounts payable settlement for ${payment.paymentNumber}`,
           partyType: 'supplier',
           partyId: payment.supplierId,
           costCenter: null,
@@ -120,8 +103,7 @@ export class SupplierPaymentPostingRule
           accountId: paymentAccountId,
           debit: 0,
           credit: amount,
-          description:
-            `Payment issued for ${payment.paymentNumber}`,
+          description: `Payment issued for ${payment.paymentNumber}`,
           partyType: 'supplier',
           partyId: payment.supplierId,
           costCenter: null,
@@ -136,42 +118,28 @@ export class SupplierPaymentPostingRule
   ): string {
     switch (payment.paymentMethod) {
       case SupplierPaymentMethod.Cash:
-        return this.requireAccount(
-          settings.cashAccountId,
-          'Cash',
-        );
+        return this.requireAccount(settings.cashAccountId, 'Cash');
 
       case SupplierPaymentMethod.Card:
         return this.requireAccount(
-          settings.cardClearingAccountId ??
-            settings.bankAccountId,
+          settings.cardClearingAccountId ?? settings.bankAccountId,
           'Card Clearing or Bank',
         );
 
       default:
-        return this.requireAccount(
-          settings.bankAccountId,
-          'Bank',
-        );
+        return this.requireAccount(settings.bankAccountId, 'Bank');
     }
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;
   }
 
   private round(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 100,
-    ) / 100;
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

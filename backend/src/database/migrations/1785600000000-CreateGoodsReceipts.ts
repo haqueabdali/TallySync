@@ -58,13 +58,27 @@ export class CreateGoodsReceipts1785600000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_company" ON "goods_receipts" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_purchase_order" ON "goods_receipts" ("purchase_order_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_warehouse" ON "goods_receipts" ("warehouse_id")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS "UQ_goods_receipts_company_number" ON "goods_receipts" ("company_id", "grn_number") WHERE "deleted_at" IS NULL`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_receipt" ON "goods_receipt_items" ("goods_receipt_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_po_item" ON "goods_receipt_items" ("purchase_order_item_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_item" ON "goods_receipt_items" ("item_id")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_company" ON "goods_receipts" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_purchase_order" ON "goods_receipts" ("purchase_order_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipts_warehouse" ON "goods_receipts" ("warehouse_id")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_goods_receipts_company_number" ON "goods_receipts" ("company_id", "grn_number") WHERE "deleted_at" IS NULL`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_receipt" ON "goods_receipt_items" ("goods_receipt_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_po_item" ON "goods_receipt_items" ("purchase_order_item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_goods_receipt_items_item" ON "goods_receipt_items" ("item_id")`,
+    );
 
     await queryRunner.query(`
       DO $$ BEGIN
@@ -123,13 +137,25 @@ export class CreateGoodsReceipts1785600000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_item"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_po_item"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_receipt"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "goods_receipts" DROP CONSTRAINT IF EXISTS "FK_goods_receipts_warehouse"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "goods_receipts" DROP CONSTRAINT IF EXISTS "FK_goods_receipts_purchase_order"`);
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_item"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_po_item"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "goods_receipt_items" DROP CONSTRAINT IF EXISTS "FK_goods_receipt_items_receipt"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "goods_receipts" DROP CONSTRAINT IF EXISTS "FK_goods_receipts_warehouse"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "goods_receipts" DROP CONSTRAINT IF EXISTS "FK_goods_receipts_purchase_order"`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "goods_receipt_items"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "goods_receipts"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."goods_receipts_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."goods_receipts_status_enum"`,
+    );
   }
 }

@@ -104,10 +104,7 @@ export class LicenseSigningService {
     const record = value as Record<string, unknown>;
     const keys = Object.keys(record).sort();
     return `{${keys
-      .map(
-        (key) =>
-          `${JSON.stringify(key)}:${this.canonicalize(record[key])}`,
-      )
+      .map((key) => `${JSON.stringify(key)}:${this.canonicalize(record[key])}`)
       .join(',')}}`;
   }
 }

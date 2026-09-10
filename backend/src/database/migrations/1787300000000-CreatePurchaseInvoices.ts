@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreatePurchaseInvoices1787300000000
-  implements MigrationInterface
-{
+export class CreatePurchaseInvoices1787300000000 implements MigrationInterface {
   name = 'CreatePurchaseInvoices1787300000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -97,25 +95,87 @@ export class CreatePurchaseInvoices1787300000000
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_company" ON "purchase_invoices" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_supplier" ON "purchase_invoices" ("supplier_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_purchase_order" ON "purchase_invoices" ("purchase_order_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_goods_receipt" ON "purchase_invoices" ("goods_receipt_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_status" ON "purchase_invoices" ("company_id", "status")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS "UQ_purchase_invoices_company_number" ON "purchase_invoices" ("company_id", "invoice_number") WHERE "deleted_at" IS NULL`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_invoice" ON "purchase_invoice_items" ("purchase_invoice_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_item" ON "purchase_invoice_items" ("item_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_po_item" ON "purchase_invoice_items" ("purchase_order_item_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_grn_item" ON "purchase_invoice_items" ("goods_receipt_item_id")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_company" ON "purchase_invoices" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_supplier" ON "purchase_invoices" ("supplier_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_purchase_order" ON "purchase_invoices" ("purchase_order_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_goods_receipt" ON "purchase_invoices" ("goods_receipt_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoices_status" ON "purchase_invoices" ("company_id", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_purchase_invoices_company_number" ON "purchase_invoices" ("company_id", "invoice_number") WHERE "deleted_at" IS NULL`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_invoice" ON "purchase_invoice_items" ("purchase_invoice_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_item" ON "purchase_invoice_items" ("item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_po_item" ON "purchase_invoice_items" ("purchase_order_item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_purchase_invoice_items_grn_item" ON "purchase_invoice_items" ("goods_receipt_item_id")`,
+    );
 
     const foreignKeys = [
-      ['FK_purchase_invoices_supplier', 'purchase_invoices', 'supplier_id', 'suppliers', 'RESTRICT'],
-      ['FK_purchase_invoices_purchase_order', 'purchase_invoices', 'purchase_order_id', 'purchase_orders', 'RESTRICT'],
-      ['FK_purchase_invoices_goods_receipt', 'purchase_invoices', 'goods_receipt_id', 'goods_receipts', 'RESTRICT'],
-      ['FK_purchase_invoice_items_invoice', 'purchase_invoice_items', 'purchase_invoice_id', 'purchase_invoices', 'CASCADE'],
-      ['FK_purchase_invoice_items_item', 'purchase_invoice_items', 'item_id', 'items', 'RESTRICT'],
-      ['FK_purchase_invoice_items_po_item', 'purchase_invoice_items', 'purchase_order_item_id', 'purchase_order_items', 'RESTRICT'],
-      ['FK_purchase_invoice_items_grn_item', 'purchase_invoice_items', 'goods_receipt_item_id', 'goods_receipt_items', 'RESTRICT'],
+      [
+        'FK_purchase_invoices_supplier',
+        'purchase_invoices',
+        'supplier_id',
+        'suppliers',
+        'RESTRICT',
+      ],
+      [
+        'FK_purchase_invoices_purchase_order',
+        'purchase_invoices',
+        'purchase_order_id',
+        'purchase_orders',
+        'RESTRICT',
+      ],
+      [
+        'FK_purchase_invoices_goods_receipt',
+        'purchase_invoices',
+        'goods_receipt_id',
+        'goods_receipts',
+        'RESTRICT',
+      ],
+      [
+        'FK_purchase_invoice_items_invoice',
+        'purchase_invoice_items',
+        'purchase_invoice_id',
+        'purchase_invoices',
+        'CASCADE',
+      ],
+      [
+        'FK_purchase_invoice_items_item',
+        'purchase_invoice_items',
+        'item_id',
+        'items',
+        'RESTRICT',
+      ],
+      [
+        'FK_purchase_invoice_items_po_item',
+        'purchase_invoice_items',
+        'purchase_order_item_id',
+        'purchase_order_items',
+        'RESTRICT',
+      ],
+      [
+        'FK_purchase_invoice_items_grn_item',
+        'purchase_invoice_items',
+        'goods_receipt_item_id',
+        'goods_receipt_items',
+        'RESTRICT',
+      ],
     ] as const;
 
     for (const [name, table, column, target, onDelete] of foreignKeys) {
@@ -146,11 +206,15 @@ export class CreatePurchaseInvoices1787300000000
     ] as const;
 
     for (const [table, name] of constraints) {
-      await queryRunner.query(`ALTER TABLE IF EXISTS "${table}" DROP CONSTRAINT IF EXISTS "${name}"`);
+      await queryRunner.query(
+        `ALTER TABLE IF EXISTS "${table}" DROP CONSTRAINT IF EXISTS "${name}"`,
+      );
     }
 
     await queryRunner.query(`DROP TABLE IF EXISTS "purchase_invoice_items"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "purchase_invoices"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."purchase_invoices_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."purchase_invoices_status_enum"`,
+    );
   }
 }

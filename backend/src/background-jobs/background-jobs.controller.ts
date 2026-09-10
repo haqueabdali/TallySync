@@ -37,16 +37,13 @@ export class BackgroundJobsController {
   }
 
   @Get()
-@ApiOperation({ summary: 'List company background jobs' })
-findAll(
-  @CurrentUser() user: AuthenticatedUser,
-  @Query() query: BackgroundJobQueryDto,
-): Promise<BackgroundJobListResult> {
-  return this.service.findAll(
-    this.requireCompanyId(user),
-    query,
-  );
-}
+  @ApiOperation({ summary: 'List company background jobs' })
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: BackgroundJobQueryDto,
+  ): Promise<BackgroundJobListResult> {
+    return this.service.findAll(this.requireCompanyId(user), query);
+  }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get background job counts by status' })

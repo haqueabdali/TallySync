@@ -18,7 +18,8 @@ import { FinishedGoodsReceiptStatus } from '../enums/finished-goods-receipt-stat
 
 const numericTransformer: ValueTransformer = {
   to: (value: number | null | undefined) => value,
-  from: (value: string | number | null) => (value === null ? null : Number(value)),
+  from: (value: string | number | null) =>
+    value === null ? null : Number(value),
 };
 
 @Entity('finished_goods_receipts')
@@ -26,10 +27,17 @@ const numericTransformer: ValueTransformer = {
 @Index('idx_finished_goods_receipts_production_order_id', ['productionOrderId'])
 @Index('idx_finished_goods_receipts_item_id', ['itemId'])
 @Index('idx_finished_goods_receipts_warehouse_id', ['warehouseId'])
-@Index('uq_finished_goods_receipts_company_number', ['companyId', 'receiptNumber'], { unique: true })
+@Index(
+  'uq_finished_goods_receipts_company_number',
+  ['companyId', 'receiptNumber'],
+  { unique: true },
+)
 @Check('chk_finished_goods_receipts_quantity_positive', '"quantity" > 0')
 @Check('chk_finished_goods_receipts_unit_cost_non_negative', '"unit_cost" >= 0')
-@Check('chk_finished_goods_receipts_total_cost_non_negative', '"total_cost" >= 0')
+@Check(
+  'chk_finished_goods_receipts_total_cost_non_negative',
+  '"total_cost" >= 0',
+)
 export class FinishedGoodsReceiptEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -52,13 +60,30 @@ export class FinishedGoodsReceiptEntity {
   @Column({ name: 'receipt_date', type: 'date' })
   receiptDate!: string;
 
-  @Column({ type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   quantity!: number;
 
-  @Column({ name: 'unit_cost', type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    name: 'unit_cost',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   unitCost!: number;
 
-  @Column({ name: 'total_cost', type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    name: 'total_cost',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   totalCost!: number;
 
   @Column({
@@ -87,7 +112,10 @@ export class FinishedGoodsReceiptEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @ManyToOne(() => ProductionOrderEntity, { nullable: false, onDelete: 'RESTRICT' })
+  @ManyToOne(() => ProductionOrderEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'production_order_id' })
   productionOrder!: ProductionOrderEntity;
 

@@ -16,16 +16,26 @@ import { MaterialConsumptionEntity } from './material-consumption.entity';
 
 const numericTransformer: ValueTransformer = {
   to: (value: number | null | undefined) => value,
-  from: (value: string | number | null) => (value === null ? null : Number(value)),
+  from: (value: string | number | null) =>
+    value === null ? null : Number(value),
 };
 
 @Entity('material_consumption_lines')
 @Index('idx_material_consumption_lines_consumption_id', ['consumptionId'])
-@Index('idx_material_consumption_lines_component_id', ['productionOrderComponentId'])
+@Index('idx_material_consumption_lines_component_id', [
+  'productionOrderComponentId',
+])
 @Index('idx_material_consumption_lines_item_id', ['itemId'])
-@Index('uq_material_consumption_component', ['consumptionId', 'productionOrderComponentId'], { unique: true })
+@Index(
+  'uq_material_consumption_component',
+  ['consumptionId', 'productionOrderComponentId'],
+  { unique: true },
+)
 @Check('chk_material_consumption_line_quantity_positive', '"quantity" > 0')
-@Check('chk_material_consumption_line_cost_non_negative', '"unit_cost" >= 0 AND "total_cost" >= 0')
+@Check(
+  'chk_material_consumption_line_cost_non_negative',
+  '"unit_cost" >= 0 AND "total_cost" >= 0',
+)
 export class MaterialConsumptionLineEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -39,13 +49,30 @@ export class MaterialConsumptionLineEntity {
   @Column({ name: 'item_id', type: 'uuid' })
   itemId!: string;
 
-  @Column({ type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   quantity!: number;
 
-  @Column({ name: 'unit_cost', type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    name: 'unit_cost',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   unitCost!: number;
 
-  @Column({ name: 'total_cost', type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    name: 'total_cost',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   totalCost!: number;
 
   @Column({ type: 'text', nullable: true })
@@ -54,14 +81,21 @@ export class MaterialConsumptionLineEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @ManyToOne(() => MaterialConsumptionEntity, (consumption) => consumption.lines, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => MaterialConsumptionEntity,
+    (consumption) => consumption.lines,
+    {
+      nullable: false,
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'consumption_id' })
   consumption!: MaterialConsumptionEntity;
 
-  @ManyToOne(() => ProductionOrderComponentEntity, { nullable: false, onDelete: 'RESTRICT' })
+  @ManyToOne(() => ProductionOrderComponentEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'production_order_component_id' })
   productionOrderComponent!: ProductionOrderComponentEntity;
 

@@ -43,7 +43,14 @@ export class ListPlatformUsersQueryDto {
   status?: UserStatus;
 
   @IsOptional()
-  @IsIn(['createdAt', 'updatedAt', 'fullName', 'email', 'status', 'lastLoginAt'])
+  @IsIn([
+    'createdAt',
+    'updatedAt',
+    'fullName',
+    'email',
+    'status',
+    'lastLoginAt',
+  ])
   sortBy:
     | 'createdAt'
     | 'updatedAt'

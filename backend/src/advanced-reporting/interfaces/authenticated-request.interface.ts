@@ -5,7 +5,6 @@ export interface AdvancedReportingUser {
   companyId: string;
 }
 
-export interface AuthenticatedAdvancedReportingRequest
-  extends Request {
+export interface AuthenticatedAdvancedReportingRequest extends Request {
   user: AdvancedReportingUser;
 }

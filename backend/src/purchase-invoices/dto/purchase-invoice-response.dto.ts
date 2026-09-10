@@ -4,8 +4,10 @@ import { PurchaseInvoiceStatus } from '../enums/purchase-invoice-status.enum';
 export class PurchaseInvoiceItemResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() itemId!: string;
-  @ApiProperty({ required: false, nullable: true }) purchaseOrderItemId!: string | null;
-  @ApiProperty({ required: false, nullable: true }) goodsReceiptItemId!: string | null;
+  @ApiProperty({ required: false, nullable: true }) purchaseOrderItemId!:
+    string | null;
+  @ApiProperty({ required: false, nullable: true }) goodsReceiptItemId!:
+    string | null;
   @ApiProperty({ required: false, nullable: true }) itemName!: string | null;
   @ApiProperty({ required: false, nullable: true }) sku!: string | null;
   @ApiProperty({ required: false, nullable: true }) unit!: string | null;
@@ -24,10 +26,13 @@ export class PurchaseInvoiceResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() companyId!: string;
   @ApiProperty() supplierId!: string;
-  @ApiProperty({ required: false, nullable: true }) purchaseOrderId!: string | null;
-  @ApiProperty({ required: false, nullable: true }) goodsReceiptId!: string | null;
+  @ApiProperty({ required: false, nullable: true }) purchaseOrderId!:
+    string | null;
+  @ApiProperty({ required: false, nullable: true }) goodsReceiptId!:
+    string | null;
   @ApiProperty() invoiceNumber!: string;
-  @ApiProperty({ required: false, nullable: true }) supplierInvoiceNumber!: string | null;
+  @ApiProperty({ required: false, nullable: true }) supplierInvoiceNumber!:
+    string | null;
   @ApiProperty() invoiceDate!: string;
   @ApiProperty({ required: false, nullable: true }) dueDate!: string | null;
   @ApiProperty({ enum: PurchaseInvoiceStatus }) status!: PurchaseInvoiceStatus;
@@ -39,7 +44,8 @@ export class PurchaseInvoiceResponseDto {
   @ApiProperty() grandTotal!: number;
   @ApiProperty() paidAmount!: number;
   @ApiProperty() balanceDue!: number;
-  @ApiProperty({ required: false, nullable: true }) billingAddress!: string | null;
+  @ApiProperty({ required: false, nullable: true }) billingAddress!:
+    string | null;
   @ApiProperty({ required: false, nullable: true }) notes!: string | null;
   @ApiProperty({ type: PurchaseInvoiceItemResponseDto, isArray: true })
   items!: PurchaseInvoiceItemResponseDto[];

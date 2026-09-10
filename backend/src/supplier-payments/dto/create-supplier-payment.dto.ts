@@ -1,6 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, MaxLength, Min, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { SupplierPaymentMethod } from '../enums/supplier-payment-method.enum';
 import { SupplierPaymentAllocationDto } from './supplier-payment-allocation.dto';
 

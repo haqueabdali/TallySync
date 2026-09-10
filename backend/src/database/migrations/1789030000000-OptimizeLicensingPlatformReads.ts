@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class OptimizeLicensingPlatformReads1789030000000
-  implements MigrationInterface
-{
+export class OptimizeLicensingPlatformReads1789030000000 implements MigrationInterface {
   name = 'OptimizeLicensingPlatformReads1789030000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -31,8 +29,6 @@ export class OptimizeLicensingPlatformReads1789030000000
     await queryRunner.query(
       `DROP INDEX IF EXISTS "IDX_license_activations_license_status"`,
     );
-    await queryRunner.query(
-      `DROP INDEX IF EXISTS "IDX_licenses_live_expiry"`,
-    );
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_licenses_live_expiry"`);
   }
 }

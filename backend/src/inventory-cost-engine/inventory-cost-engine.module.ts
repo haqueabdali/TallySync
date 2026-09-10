@@ -5,7 +5,14 @@ import { InventoryCostTransactionEntity } from './entities/inventory-cost-transa
 import { InventoryCostEngineController } from './inventory-cost-engine.controller';
 import { InventoryCostEngineService } from './inventory-cost-engine.service';
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryCostBalanceEntity, InventoryCostTransactionEntity])],
-  controllers: [InventoryCostEngineController], providers: [InventoryCostEngineService], exports: [InventoryCostEngineService],
+  imports: [
+    TypeOrmModule.forFeature([
+      InventoryCostBalanceEntity,
+      InventoryCostTransactionEntity,
+    ]),
+  ],
+  controllers: [InventoryCostEngineController],
+  providers: [InventoryCostEngineService],
+  exports: [InventoryCostEngineService],
 })
 export class InventoryCostEngineModule {}

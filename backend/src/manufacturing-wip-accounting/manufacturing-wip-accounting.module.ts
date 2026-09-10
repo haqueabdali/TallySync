@@ -12,7 +12,18 @@ import { ManufacturingWipAccountingController } from './manufacturing-wip-accoun
 import { ManufacturingWipAccountingService } from './manufacturing-wip-accounting.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([WipAccountingSettingsEntity, WipPostingEntity, AccountEntity, AccountingSettingsEntity, MaterialConsumptionEntity, FinishedGoodsReceiptEntity, ProductionOrderEntity]), JournalEntriesModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      WipAccountingSettingsEntity,
+      WipPostingEntity,
+      AccountEntity,
+      AccountingSettingsEntity,
+      MaterialConsumptionEntity,
+      FinishedGoodsReceiptEntity,
+      ProductionOrderEntity,
+    ]),
+    JournalEntriesModule,
+  ],
   controllers: [ManufacturingWipAccountingController],
   providers: [ManufacturingWipAccountingService],
   exports: [ManufacturingWipAccountingService],

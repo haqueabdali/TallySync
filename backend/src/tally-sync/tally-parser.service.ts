@@ -15,6 +15,27 @@ export type TallyVoucherImportResult = TallyBaseImportResult & {
   voucherNumber: string | null;
 };
 
+export type ParsedTallyLedger = {
+  name: string;
+  guid: string | null;
+  alterId: string | null;
+  parent: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+};
+
+export type ParsedTallyStockItem = {
+  name: string;
+  guid: string | null;
+  alterId: string | null;
+  parent: string | null;
+  baseUnit: string | null;
+  closingBalance: string | null;
+  closingRate: string | null;
+  closingValue: string | null;
+};
+
 @Injectable()
 export class TallyParserService {
   parseVoucherImportResponse(responseXml: string): TallyVoucherImportResult {
@@ -49,17 +70,17 @@ export class TallyParserService {
     const ignored = this.extractXmlNumber(responseXml, 'IGNORED');
     const errors = this.extractXmlNumber(responseXml, 'ERRORS');
     const exceptions = this.extractXmlNumber(responseXml, 'EXCEPTIONS');
+
     const lineError =
       this.extractXmlText(responseXml, 'LINEERROR') ??
       this.extractXmlText(responseXml, 'ERROR');
-    const status = this.extractXmlNumber(responseXml, 'STATUS');
 
     return {
       success:
         errors === 0 &&
         exceptions === 0 &&
         !lineError &&
-        (created > 0 || altered > 0 || ignored > 0 || status === 1),
+        (created > 0 || altered > 0 || ignored > 0),
       created,
       altered,
       ignored,
@@ -92,6 +113,57 @@ export class TallyParserService {
     }
 
     return false;
+  }
+
+  parseLedgerCollection(responseXml: string): ParsedTallyLedger[] {
+    const ledgers: ParsedTallyLedger[] = [];
+
+    for (const elementXml of this.extractElements(responseXml, 'LEDGER')) {
+      const name = this.extractXmlText(elementXml, 'NAME');
+
+      if (!name) {
+        continue;
+      }
+
+      ledgers.push({
+        name,
+        guid: this.extractXmlText(elementXml, 'GUID'),
+        alterId: this.extractXmlText(elementXml, 'ALTERID'),
+        parent: this.extractXmlText(elementXml, 'PARENT'),
+        email: this.extractXmlText(elementXml, 'EMAIL'),
+        phone:
+          this.extractXmlText(elementXml, 'LEDGERPHONE') ??
+          this.extractXmlText(elementXml, 'PHONE'),
+        address: this.extractAddress(elementXml),
+      });
+    }
+
+    return ledgers;
+  }
+
+  parseStockItemCollection(responseXml: string): ParsedTallyStockItem[] {
+    const stockItems: ParsedTallyStockItem[] = [];
+
+    for (const elementXml of this.extractElements(responseXml, 'STOCKITEM')) {
+      const name = this.extractXmlText(elementXml, 'NAME');
+
+      if (!name) {
+        continue;
+      }
+
+      stockItems.push({
+        name,
+        guid: this.extractXmlText(elementXml, 'GUID'),
+        alterId: this.extractXmlText(elementXml, 'ALTERID'),
+        parent: this.extractXmlText(elementXml, 'PARENT'),
+        baseUnit: this.extractXmlText(elementXml, 'BASEUNITS'),
+        closingBalance: this.extractXmlText(elementXml, 'CLOSINGBALANCE'),
+        closingRate: this.extractXmlText(elementXml, 'CLOSINGRATE'),
+        closingValue: this.extractXmlText(elementXml, 'CLOSINGVALUE'),
+      });
+    }
+
+    return stockItems;
   }
 
   isEnvelopeResponse(responseXml: string): boolean {
@@ -149,6 +221,34 @@ export class TallyParserService {
       .replace(/&amp;/g, '&');
   }
 
+  private extractElements(xml: string, elementName: string): string[] {
+    const decodedXml = this.decodeXml(xml);
+
+    const expression = new RegExp(
+      `<${elementName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${elementName}>`,
+      'gi',
+    );
+
+    return Array.from(decodedXml.matchAll(expression))
+      .map((match) => match[1] ?? '')
+      .filter((value) => value.length > 0);
+  }
+
+  private extractAddress(elementXml: string): string | null {
+    const addressListMatch = elementXml.match(
+      /<ADDRESS\.LIST(?:\s[^>]*)?>([\s\S]*?)<\/ADDRESS\.LIST>/i,
+    );
+
+    const source = addressListMatch?.[1] ?? elementXml;
+
+    const parts = Array.from(
+      source.matchAll(/<ADDRESS(?:\s[^>]*)?>([\s\S]*?)<\/ADDRESS>/gi),
+    )
+      .map((match) => this.decodeXml((match[1] ?? '').trim()))
+      .filter((value) => value.length > 0);
+
+    return parts.length > 0 ? parts.join(', ') : null;
+  }
   private normalizeName(value: string): string {
     return value.trim().toLocaleLowerCase();
   }

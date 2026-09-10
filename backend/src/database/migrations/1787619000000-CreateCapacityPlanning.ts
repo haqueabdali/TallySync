@@ -1,11 +1,6 @@
-import type {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateCapacityPlanning1787619000000
-  implements MigrationInterface
-{
+export class CreateCapacityPlanning1787619000000 implements MigrationInterface {
   name = 'CreateCapacityPlanning1787619000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -74,14 +69,10 @@ export class CreateCapacityPlanning1787619000000
     `);
   }
 
-  async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       'DROP TABLE IF EXISTS "work_center_capacity_overrides"',
     );
-    await queryRunner.query(
-      'DROP TABLE IF EXISTS "work_centers"',
-    );
+    await queryRunner.query('DROP TABLE IF EXISTS "work_centers"');
   }
 }

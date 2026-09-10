@@ -13,14 +13,8 @@ import { QualityManagementService } from './quality-management.service';
       QualityInspectionCheckEntity,
     ]),
   ],
-  controllers: [
-    QualityManagementController,
-  ],
-  providers: [
-    QualityManagementService,
-  ],
-  exports: [
-    QualityManagementService,
-  ],
+  controllers: [QualityManagementController],
+  providers: [QualityManagementService],
+  exports: [QualityManagementService],
 })
 export class QualityManagementModule {}

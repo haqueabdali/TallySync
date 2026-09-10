@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { ItemEntity } from '../items/entities/item.entity';
@@ -74,10 +70,7 @@ export class SalesOrdersService {
         customerId: dto.customerId,
         warehouseId: dto.warehouseId,
         salesQuotationId: dto.salesQuotationId ?? null,
-        orderNumber: await this.generateOrderNumber(
-          companyId,
-          dto.orderDate,
-        ),
+        orderNumber: await this.generateOrderNumber(companyId, dto.orderDate),
         orderDate: dto.orderDate,
         expectedDeliveryDate: dto.expectedDeliveryDate ?? null,
         status: SalesOrderStatus.Draft,
@@ -122,9 +115,7 @@ export class SalesOrdersService {
       savedOrder.items = await itemRepository.save(savedOrder.items);
       this.calculateOrderTotals(savedOrder);
 
-      return this.toResponse(
-        await orderRepository.save(savedOrder),
-      );
+      return this.toResponse(await orderRepository.save(savedOrder));
     });
   }
 
@@ -146,10 +137,7 @@ export class SalesOrdersService {
       query.andWhere(
         new Brackets((qb) => {
           qb.where('salesOrder.order_number ILIKE :search', { search })
-            .orWhere(
-              'salesOrder.customer_reference ILIKE :search',
-              { search },
-            )
+            .orWhere('salesOrder.customer_reference ILIKE :search', { search })
             .orWhere('salesOrder.notes ILIKE :search', { search });
         }),
       );
@@ -168,10 +156,9 @@ export class SalesOrdersService {
     }
 
     if (filter.salesQuotationId) {
-      query.andWhere(
-        'salesOrder.sales_quotation_id = :salesQuotationId',
-        { salesQuotationId: filter.salesQuotationId },
-      );
+      query.andWhere('salesOrder.sales_quotation_id = :salesQuotationId', {
+        salesQuotationId: filter.salesQuotationId,
+      });
     }
 
     if (filter.status) {
@@ -227,10 +214,7 @@ export class SalesOrdersService {
     };
   }
 
-  async findOne(
-    id: string,
-    companyId: string,
-  ): Promise<SalesOrderResponseDto> {
+  async findOne(id: string, companyId: string): Promise<SalesOrderResponseDto> {
     return this.toResponse(await this.getEntity(id, companyId));
   }
 
@@ -262,16 +246,11 @@ export class SalesOrdersService {
           dto.salesQuotationId ?? order.salesQuotationId ?? undefined,
         orderDate: dto.orderDate ?? order.orderDate,
         expectedDeliveryDate:
-          dto.expectedDeliveryDate ??
-          order.expectedDeliveryDate ??
-          undefined,
+          dto.expectedDeliveryDate ?? order.expectedDeliveryDate ?? undefined,
         currency: dto.currency ?? order.currency,
-        shippingTotal:
-          dto.shippingTotal ?? Number(order.shippingTotal),
+        shippingTotal: dto.shippingTotal ?? Number(order.shippingTotal),
         customerReference:
-          dto.customerReference ??
-          order.customerReference ??
-          undefined,
+          dto.customerReference ?? order.customerReference ?? undefined,
         shippingAddress:
           dto.shippingAddress ?? order.shippingAddress ?? undefined,
         notes: dto.notes ?? order.notes ?? undefined,
@@ -279,8 +258,7 @@ export class SalesOrdersService {
           dto.items ??
           order.items.map((item) => ({
             itemId: item.itemId,
-            salesQuotationItemId:
-              item.salesQuotationItemId ?? undefined,
+            salesQuotationItemId: item.salesQuotationItemId ?? undefined,
             description: item.description ?? undefined,
             quantity: Number(item.quantity),
             unitPrice: Number(item.unitPrice),
@@ -309,8 +287,7 @@ export class SalesOrdersService {
           return itemRepository.create({
             salesOrderId: order.id,
             itemId: line.itemId,
-            salesQuotationItemId:
-              line.salesQuotationItemId ?? null,
+            salesQuotationItemId: line.salesQuotationItemId ?? null,
             description: this.optional(line.description),
             quantity: line.quantity,
             deliveredQuantity: 0,
@@ -341,8 +318,7 @@ export class SalesOrdersService {
       }
 
       if (dto.expectedDeliveryDate !== undefined) {
-        order.expectedDeliveryDate =
-          dto.expectedDeliveryDate ?? null;
+        order.expectedDeliveryDate = dto.expectedDeliveryDate ?? null;
       }
 
       if (dto.currency !== undefined) {
@@ -354,9 +330,7 @@ export class SalesOrdersService {
       }
 
       if (dto.customerReference !== undefined) {
-        order.customerReference = this.optional(
-          dto.customerReference,
-        );
+        order.customerReference = this.optional(dto.customerReference);
       }
 
       if (dto.shippingAddress !== undefined) {
@@ -370,9 +344,7 @@ export class SalesOrdersService {
       order.updatedBy = userId;
       this.calculateOrderTotals(order);
 
-      return this.toResponse(
-        await orderRepository.save(order),
-      );
+      return this.toResponse(await orderRepository.save(order));
     });
   }
 
@@ -393,9 +365,42 @@ export class SalesOrdersService {
     order.status = SalesOrderStatus.Confirmed;
     order.updatedBy = userId;
 
-    return this.toResponse(
-      await this.salesOrderRepository.save(order),
-    );
+    return this.toResponse(await this.salesOrderRepository.save(order));
+  }
+
+  async fulfill(
+    id: string,
+    companyId: string,
+    userId: string,
+  ): Promise<SalesOrderResponseDto> {
+    const order = await this.getEntity(id, companyId);
+
+    if (order.status === SalesOrderStatus.Fulfilled) {
+      return this.toResponse(order);
+    }
+
+    const allowedStatuses = [
+      SalesOrderStatus.Submitted,
+      SalesOrderStatus.Confirmed,
+      SalesOrderStatus.Delivered,
+    ];
+
+    if (!allowedStatuses.includes(order.status)) {
+      throw new ConflictException(
+        `Sales order cannot be fulfilled from status "${order.status}".`,
+      );
+    }
+
+    if (!order.items.length) {
+      throw new BadRequestException(
+        'Sales order must contain at least one item.',
+      );
+    }
+
+    order.status = SalesOrderStatus.Fulfilled;
+    order.updatedBy = userId;
+
+    return this.toResponse(await this.salesOrderRepository.save(order));
   }
 
   async cancel(
@@ -421,9 +426,7 @@ export class SalesOrdersService {
     order.status = SalesOrderStatus.Cancelled;
     order.updatedBy = userId;
 
-    return this.toResponse(
-      await this.salesOrderRepository.save(order),
-    );
+    return this.toResponse(await this.salesOrderRepository.save(order));
   }
 
   async recalculateDeliveryStatus(
@@ -449,15 +452,10 @@ export class SalesOrdersService {
       order.status = SalesOrderStatus.PartiallyDelivered;
     }
 
-    return this.toResponse(
-      await this.salesOrderRepository.save(order),
-    );
+    return this.toResponse(await this.salesOrderRepository.save(order));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const order = await this.getEntity(id, companyId);
     this.ensureDraft(order);
 
@@ -515,9 +513,7 @@ export class SalesOrdersService {
       });
 
       if (!quotation) {
-        throw new NotFoundException(
-          'Sales quotation not found.',
-        );
+        throw new NotFoundException('Sales quotation not found.');
       }
 
       if (quotation.status !== SalesQuotationStatus.Accepted) {
@@ -564,9 +560,7 @@ export class SalesOrdersService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Item ${line.itemId} not found.`);
       }
     }
   }
@@ -589,17 +583,13 @@ export class SalesOrdersService {
 
   private ensureDraft(order: SalesOrderEntity): void {
     if (order.status !== SalesOrderStatus.Draft) {
-      throw new ConflictException(
-        'Only draft sales orders can be modified.',
-      );
+      throw new ConflictException('Only draft sales orders can be modified.');
     }
   }
 
   private ensureUniqueItems(itemIds: string[]): void {
     if (new Set(itemIds).size !== itemIds.length) {
-      throw new BadRequestException(
-        'Duplicate items are not allowed.',
-      );
+      throw new BadRequestException('Duplicate items are not allowed.');
     }
   }
 
@@ -618,15 +608,9 @@ export class SalesOrdersService {
     | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitPrice);
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
     const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
@@ -646,29 +630,18 @@ export class SalesOrdersService {
 
   private calculateOrderTotals(order: SalesOrderEntity): void {
     order.subtotal = this.round(
-      order.items.reduce(
-        (sum, item) => sum + Number(item.lineSubtotal),
-        0,
-      ),
+      order.items.reduce((sum, item) => sum + Number(item.lineSubtotal), 0),
     );
 
     order.discountTotal = this.round(
-      order.items.reduce(
-        (sum, item) => sum + Number(item.discountAmount),
-        0,
-      ),
+      order.items.reduce((sum, item) => sum + Number(item.discountAmount), 0),
     );
 
     order.taxTotal = this.round(
-      order.items.reduce(
-        (sum, item) => sum + Number(item.taxAmount),
-        0,
-      ),
+      order.items.reduce((sum, item) => sum + Number(item.taxAmount), 0),
     );
 
-    order.shippingTotal = this.round(
-      Number(order.shippingTotal ?? 0),
-    );
+    order.shippingTotal = this.round(Number(order.shippingTotal ?? 0));
 
     order.grandTotal = this.round(
       order.subtotal -
@@ -688,17 +661,13 @@ export class SalesOrdersService {
     const latest = await this.salesOrderRepository
       .createQueryBuilder('salesOrder')
       .withDeleted()
-      .select(
-        'salesOrder.order_number',
-        'orderNumber',
-      )
+      .select('salesOrder.order_number', 'orderNumber')
       .where('salesOrder.company_id = :companyId', {
         companyId,
       })
-      .andWhere(
-        'salesOrder.order_number LIKE :prefix',
-        { prefix: `${prefix}%` },
-      )
+      .andWhere('salesOrder.order_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
       .orderBy('salesOrder.order_number', 'DESC')
       .getRawOne<{ orderNumber?: string }>();
 
@@ -738,9 +707,7 @@ export class SalesOrdersService {
     };
   }
 
-  private toResponse(
-    order: SalesOrderEntity,
-  ): SalesOrderResponseDto {
+  private toResponse(order: SalesOrderEntity): SalesOrderResponseDto {
     return {
       id: order.id,
       companyId: order.companyId,
@@ -760,9 +727,7 @@ export class SalesOrdersService {
       customerReference: order.customerReference,
       shippingAddress: order.shippingAddress,
       notes: order.notes,
-      items: (order.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (order.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: order.createdBy,
       updatedBy: order.updatedBy,
       createdAt: order.createdAt,

@@ -16,9 +16,7 @@ export class MovingAverageCalculator {
 
     const totalCost = this.round4(quantity * unitCost);
     const quantityAfter = this.round4(balance.quantity + quantity);
-    const inventoryValueAfter = this.round4(
-      balance.inventoryValue + totalCost,
-    );
+    const inventoryValueAfter = this.round4(balance.inventoryValue + totalCost);
     const averageUnitCostAfter = this.round6(
       inventoryValueAfter / quantityAfter,
     );
@@ -51,9 +49,7 @@ export class MovingAverageCalculator {
     const totalCost = this.round4(normalizedQuantity * unitCost);
     const quantityAfter = this.round4(balance.quantity - normalizedQuantity);
     const inventoryValueAfter =
-      quantityAfter === 0
-        ? 0
-        : this.round4(balance.inventoryValue - totalCost);
+      quantityAfter === 0 ? 0 : this.round4(balance.inventoryValue - totalCost);
 
     if (inventoryValueAfter < 0) {
       throw new ConflictException(

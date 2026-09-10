@@ -55,11 +55,11 @@ export class InventoryAgingService {
   ): Promise<InventoryAgingPageResponseDto> {
     const asOfDate = this.toEndOfDay(query.asOfDate);
     const rows = await this.loadMovements(companyId, query, asOfDate);
-    const lines = this.buildLines(rows, asOfDate)
-      .sort((left, right) =>
-        left.itemName.localeCompare(right.itemName)
-        || left.warehouseName.localeCompare(right.warehouseName),
-      );
+    const lines = this.buildLines(rows, asOfDate).sort(
+      (left, right) =>
+        left.itemName.localeCompare(right.itemName) ||
+        left.warehouseName.localeCompare(right.warehouseName),
+    );
 
     const total = lines.length;
     const start = (query.page - 1) * query.limit;
@@ -113,15 +113,23 @@ export class InventoryAgingService {
       .orderBy('transaction.transactionDate', 'ASC')
       .addOrderBy('transaction.id', 'ASC');
 
-    if (query.itemId) builder.andWhere('transaction.itemId = :itemId', { itemId: query.itemId });
+    if (query.itemId)
+      builder.andWhere('transaction.itemId = :itemId', {
+        itemId: query.itemId,
+      });
     if (query.warehouseId) {
-      builder.andWhere('transaction.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+      builder.andWhere('transaction.warehouseId = :warehouseId', {
+        warehouseId: query.warehouseId,
+      });
     }
 
     return builder.getRawMany<AgingRawRow>();
   }
 
-  private buildLines(rows: readonly AgingRawRow[], asOfDate: Date): InventoryAgingLineResponseDto[] {
+  private buildLines(
+    rows: readonly AgingRawRow[],
+    asOfDate: Date,
+  ): InventoryAgingLineResponseDto[] {
     const groups = new Map<string, AgingGroup>();
 
     for (const row of rows) {
@@ -142,7 +150,9 @@ export class InventoryAgingService {
         quantity: Number(row.quantity),
         unitCost: Number(row.unitCost),
         totalCost: Number(row.totalCost),
-        direction: this.inboundTypes.includes(row.transactionType) ? 'in' : 'out',
+        direction: this.inboundTypes.includes(row.transactionType)
+          ? 'in'
+          : 'out',
       });
       groups.set(key, existing);
     }
@@ -152,7 +162,10 @@ export class InventoryAgingService {
       const layers = calculateRemainingFifoLayers(group.movements);
       if (layers.length === 0) continue;
       const buckets = classifyInventoryAging(layers, asOfDate);
-      const totalQuantity = layers.reduce((sum, layer) => sum + layer.quantity, 0);
+      const totalQuantity = layers.reduce(
+        (sum, layer) => sum + layer.quantity,
+        0,
+      );
       const totalValue = layers.reduce((sum, layer) => sum + layer.value, 0);
       lines.push({
         itemId: group.itemId,
@@ -170,7 +183,9 @@ export class InventoryAgingService {
     return lines;
   }
 
-  private buildSummary(lines: readonly InventoryAgingLineResponseDto[]): InventoryAgingSummaryResponseDto {
+  private buildSummary(
+    lines: readonly InventoryAgingLineResponseDto[],
+  ): InventoryAgingSummaryResponseDto {
     const buckets: InventoryAgingBuckets = {
       days0To30: { quantity: 0, value: 0 },
       days31To60: { quantity: 0, value: 0 },
@@ -182,7 +197,9 @@ export class InventoryAgingService {
 
     for (const line of lines) {
       for (const key of INVENTORY_AGING_BUCKET_KEYS) {
-        buckets[key].quantity = this.round4(buckets[key].quantity + line[key].quantity);
+        buckets[key].quantity = this.round4(
+          buckets[key].quantity + line[key].quantity,
+        );
         buckets[key].value = this.round4(buckets[key].value + line[key].value);
       }
     }
@@ -190,8 +207,12 @@ export class InventoryAgingService {
     return {
       distinctItems: new Set(lines.map((line) => line.itemId)).size,
       warehouseBalances: lines.length,
-      totalQuantity: this.round4(lines.reduce((sum, line) => sum + line.totalQuantity, 0)),
-      totalValue: this.round4(lines.reduce((sum, line) => sum + line.totalValue, 0)),
+      totalQuantity: this.round4(
+        lines.reduce((sum, line) => sum + line.totalQuantity, 0),
+      ),
+      totalValue: this.round4(
+        lines.reduce((sum, line) => sum + line.totalValue, 0),
+      ),
       ...buckets,
     };
   }
@@ -214,7 +235,8 @@ export class InventoryAgingService {
 
   private toEndOfDay(value?: string): Date {
     const date = value ? new Date(`${value}T23:59:59.999Z`) : new Date();
-    if (Number.isNaN(date.getTime())) throw new Error('Invalid inventory aging date.');
+    if (Number.isNaN(date.getTime()))
+      throw new Error('Invalid inventory aging date.');
     return date;
   }
 

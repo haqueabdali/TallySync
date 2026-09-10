@@ -5,12 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -18,7 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
@@ -27,13 +34,18 @@ import java.util.Locale
 @Composable
 fun OrderDetailsScreen(
     state: AppUiState,
+    onFulfill: (String) -> Unit,
     onSync: (String) -> Unit,
     onRetry: (String) -> Unit,
+    onRefresh: (String) -> Unit,
     onCreateInvoicePdf: () -> Unit,
     onPrintInvoicePdf: () -> Unit,
     onShareInvoicePdf: () -> Unit
 ) {
     val order = state.selectedOrder
+    var confirmFulfill by remember { mutableStateOf(false) }
+    var confirmSync by remember { mutableStateOf(false) }
+    var confirmRetry by remember { mutableStateOf(false) }
 
     if (state.loading && order == null) {
         CircularProgressIndicator(modifier = Modifier.padding(16.dp))
@@ -43,6 +55,51 @@ fun OrderDetailsScreen(
     if (order == null) {
         Text("Sales order not found", modifier = Modifier.padding(16.dp))
         return
+    }
+
+    if (confirmFulfill) {
+        AlertDialog(
+            onDismissRequest = { if (!state.loading) confirmFulfill = false },
+            title = { Text("Fulfill order?") },
+            text = { Text("This will mark ${order.orderNumber} as fulfilled. After fulfillment it can be synchronized with Tally.") },
+            confirmButton = {
+                TextButton(enabled = !state.loading, onClick = {
+                    confirmFulfill = false
+                    onFulfill(order.id)
+                }) { Text("Fulfill") }
+            },
+            dismissButton = { TextButton(enabled = !state.loading, onClick = { confirmFulfill = false }) { Text("Cancel") } }
+        )
+    }
+
+    if (confirmSync) {
+        AlertDialog(
+            onDismissRequest = { if (!state.loading) confirmSync = false },
+            title = { Text("Synchronize with Tally?") },
+            text = { Text("This will send ${order.orderNumber} to Tally. Confirm only once to avoid duplicate requests.") },
+            confirmButton = {
+                TextButton(enabled = !state.loading, onClick = {
+                    confirmSync = false
+                    onSync(order.id)
+                }) { Text("Synchronize") }
+            },
+            dismissButton = { TextButton(enabled = !state.loading, onClick = { confirmSync = false }) { Text("Cancel") } }
+        )
+    }
+
+    if (confirmRetry) {
+        AlertDialog(
+            onDismissRequest = { if (!state.loading) confirmRetry = false },
+            title = { Text("Retry Tally synchronization?") },
+            text = { Text("The previous synchronization failed. TallySync will retry this order.") },
+            confirmButton = {
+                TextButton(enabled = !state.loading, onClick = {
+                    confirmRetry = false
+                    onRetry(order.id)
+                }) { Text("Retry") }
+            },
+            dismissButton = { TextButton(enabled = !state.loading, onClick = { confirmRetry = false }) { Text("Cancel") } }
+        )
     }
 
     LazyColumn(
@@ -55,6 +112,14 @@ fun OrderDetailsScreen(
             Text("Status: ${order.status}")
             Text("Sync status: ${order.syncStatus}")
             Text("Total: ${money(order.grandTotal)}")
+        }
+
+        item {
+            OutlinedButton(
+                enabled = !state.loading,
+                onClick = { onRefresh(order.id) },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Refresh order") }
         }
 
         item {
@@ -95,18 +160,111 @@ fun OrderDetailsScreen(
         }
 
         item {
-            if (order.syncStatus == "failed") {
-                Button(
-                    onClick = { onRetry(order.id) },
+
+    val orderStatus = order.status.lowercase()
+    val syncStatus = order.syncStatus.lowercase()
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+
+        when {
+
+            syncStatus == "synced" -> {
+                Card(
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Retry synchronization") }
-            } else if (order.syncStatus != "synced") {
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "✓ Synchronized with Tally",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        order.tallyVoucherId
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let {
+                                Text(
+                                    text = "Tally voucher ID: $it",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                    }
+                }
+            }
+
+            orderStatus in setOf(
+                "submitted",
+                "confirmed",
+                "delivered"
+            ) -> {
+
+                Text(
+                    text = "This order must be fulfilled before it can be synchronized with Tally.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
                 Button(
-                    onClick = { onSync(order.id) },
+                    enabled = !state.loading,
+                    onClick = { confirmFulfill = true },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Synchronize order") }
+                ) {
+                    if (state.loading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Text("Fulfill order")
+                }
+            }
+
+            orderStatus == "fulfilled" &&
+                    syncStatus == "failed" -> {
+
+                Text(
+                    text = "The last Tally synchronization failed.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Button(
+                    enabled = !state.loading,
+                    onClick = { confirmRetry = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.loading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Text("Retry Tally synchronization")
+                }
+            }
+
+            orderStatus == "fulfilled" -> {
+
+                Text(
+                    text = "Order fulfilled. It is ready to synchronize with Tally.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Button(
+                    enabled = !state.loading,
+                    onClick = { confirmSync = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.loading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Text("Synchronize with Tally")
+                }
+            }
+
+            else -> {
+
+                Text(
+                    text = "This order cannot be synchronized in its current status.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
+    }
+}
 
         item { Text("Items", style = MaterialTheme.typography.titleLarge) }
 

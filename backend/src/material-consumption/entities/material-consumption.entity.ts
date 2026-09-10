@@ -19,7 +19,11 @@ import { MaterialConsumptionLineEntity } from './material-consumption-line.entit
 @Index('idx_material_consumptions_company_id', ['companyId'])
 @Index('idx_material_consumptions_production_order_id', ['productionOrderId'])
 @Index('idx_material_consumptions_warehouse_id', ['warehouseId'])
-@Index('uq_material_consumptions_company_number', ['companyId', 'consumptionNumber'], { unique: true })
+@Index(
+  'uq_material_consumptions_company_number',
+  ['companyId', 'consumptionNumber'],
+  { unique: true },
+)
 export class MaterialConsumptionEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -65,7 +69,10 @@ export class MaterialConsumptionEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @ManyToOne(() => ProductionOrderEntity, { nullable: false, onDelete: 'RESTRICT' })
+  @ManyToOne(() => ProductionOrderEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'production_order_id' })
   productionOrder!: ProductionOrderEntity;
 

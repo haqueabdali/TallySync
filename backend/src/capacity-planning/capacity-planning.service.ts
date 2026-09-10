@@ -34,8 +34,7 @@ export class CapacityPlanningService {
     @InjectRepository(WorkCenterEntity)
     private readonly workCenterRepository: Repository<WorkCenterEntity>,
     @InjectRepository(WorkCenterCapacityOverrideEntity)
-    private readonly overrideRepository:
-      Repository<WorkCenterCapacityOverrideEntity>,
+    private readonly overrideRepository: Repository<WorkCenterCapacityOverrideEntity>,
     @InjectRepository(ProductionScheduleEntity)
     private readonly scheduleRepository: Repository<ProductionScheduleEntity>,
   ) {}
@@ -70,9 +69,7 @@ export class CapacityPlanningService {
     );
   }
 
-  async listWorkCenters(
-    companyId: string,
-  ): Promise<WorkCenterResponseDto[]> {
+  async listWorkCenters(companyId: string): Promise<WorkCenterResponseDto[]> {
     const rows = await this.workCenterRepository.find({
       where: { companyId },
       order: { code: 'ASC' },
@@ -168,10 +165,7 @@ export class CapacityPlanningService {
     companyId: string,
     query: CapacityReportQueryDto,
   ): Promise<CapacityReportResponseDto> {
-    const windows = this.buildDayWindows(
-      query.dateFrom,
-      query.dateTo,
-    );
+    const windows = this.buildDayWindows(query.dateFrom, query.dateTo);
 
     const workCenterWhere = query.workCenterCode?.trim()
       ? {
@@ -189,10 +183,7 @@ export class CapacityPlanningService {
       order: { code: 'ASC' },
     });
 
-    if (
-      query.workCenterCode &&
-      workCenters.length === 0
-    ) {
+    if (query.workCenterCode && workCenters.length === 0) {
       throw new NotFoundException('Work center not found.');
     }
 
@@ -208,13 +199,10 @@ export class CapacityPlanningService {
           .andWhere('override.work_center_id IN (:...ids)', {
             ids,
           })
-          .andWhere(
-            'override.capacity_date BETWEEN :dateFrom AND :dateTo',
-            {
-              dateFrom: windows[0].date,
-              dateTo: windows[windows.length - 1].date,
-            },
-          )
+          .andWhere('override.capacity_date BETWEEN :dateFrom AND :dateTo', {
+            dateFrom: windows[0].date,
+            dateTo: windows[windows.length - 1].date,
+          })
           .getMany()
       : [];
 
@@ -224,10 +212,7 @@ export class CapacityPlanningService {
           .where('schedule.company_id = :companyId', {
             companyId,
           })
-          .andWhere(
-            'schedule.work_center_code IN (:...codes)',
-            { codes },
-          )
+          .andWhere('schedule.work_center_code IN (:...codes)', { codes })
           .andWhere('schedule.deleted_at IS NULL')
           .andWhere('schedule.status NOT IN (:...closed)', {
             closed: [
@@ -235,17 +220,12 @@ export class CapacityPlanningService {
               ProductionScheduleStatus.COMPLETED,
             ],
           })
-          .andWhere(
-            'schedule.planned_end_at > :rangeStart',
-            { rangeStart: windows[0].start },
-          )
-          .andWhere(
-            'schedule.planned_start_at < :rangeEnd',
-            {
-              rangeEnd:
-                windows[windows.length - 1].end,
-            },
-          )
+          .andWhere('schedule.planned_end_at > :rangeStart', {
+            rangeStart: windows[0].start,
+          })
+          .andWhere('schedule.planned_start_at < :rangeEnd', {
+            rangeEnd: windows[windows.length - 1].end,
+          })
           .getMany()
       : [];
 
@@ -261,27 +241,20 @@ export class CapacityPlanningService {
       this.buildWorkCenterCapacity(
         center,
         windows,
-        schedules.filter(
-          (schedule) =>
-            schedule.workCenterCode === center.code,
-        ),
+        schedules.filter((schedule) => schedule.workCenterCode === center.code),
         overrideMap,
       ),
     );
 
-    const totalCapacityMinutes =
-      workCenterReports.reduce(
-        (sum, center) =>
-          sum + center.totalCapacityMinutes,
-        0,
-      );
+    const totalCapacityMinutes = workCenterReports.reduce(
+      (sum, center) => sum + center.totalCapacityMinutes,
+      0,
+    );
 
-    const totalScheduledMinutes =
-      workCenterReports.reduce(
-        (sum, center) =>
-          sum + center.totalScheduledMinutes,
-        0,
-      );
+    const totalScheduledMinutes = workCenterReports.reduce(
+      (sum, center) => sum + center.totalScheduledMinutes,
+      0,
+    );
 
     return {
       dateFrom: windows[0].date,
@@ -293,10 +266,9 @@ export class CapacityPlanningService {
         totalScheduledMinutes,
         totalCapacityMinutes,
       ),
-      bottleneckWorkCenters:
-        workCenterReports.filter(
-          (center) => center.bottleneckDays > 0,
-        ).length,
+      bottleneckWorkCenters: workCenterReports.filter(
+        (center) => center.bottleneckDays > 0,
+      ).length,
     };
   }
 
@@ -306,72 +278,54 @@ export class CapacityPlanningService {
     schedules: ProductionScheduleEntity[],
     overrideMap: Map<string, number>,
   ): WorkCenterCapacityDto {
-    const days: CapacityDayDto[] = windows.map(
-      (window) => {
-        const isWorkingDay = center.workingDays.includes(
-          window.start.getUTCDay(),
-        );
+    const days: CapacityDayDto[] = windows.map((window) => {
+      const isWorkingDay = center.workingDays.includes(
+        window.start.getUTCDay(),
+      );
 
-        const nominalMinutes = isWorkingDay
-          ? center.dailyCapacityMinutes
-          : 0;
+      const nominalMinutes = isWorkingDay ? center.dailyCapacityMinutes : 0;
 
-        const override = overrideMap.get(
-          `${center.id}:${window.date}`,
-        );
+      const override = overrideMap.get(`${center.id}:${window.date}`);
 
-        const baseCapacity =
-          override ?? nominalMinutes;
+      const baseCapacity = override ?? nominalMinutes;
 
-        const effectiveCapacityMinutes =
-          Math.round(
-            baseCapacity *
-              (center.efficiencyPercent / 100),
-          );
+      const effectiveCapacityMinutes = Math.round(
+        baseCapacity * (center.efficiencyPercent / 100),
+      );
 
-        const scheduledMinutes = schedules.reduce(
-          (sum, schedule) =>
-            sum +
-            this.overlapMinutes(
-              schedule.plannedStartAt,
-              schedule.plannedEndAt,
-              window.start,
-              window.end,
-            ),
-          0,
-        );
+      const scheduledMinutes = schedules.reduce(
+        (sum, schedule) =>
+          sum +
+          this.overlapMinutes(
+            schedule.plannedStartAt,
+            schedule.plannedEndAt,
+            window.start,
+            window.end,
+          ),
+        0,
+      );
 
-        const availableMinutes =
-          effectiveCapacityMinutes -
-          scheduledMinutes;
+      const availableMinutes = effectiveCapacityMinutes - scheduledMinutes;
 
-        const overloadMinutes = Math.max(
-          0,
-          -availableMinutes,
-        );
+      const overloadMinutes = Math.max(0, -availableMinutes);
 
-        return {
-          date: window.date,
-          nominalMinutes,
-          effectiveCapacityMinutes,
+      return {
+        date: window.date,
+        nominalMinutes,
+        effectiveCapacityMinutes,
+        scheduledMinutes,
+        availableMinutes: Math.max(0, availableMinutes),
+        utilizationPercent: this.percent(
           scheduledMinutes,
-          availableMinutes: Math.max(
-            0,
-            availableMinutes,
-          ),
-          utilizationPercent: this.percent(
-            scheduledMinutes,
-            effectiveCapacityMinutes,
-          ),
-          overloadMinutes,
-          isBottleneck: overloadMinutes > 0,
-        };
-      },
-    );
+          effectiveCapacityMinutes,
+        ),
+        overloadMinutes,
+        isBottleneck: overloadMinutes > 0,
+      };
+    });
 
     const totalCapacityMinutes = days.reduce(
-      (sum, day) =>
-        sum + day.effectiveCapacityMinutes,
+      (sum, day) => sum + day.effectiveCapacityMinutes,
       0,
     );
     const totalScheduledMinutes = days.reduce(
@@ -390,9 +344,7 @@ export class CapacityPlanningService {
         totalScheduledMinutes,
         totalCapacityMinutes,
       ),
-      bottleneckDays: days.filter(
-        (day) => day.isBottleneck,
-      ).length,
+      bottleneckDays: days.filter((day) => day.isBottleneck).length,
     };
   }
 
@@ -409,14 +361,8 @@ export class CapacityPlanningService {
       withDeleted: true,
     });
 
-    if (
-      existing &&
-      existing.deletedAt === null &&
-      existing.id !== excludeId
-    ) {
-      throw new ConflictException(
-        `Work center ${code} already exists.`,
-      );
+    if (existing && existing.deletedAt === null && existing.id !== excludeId) {
+      throw new ConflictException(`Work center ${code} already exists.`);
     }
   }
 
@@ -424,15 +370,12 @@ export class CapacityPlanningService {
     companyId: string,
     id: string,
   ): Promise<WorkCenterEntity> {
-    const entity =
-      await this.workCenterRepository.findOne({
-        where: { id, companyId },
-      });
+    const entity = await this.workCenterRepository.findOne({
+      where: { id, companyId },
+    });
 
     if (!entity) {
-      throw new NotFoundException(
-        'Work center not found.',
-      );
+      throw new NotFoundException('Work center not found.');
     }
 
     return entity;
@@ -441,24 +384,15 @@ export class CapacityPlanningService {
   private normalizeCode(value: string): string {
     const code = value.trim().toUpperCase();
     if (!code) {
-      throw new BadRequestException(
-        'Work center code is required.',
-      );
+      throw new BadRequestException('Work center code is required.');
     }
     return code;
   }
 
-  private normalizeWorkingDays(
-    values: number[],
-  ): number[] {
-    const unique = [...new Set(values)].sort(
-      (a, b) => a - b,
-    );
+  private normalizeWorkingDays(values: number[]): number[] {
+    const unique = [...new Set(values)].sort((a, b) => a - b);
 
-    if (
-      unique.length === 0 ||
-      unique.some((value) => value < 0 || value > 6)
-    ) {
+    if (unique.length === 0 || unique.some((value) => value < 0 || value > 6)) {
       throw new BadRequestException(
         'workingDays must contain UTC weekday numbers from 0 to 6.',
       );
@@ -467,37 +401,20 @@ export class CapacityPlanningService {
     return unique;
   }
 
-  private buildDayWindows(
-    dateFrom: string,
-    dateTo: string,
-  ): DayWindow[] {
-    const start = new Date(
-      `${dateFrom.slice(0, 10)}T00:00:00.000Z`,
-    );
-    const end = new Date(
-      `${dateTo.slice(0, 10)}T00:00:00.000Z`,
-    );
+  private buildDayWindows(dateFrom: string, dateTo: string): DayWindow[] {
+    const start = new Date(`${dateFrom.slice(0, 10)}T00:00:00.000Z`);
+    const end = new Date(`${dateTo.slice(0, 10)}T00:00:00.000Z`);
 
-    if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime())
-    ) {
-      throw new BadRequestException(
-        'Invalid capacity report date range.',
-      );
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid capacity report date range.');
     }
 
     if (end.getTime() < start.getTime()) {
-      throw new BadRequestException(
-        'dateTo must be on or after dateFrom.',
-      );
+      throw new BadRequestException('dateTo must be on or after dateFrom.');
     }
 
     const differenceDays =
-      Math.floor(
-        (end.getTime() - start.getTime()) /
-          86_400_000,
-      ) + 1;
+      Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
 
     if (differenceDays > 366) {
       throw new BadRequestException(
@@ -508,12 +425,8 @@ export class CapacityPlanningService {
     const windows: DayWindow[] = [];
 
     for (let index = 0; index < differenceDays; index += 1) {
-      const dayStart = new Date(
-        start.getTime() + index * 86_400_000,
-      );
-      const dayEnd = new Date(
-        dayStart.getTime() + 86_400_000,
-      );
+      const dayStart = new Date(start.getTime() + index * 86_400_000);
+      const dayEnd = new Date(dayStart.getTime() + 86_400_000);
 
       windows.push({
         date: dayStart.toISOString().slice(0, 10),
@@ -531,42 +444,27 @@ export class CapacityPlanningService {
     windowStart: Date,
     windowEnd: Date,
   ): number {
-    const overlapStart = Math.max(
-      start.getTime(),
-      windowStart.getTime(),
-    );
-    const overlapEnd = Math.min(
-      end.getTime(),
-      windowEnd.getTime(),
-    );
+    const overlapStart = Math.max(start.getTime(), windowStart.getTime());
+    const overlapEnd = Math.min(end.getTime(), windowEnd.getTime());
 
     if (overlapEnd <= overlapStart) {
       return 0;
     }
 
-    return Math.round(
-      (overlapEnd - overlapStart) / 60_000,
-    );
+    return Math.round((overlapEnd - overlapStart) / 60_000);
   }
 
-  private percent(
-    numerator: number,
-    denominator: number,
-  ): number {
+  private percent(numerator: number, denominator: number): number {
     if (denominator <= 0) {
       return numerator > 0 ? 100 : 0;
     }
 
-    return Math.round(
-      ((numerator / denominator) * 100 +
-        Number.EPSILON) *
-        100,
-    ) / 100;
+    return (
+      Math.round(((numerator / denominator) * 100 + Number.EPSILON) * 100) / 100
+    );
   }
 
-  private optional(
-    value?: string | null,
-  ): string | null {
+  private optional(value?: string | null): string | null {
     const normalized = value?.trim();
     return normalized ? normalized : null;
   }
@@ -579,10 +477,8 @@ export class CapacityPlanningService {
       companyId: entity.companyId,
       code: entity.code,
       name: entity.name,
-      dailyCapacityMinutes:
-        entity.dailyCapacityMinutes,
-      efficiencyPercent:
-        entity.efficiencyPercent,
+      dailyCapacityMinutes: entity.dailyCapacityMinutes,
+      efficiencyPercent: entity.efficiencyPercent,
       workingDays: entity.workingDays,
       isActive: entity.isActive,
       notes: entity.notes,

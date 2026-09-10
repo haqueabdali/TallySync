@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignItemsTableWithCanonicalEntity1787900000000
-  implements MigrationInterface
-{
-  name =
-    'AlignItemsTableWithCanonicalEntity1787900000000';
+export class AlignItemsTableWithCanonicalEntity1787900000000 implements MigrationInterface {
+  name = 'AlignItemsTableWithCanonicalEntity1787900000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * The original core migration created a smaller items table using
      * tax_percent and opening_stock. The canonical Items module now expects
@@ -180,9 +172,7 @@ export class AlignItemsTableWithCanonicalEntity1787900000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       DROP INDEX IF EXISTS
         "UQ_items_company_barcode"

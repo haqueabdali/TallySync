@@ -21,8 +21,7 @@ export const DELIVERY_NOTE_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type DeliveryNoteSortField =
-  (typeof DELIVERY_NOTE_SORT_FIELDS)[number];
+export type DeliveryNoteSortField = (typeof DELIVERY_NOTE_SORT_FIELDS)[number];
 
 export class DeliveryNoteFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

@@ -30,14 +30,8 @@ const numberTransformer = {
     where: '"deleted_at" IS NULL',
   },
 )
-@Index(
-  'IDX_production_cost_analyses_company_status',
-  ['companyId', 'status'],
-)
-@Index(
-  'IDX_production_cost_analyses_date',
-  ['companyId', 'analysisDate'],
-)
+@Index('IDX_production_cost_analyses_company_status', ['companyId', 'status'])
+@Index('IDX_production_cost_analyses_date', ['companyId', 'analysisDate'])
 export class ProductionCostAnalysisEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -170,10 +164,7 @@ export class ProductionCostAnalysisEntity {
   })
   updatedBy!: string | null;
 
-  @OneToMany(
-    () => ProductionCostMaterialLineEntity,
-    (line) => line.analysis,
-  )
+  @OneToMany(() => ProductionCostMaterialLineEntity, (line) => line.analysis)
   materialLines!: ProductionCostMaterialLineEntity[];
 
   @CreateDateColumn({

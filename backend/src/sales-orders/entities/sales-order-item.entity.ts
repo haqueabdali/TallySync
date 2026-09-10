@@ -33,14 +33,10 @@ export class SalesOrderItemEntity {
   })
   salesOrderId!: string;
 
-  @ManyToOne(
-    () => SalesOrderEntity,
-    (salesOrder) => salesOrder.items,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => SalesOrderEntity, (salesOrder) => salesOrder.items, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sales_order_id' })
   salesOrder!: SalesOrderEntity;
 

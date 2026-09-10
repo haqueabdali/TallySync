@@ -130,7 +130,14 @@ export class TallySyncService {
       if (!order.items?.length) {
         throw new BadRequestException('Sales order does not contain any items');
       }
+      const customerLedgerName =
+        order.customer.tallyLedgerName?.trim() || order.customer.name?.trim();
 
+      if (!customerLedgerName) {
+        throw new BadRequestException(
+          'Sales order customer does not have a valid Tally ledger name',
+        );
+      }
       const salesLedgerName = this.configService
         .get<string>('TALLY_SALES_LEDGER_NAME', 'Sales')
         .trim();
@@ -147,36 +154,40 @@ export class TallySyncService {
         .get<string>('TALLY_DEFAULT_STOCK_GROUP', 'Primary')
         .trim();
 
-      const stockItems: TallyStockItemDefinition[] = order.items.map(
-        (orderItem) => {
-          if (!orderItem.item) {
-            throw new BadRequestException(
-              'One or more sales-order items do not have an inventory item',
-            );
-          }
+      const stockItems = order.items.map((orderItem) => {
+        if (!orderItem.item) {
+          throw new BadRequestException(
+            'One or more sales-order items do not have an inventory item',
+          );
+        }
 
-          const stockItemName =
-            orderItem.item.tallyItemName?.trim() || orderItem.item.name?.trim();
+        const stockItemName =
+          orderItem.item.tallyItemName?.trim() || orderItem.item.name?.trim();
 
-          if (!stockItemName) {
-            throw new BadRequestException(
-              'One or more inventory items do not have a valid Tally item name',
-            );
-          }
+        if (!stockItemName) {
+          throw new BadRequestException(
+            'One or more inventory items do not have a valid Tally item name',
+          );
+        }
 
-          return {
-            name: stockItemName,
-            parent: defaultStockGroup,
-            baseUnit: defaultUnit,
-          };
-        },
-      );
+        const itemUnit = this.toTallyUnit(
+          orderItem.item.unit,
+          orderItem.unit,
+          defaultUnit,
+        );
+
+        return {
+          name: stockItemName,
+          parent: defaultStockGroup,
+          baseUnit: itemUnit,
+        };
+      });
 
       const voucherDate = this.toIsoDate(order.orderDate);
 
       await this.tallyMasterService.ensureLedgerMasters([
         {
-          name: order.customer.name,
+          name: customerLedgerName,
           parent: 'Sundry Debtors',
           isBillWise: true,
         },
@@ -192,7 +203,7 @@ export class TallySyncService {
       const voucher = this.previewSalesVoucher({
         voucherNumber: order.orderNumber,
         voucherDate,
-        customerLedgerName: order.customer.name,
+        customerLedgerName,
         salesLedgerName,
         items: order.items.map((orderItem) => {
           if (!orderItem.item) {
@@ -201,12 +212,18 @@ export class TallySyncService {
             );
           }
 
+          const itemUnit = this.toTallyUnit(
+            orderItem.item.unit,
+            orderItem.unit,
+            defaultUnit,
+          );
+
           return {
             stockItemName:
               orderItem.item.tallyItemName?.trim() || orderItem.item.name,
             quantity: Number(orderItem.quantity),
             rate: Number(orderItem.unitPrice),
-            unit: defaultUnit,
+            unit: itemUnit,
             godownName: defaultGodown,
           };
         }),
@@ -503,5 +520,18 @@ export class TallySyncService {
     }
 
     return 'Unknown error';
+  }
+  private toTallyUnit(
+    itemUnit: string | null | undefined,
+    orderUnit: string | null | undefined,
+    defaultUnit: string,
+  ): string {
+    const unit = itemUnit?.trim() || orderUnit?.trim() || defaultUnit.trim();
+
+    if (unit.toUpperCase() === 'PCS') {
+      return 'pcs';
+    }
+
+    return unit;
   }
 }

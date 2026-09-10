@@ -14,7 +14,8 @@ export function calculateInventoryValuation(
   return {
     quantity: roundedQuantity,
     inventoryValue: roundedValue,
-    averageUnitCost: roundedQuantity === 0 ? 0 : round(roundedValue / roundedQuantity, 6),
+    averageUnitCost:
+      roundedQuantity === 0 ? 0 : round(roundedValue / roundedQuantity, 6),
   };
 }
 

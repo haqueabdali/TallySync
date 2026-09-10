@@ -58,17 +58,27 @@ export class PlatformUsersService {
       .andWhere('company.deleted_at IS NULL');
 
     if (query.companyId) {
-      qb.andWhere('user.company_id = :companyId', { companyId: query.companyId });
+      qb.andWhere('user.company_id = :companyId', {
+        companyId: query.companyId,
+      });
     }
-    if (query.roleId) qb.andWhere('user.role_id = :roleId', { roleId: query.roleId });
-    if (query.status) qb.andWhere('user.status = :status', { status: query.status });
+    if (query.roleId)
+      qb.andWhere('user.role_id = :roleId', { roleId: query.roleId });
+    if (query.status)
+      qb.andWhere('user.status = :status', { status: query.status });
     if (query.search) {
       qb.andWhere(
         new Brackets((sub) => {
           sub
-            .where('user.full_name ILIKE :search', { search: `%${query.search}%` })
-            .orWhere('user.email ILIKE :search', { search: `%${query.search}%` })
-            .orWhere('company.name ILIKE :search', { search: `%${query.search}%` });
+            .where('user.full_name ILIKE :search', {
+              search: `%${query.search}%`,
+            })
+            .orWhere('user.email ILIKE :search', {
+              search: `%${query.search}%`,
+            })
+            .orWhere('company.name ILIKE :search', {
+              search: `%${query.search}%`,
+            });
         }),
       );
     }

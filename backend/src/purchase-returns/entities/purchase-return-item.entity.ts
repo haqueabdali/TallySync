@@ -36,14 +36,10 @@ export class PurchaseReturnItem {
    * The relation uses a string target and a type-only import. This keeps
    * TypeORM metadata while removing the runtime circular module import.
    */
-  @ManyToOne(
-    'PurchaseReturn',
-    'items',
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne('PurchaseReturn', 'items', {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'purchase_return_id' })
   purchaseReturn!: PurchaseReturn;
 

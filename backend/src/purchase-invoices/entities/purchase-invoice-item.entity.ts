@@ -32,14 +32,10 @@ export class PurchaseInvoiceItemEntity {
   @Column({ name: 'purchase_invoice_id', type: 'uuid' })
   purchaseInvoiceId!: string;
 
-  @ManyToOne(
-    () => PurchaseInvoiceEntity,
-    (invoice) => invoice.items,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => PurchaseInvoiceEntity, (invoice) => invoice.items, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'purchase_invoice_id' })
   purchaseInvoice!: PurchaseInvoiceEntity;
 

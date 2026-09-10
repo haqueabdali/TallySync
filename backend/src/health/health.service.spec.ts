@@ -1,7 +1,4 @@
-import {
-  Test,
-  type TestingModule,
-} from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 
 import { HealthService } from './health.service';
@@ -20,23 +17,21 @@ describe('HealthService', () => {
     };
     lifecycle = { isDraining: jest.fn().mockReturnValue(false) };
 
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          HealthService,
-          {
-            provide: DataSource,
-            useValue: dataSource,
-          },
-          {
-            provide: ApplicationLifecycleService,
-            useValue: lifecycle,
-          },
-        ],
-      }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        HealthService,
+        {
+          provide: DataSource,
+          useValue: dataSource,
+        },
+        {
+          provide: ApplicationLifecycleService,
+          useValue: lifecycle,
+        },
+      ],
+    }).compile();
 
-    service =
-      module.get(HealthService);
+    service = module.get(HealthService);
   });
 
   afterEach(() => {
@@ -47,14 +42,9 @@ describe('HealthService', () => {
     const result = service.live();
 
     expect(result.status).toBe('ok');
-    expect(result.service).toBe(
-      'tallysync-backend',
-    );
-    expect(
-      typeof result.uptimeSeconds,
-    ).toBe('number');
+    expect(result.service).toBe('tallysync-backend');
+    expect(typeof result.uptimeSeconds).toBe('number');
   });
-
 
   it('returns not ready while the instance is draining', async () => {
     lifecycle.isDraining.mockReturnValue(true);
@@ -67,27 +57,19 @@ describe('HealthService', () => {
   });
 
   it('returns ready when database responds', async () => {
-    dataSource.query.mockResolvedValue([
-      { '?column?': 1 },
-    ]);
+    dataSource.query.mockResolvedValue([{ '?column?': 1 }]);
 
-    const result =
-      await service.ready();
+    const result = await service.ready();
 
-    expect(dataSource.query).toHaveBeenCalledWith(
-      'SELECT 1',
-    );
+    expect(dataSource.query).toHaveBeenCalledWith('SELECT 1');
     expect(result.status).toBe('ok');
     expect(result.database).toBe('up');
   });
 
   it('returns error when database is unavailable', async () => {
-    dataSource.query.mockRejectedValue(
-      new Error('database unavailable'),
-    );
+    dataSource.query.mockRejectedValue(new Error('database unavailable'));
 
-    const result =
-      await service.ready();
+    const result = await service.ready();
 
     expect(result.status).toBe('error');
     expect(result.database).toBe('down');

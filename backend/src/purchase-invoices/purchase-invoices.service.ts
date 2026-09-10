@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { AccountingSettingsEntity } from '../accounting-settings/entities/accounting-settings.entity';
@@ -31,7 +27,6 @@ import { UpdatePurchaseInvoiceDto } from './dto/update-purchase-invoice.dto';
 import { PurchaseInvoiceStatus } from './enums/purchase-invoice-status.enum';
 import { PurchaseInvoiceItemEntity } from '../purchase-invoices/entities/purchase-invoice-item.entity';
 import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
-
 
 @Injectable()
 export class PurchaseInvoicesService {
@@ -64,11 +59,9 @@ export class PurchaseInvoicesService {
     private readonly itemRepository: Repository<ItemEntity>,
 
     @InjectRepository(AccountingSettingsEntity)
-    private readonly accountingSettingsRepository:
-      Repository<AccountingSettingsEntity>,
+    private readonly accountingSettingsRepository: Repository<AccountingSettingsEntity>,
 
-    private readonly accountingEngineService:
-      AccountingEngineService,
+    private readonly accountingEngineService: AccountingEngineService,
   ) {}
 
   async create(
@@ -80,10 +73,8 @@ export class PurchaseInvoicesService {
     this.ensureUniqueItems(dto.items.map((item) => item.itemId));
 
     return this.dataSource.transaction(async (manager) => {
-      const invoiceRepository =
-        manager.getRepository(PurchaseInvoiceEntity);
-      const itemRepository =
-        manager.getRepository(PurchaseInvoiceItemEntity);
+      const invoiceRepository = manager.getRepository(PurchaseInvoiceEntity);
+      const itemRepository = manager.getRepository(PurchaseInvoiceItemEntity);
 
       const invoice = invoiceRepository.create({
         companyId,
@@ -94,9 +85,7 @@ export class PurchaseInvoicesService {
           companyId,
           dto.invoiceDate,
         ),
-        supplierInvoiceNumber: this.optional(
-          dto.supplierInvoiceNumber,
-        ),
+        supplierInvoiceNumber: this.optional(dto.supplierInvoiceNumber),
         invoiceDate: dto.invoiceDate,
         dueDate: dto.dueDate ?? null,
         status: PurchaseInvoiceStatus.DRAFT,
@@ -132,10 +121,8 @@ export class PurchaseInvoicesService {
         return itemRepository.create({
           purchaseInvoiceId: savedInvoice.id,
           itemId: line.itemId,
-          purchaseOrderItemId:
-            line.purchaseOrderItemId ?? null,
-          goodsReceiptItemId:
-            line.goodsReceiptItemId ?? null,
+          purchaseOrderItemId: line.purchaseOrderItemId ?? null,
+          goodsReceiptItemId: line.goodsReceiptItemId ?? null,
           itemName: this.optional(line.itemName),
           sku: this.optional(line.sku),
           unit: this.optional(line.unit),
@@ -148,15 +135,11 @@ export class PurchaseInvoicesService {
         });
       });
 
-      savedInvoice.items = await itemRepository.save(
-        savedInvoice.items,
-      );
+      savedInvoice.items = await itemRepository.save(savedInvoice.items);
 
       this.calculateInvoiceTotals(savedInvoice);
 
-      return this.toResponse(
-        await invoiceRepository.save(savedInvoice),
-      );
+      return this.toResponse(await invoiceRepository.save(savedInvoice));
     });
   }
 
@@ -182,10 +165,9 @@ export class PurchaseInvoicesService {
           qb.where('invoice.invoice_number ILIKE :search', {
             search,
           })
-            .orWhere(
-              'invoice.supplier_invoice_number ILIKE :search',
-              { search },
-            )
+            .orWhere('invoice.supplier_invoice_number ILIKE :search', {
+              search,
+            })
             .orWhere('invoice.notes ILIKE :search', {
               search,
             });
@@ -200,17 +182,15 @@ export class PurchaseInvoicesService {
     }
 
     if (filter.purchaseOrderId) {
-      query.andWhere(
-        'invoice.purchase_order_id = :purchaseOrderId',
-        { purchaseOrderId: filter.purchaseOrderId },
-      );
+      query.andWhere('invoice.purchase_order_id = :purchaseOrderId', {
+        purchaseOrderId: filter.purchaseOrderId,
+      });
     }
 
     if (filter.goodsReceiptId) {
-      query.andWhere(
-        'invoice.goods_receipt_id = :goodsReceiptId',
-        { goodsReceiptId: filter.goodsReceiptId },
-      );
+      query.andWhere('invoice.goods_receipt_id = :goodsReceiptId', {
+        goodsReceiptId: filter.goodsReceiptId,
+      });
     }
 
     if (filter.status) {
@@ -267,9 +247,7 @@ export class PurchaseInvoicesService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: invoices.map((invoice) =>
-        this.toResponse(invoice),
-      ),
+      data: invoices.map((invoice) => this.toResponse(invoice)),
       meta: {
         page,
         limit,
@@ -295,10 +273,8 @@ export class PurchaseInvoicesService {
     userId: string,
   ): Promise<PurchaseInvoiceResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const invoiceRepository =
-        manager.getRepository(PurchaseInvoiceEntity);
-      const itemRepository =
-        manager.getRepository(PurchaseInvoiceItemEntity);
+      const invoiceRepository = manager.getRepository(PurchaseInvoiceEntity);
+      const itemRepository = manager.getRepository(PurchaseInvoiceItemEntity);
 
       const invoice = await invoiceRepository.findOne({
         where: { id, companyId },
@@ -306,9 +282,7 @@ export class PurchaseInvoicesService {
       });
 
       if (!invoice) {
-        throw new NotFoundException(
-          'Purchase invoice not found.',
-        );
+        throw new NotFoundException('Purchase invoice not found.');
       }
 
       this.ensureDraft(invoice);
@@ -316,13 +290,9 @@ export class PurchaseInvoicesService {
       const mergedDto: CreatePurchaseInvoiceDto = {
         supplierId: dto.supplierId ?? invoice.supplierId,
         purchaseOrderId:
-          dto.purchaseOrderId ??
-          invoice.purchaseOrderId ??
-          undefined,
+          dto.purchaseOrderId ?? invoice.purchaseOrderId ?? undefined,
         goodsReceiptId:
-          dto.goodsReceiptId ??
-          invoice.goodsReceiptId ??
-          undefined,
+          dto.goodsReceiptId ?? invoice.goodsReceiptId ?? undefined,
         supplierInvoiceNumber:
           dto.supplierInvoiceNumber ??
           invoice.supplierInvoiceNumber ??
@@ -330,21 +300,16 @@ export class PurchaseInvoicesService {
         invoiceDate: dto.invoiceDate ?? invoice.invoiceDate,
         dueDate: dto.dueDate ?? invoice.dueDate ?? undefined,
         currency: dto.currency ?? invoice.currency,
-        shippingTotal:
-          dto.shippingTotal ?? Number(invoice.shippingTotal),
+        shippingTotal: dto.shippingTotal ?? Number(invoice.shippingTotal),
         billingAddress:
-          dto.billingAddress ??
-          invoice.billingAddress ??
-          undefined,
+          dto.billingAddress ?? invoice.billingAddress ?? undefined,
         notes: dto.notes ?? invoice.notes ?? undefined,
         items:
           dto.items ??
           invoice.items.map((item) => ({
             itemId: item.itemId,
-            purchaseOrderItemId:
-              item.purchaseOrderItemId ?? undefined,
-            goodsReceiptItemId:
-              item.goodsReceiptItemId ?? undefined,
+            purchaseOrderItemId: item.purchaseOrderItemId ?? undefined,
+            goodsReceiptItemId: item.goodsReceiptItemId ?? undefined,
             itemName: item.itemName ?? undefined,
             sku: item.sku ?? undefined,
             unit: item.unit ?? undefined,
@@ -359,9 +324,7 @@ export class PurchaseInvoicesService {
       await this.validateReferences(mergedDto, companyId);
 
       if (dto.items) {
-        this.ensureUniqueItems(
-          dto.items.map((item) => item.itemId),
-        );
+        this.ensureUniqueItems(dto.items.map((item) => item.itemId));
 
         await itemRepository.delete({
           purchaseInvoiceId: invoice.id,
@@ -378,26 +341,21 @@ export class PurchaseInvoicesService {
           return itemRepository.create({
             purchaseInvoiceId: invoice.id,
             itemId: line.itemId,
-            purchaseOrderItemId:
-              line.purchaseOrderItemId ?? null,
-            goodsReceiptItemId:
-              line.goodsReceiptItemId ?? null,
+            purchaseOrderItemId: line.purchaseOrderItemId ?? null,
+            goodsReceiptItemId: line.goodsReceiptItemId ?? null,
             itemName: this.optional(line.itemName),
             sku: this.optional(line.sku),
             unit: this.optional(line.unit),
             description: this.optional(line.description),
             quantity: line.quantity,
             unitCost: line.unitCost,
-            discountPercent:
-              line.discountPercent ?? 0,
+            discountPercent: line.discountPercent ?? 0,
             taxPercent: line.taxPercent ?? 0,
             ...totals,
           });
         });
 
-        invoice.items = await itemRepository.save(
-          invoice.items,
-        );
+        invoice.items = await itemRepository.save(invoice.items);
       }
 
       if (dto.supplierId !== undefined) {
@@ -405,13 +363,11 @@ export class PurchaseInvoicesService {
       }
 
       if (dto.purchaseOrderId !== undefined) {
-        invoice.purchaseOrderId =
-          dto.purchaseOrderId ?? null;
+        invoice.purchaseOrderId = dto.purchaseOrderId ?? null;
       }
 
       if (dto.goodsReceiptId !== undefined) {
-        invoice.goodsReceiptId =
-          dto.goodsReceiptId ?? null;
+        invoice.goodsReceiptId = dto.goodsReceiptId ?? null;
       }
 
       if (dto.supplierInvoiceNumber !== undefined) {
@@ -433,15 +389,11 @@ export class PurchaseInvoicesService {
       }
 
       if (dto.shippingTotal !== undefined) {
-        invoice.shippingTotal = this.round(
-          dto.shippingTotal,
-        );
+        invoice.shippingTotal = this.round(dto.shippingTotal);
       }
 
       if (dto.billingAddress !== undefined) {
-        invoice.billingAddress = this.optional(
-          dto.billingAddress,
-        );
+        invoice.billingAddress = this.optional(dto.billingAddress);
       }
 
       if (dto.notes !== undefined) {
@@ -451,9 +403,7 @@ export class PurchaseInvoicesService {
       invoice.updatedBy = userId;
       this.calculateInvoiceTotals(invoice);
 
-      return this.toResponse(
-        await invoiceRepository.save(invoice),
-      );
+      return this.toResponse(await invoiceRepository.save(invoice));
     });
   }
 
@@ -474,11 +424,7 @@ export class PurchaseInvoicesService {
       invoice.status === PurchaseInvoiceStatus.PARTIALLY_PAID ||
       invoice.status === PurchaseInvoiceStatus.PAID
     ) {
-      await this.autoPostAccountingIfEnabled(
-        invoice.id,
-        companyId,
-        userId,
-      );
+      await this.autoPostAccountingIfEnabled(invoice.id, companyId, userId);
 
       return this.toResponse(invoice);
     }
@@ -492,8 +438,7 @@ export class PurchaseInvoicesService {
     }
 
     invoice.balanceDue = this.round(
-      Number(invoice.grandTotal) -
-        Number(invoice.paidAmount),
+      Number(invoice.grandTotal) - Number(invoice.paidAmount),
     );
 
     invoice.status =
@@ -507,14 +452,9 @@ export class PurchaseInvoicesService {
     invoice.postedAt = new Date();
     invoice.updatedBy = userId;
 
-    const saved =
-      await this.purchaseInvoiceRepository.save(invoice);
+    const saved = await this.purchaseInvoiceRepository.save(invoice);
 
-    await this.autoPostAccountingIfEnabled(
-      saved.id,
-      companyId,
-      userId,
-    );
+    await this.autoPostAccountingIfEnabled(saved.id, companyId, userId);
 
     return this.toResponse(saved);
   }
@@ -524,14 +464,11 @@ export class PurchaseInvoicesService {
     companyId: string,
     userId: string,
   ): Promise<void> {
-    const settings =
-      await this.accountingSettingsRepository.findOne({
-        where: { companyId },
-      });
+    const settings = await this.accountingSettingsRepository.findOne({
+      where: { companyId },
+    });
 
-    if (
-      settings?.autoPostPurchaseInvoices !== false
-    ) {
+    if (settings?.autoPostPurchaseInvoices !== false) {
       await this.accountingEngineService.postPurchaseInvoice(
         invoiceId,
         companyId,
@@ -562,15 +499,10 @@ export class PurchaseInvoicesService {
     invoice.cancelledAt = new Date();
     invoice.updatedBy = userId;
 
-    return this.toResponse(
-      await this.purchaseInvoiceRepository.save(invoice),
-    );
+    return this.toResponse(await this.purchaseInvoiceRepository.save(invoice));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const invoice = await this.getEntity(id, companyId);
     this.ensureDraft(invoice);
 
@@ -598,8 +530,7 @@ export class PurchaseInvoicesService {
 
     if (
       dto.dueDate &&
-      new Date(dto.dueDate).getTime() <
-        new Date(dto.invoiceDate).getTime()
+      new Date(dto.dueDate).getTime() < new Date(dto.invoiceDate).getTime()
     ) {
       throw new BadRequestException(
         'Due date cannot be earlier than invoice date.',
@@ -610,36 +541,30 @@ export class PurchaseInvoicesService {
     let goodsReceipt: GoodsReceipt | null = null;
 
     if (dto.purchaseOrderId) {
-      purchaseOrder =
-        await this.purchaseOrderRepository.findOne({
-          where: {
-            id: dto.purchaseOrderId,
-            companyId,
-          },
-          relations: ['items'],
-        });
+      purchaseOrder = await this.purchaseOrderRepository.findOne({
+        where: {
+          id: dto.purchaseOrderId,
+          companyId,
+        },
+        relations: ['items'],
+      });
 
       if (!purchaseOrder) {
-        throw new NotFoundException(
-          'Purchase order not found.',
-        );
+        throw new NotFoundException('Purchase order not found.');
       }
     }
 
     if (dto.goodsReceiptId) {
-      goodsReceipt =
-        await this.goodsReceiptRepository.findOne({
-          where: {
-            id: dto.goodsReceiptId,
-            companyId,
-          },
-          relations: ['items'],
-        });
+      goodsReceipt = await this.goodsReceiptRepository.findOne({
+        where: {
+          id: dto.goodsReceiptId,
+          companyId,
+        },
+        relations: ['items'],
+      });
 
       if (!goodsReceipt) {
-        throw new NotFoundException(
-          'Goods receipt not found.',
-        );
+        throw new NotFoundException('Goods receipt not found.');
       }
 
       if (goodsReceipt.status !== GoodsReceiptStatus.Posted) {
@@ -667,32 +592,23 @@ export class PurchaseInvoicesService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Item ${line.itemId} not found.`);
       }
 
       if (line.purchaseOrderItemId) {
-        const orderItem =
-          await this.purchaseOrderItemRepository.findOne({
-            where: {
-              id: line.purchaseOrderItemId,
-            },
-          });
+        const orderItem = await this.purchaseOrderItemRepository.findOne({
+          where: {
+            id: line.purchaseOrderItemId,
+          },
+        });
 
-        if (
-          !orderItem ||
-          orderItem.itemId !== line.itemId
-        ) {
+        if (!orderItem || orderItem.itemId !== line.itemId) {
           throw new BadRequestException(
             `Purchase order item ${line.purchaseOrderItemId} is invalid.`,
           );
         }
 
-        if (
-          purchaseOrder &&
-          orderItem.purchaseOrderId !== purchaseOrder.id
-        ) {
+        if (purchaseOrder && orderItem.purchaseOrderId !== purchaseOrder.id) {
           throw new BadRequestException(
             'Purchase order item does not belong to the selected purchase order.',
           );
@@ -700,35 +616,25 @@ export class PurchaseInvoicesService {
       }
 
       if (line.goodsReceiptItemId) {
-        const receiptItem =
-          await this.goodsReceiptItemRepository.findOne({
-            where: {
-              id: line.goodsReceiptItemId,
-            },
-          });
+        const receiptItem = await this.goodsReceiptItemRepository.findOne({
+          where: {
+            id: line.goodsReceiptItemId,
+          },
+        });
 
-        if (
-          !receiptItem ||
-          receiptItem.itemId !== line.itemId
-        ) {
+        if (!receiptItem || receiptItem.itemId !== line.itemId) {
           throw new BadRequestException(
             `Goods receipt item ${line.goodsReceiptItemId} is invalid.`,
           );
         }
 
-        if (
-          goodsReceipt &&
-          receiptItem.goodsReceiptId !== goodsReceipt.id
-        ) {
+        if (goodsReceipt && receiptItem.goodsReceiptId !== goodsReceipt.id) {
           throw new BadRequestException(
             'Goods receipt item does not belong to the selected goods receipt.',
           );
         }
 
-        if (
-          Number(line.quantity) >
-          Number(receiptItem.acceptedQty)
-        ) {
+        if (Number(line.quantity) > Number(receiptItem.acceptedQty)) {
           throw new BadRequestException(
             `Invoice quantity exceeds accepted receipt quantity for item ${line.itemId}.`,
           );
@@ -741,29 +647,24 @@ export class PurchaseInvoicesService {
     id: string,
     companyId: string,
   ): Promise<PurchaseInvoiceEntity> {
-    const invoice =
-      await this.purchaseInvoiceRepository.findOne({
-        where: {
-          id,
-          companyId,
-        },
-        relations: {
-          items: true,
-        },
-      });
+    const invoice = await this.purchaseInvoiceRepository.findOne({
+      where: {
+        id,
+        companyId,
+      },
+      relations: {
+        items: true,
+      },
+    });
 
     if (!invoice) {
-      throw new NotFoundException(
-        'Purchase invoice not found.',
-      );
+      throw new NotFoundException('Purchase invoice not found.');
     }
 
     return invoice;
   }
 
-  private ensureDraft(
-    invoice: PurchaseInvoiceEntity,
-  ): void {
+  private ensureDraft(invoice: PurchaseInvoiceEntity): void {
     if (invoice.status !== PurchaseInvoiceStatus.DRAFT) {
       throw new ConflictException(
         'Only draft purchase invoices can be modified.',
@@ -773,9 +674,7 @@ export class PurchaseInvoicesService {
 
   private ensureUniqueItems(itemIds: string[]): void {
     if (new Set(itemIds).size !== itemIds.length) {
-      throw new BadRequestException(
-        'Duplicate items are not allowed.',
-      );
+      throw new BadRequestException('Duplicate items are not allowed.');
     }
   }
 
@@ -786,24 +685,13 @@ export class PurchaseInvoicesService {
     taxPercent: number,
   ): Pick<
     PurchaseInvoiceItemEntity,
-    | 'lineSubtotal'
-    | 'discountAmount'
-    | 'taxAmount'
-    | 'lineTotal'
+    'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitCost);
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
-    const lineTotal = this.round(
-      taxableAmount + taxAmount,
-    );
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
+    const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
       lineSubtotal,
@@ -813,35 +701,20 @@ export class PurchaseInvoicesService {
     };
   }
 
-  private calculateInvoiceTotals(
-    invoice: PurchaseInvoiceEntity,
-  ): void {
+  private calculateInvoiceTotals(invoice: PurchaseInvoiceEntity): void {
     invoice.subtotal = this.round(
-      invoice.items.reduce(
-        (sum, item) =>
-          sum + Number(item.lineSubtotal),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.lineSubtotal), 0),
     );
 
     invoice.discountTotal = this.round(
-      invoice.items.reduce(
-        (sum, item) =>
-          sum + Number(item.discountAmount),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.discountAmount), 0),
     );
 
     invoice.taxTotal = this.round(
-      invoice.items.reduce(
-        (sum, item) => sum + Number(item.taxAmount),
-        0,
-      ),
+      invoice.items.reduce((sum, item) => sum + Number(item.taxAmount), 0),
     );
 
-    invoice.shippingTotal = this.round(
-      Number(invoice.shippingTotal ?? 0),
-    );
+    invoice.shippingTotal = this.round(Number(invoice.shippingTotal ?? 0));
 
     invoice.grandTotal = this.round(
       invoice.subtotal -
@@ -851,8 +724,7 @@ export class PurchaseInvoicesService {
     );
 
     invoice.balanceDue = this.round(
-      invoice.grandTotal -
-        Number(invoice.paidAmount ?? 0),
+      invoice.grandTotal - Number(invoice.paidAmount ?? 0),
     );
   }
 
@@ -877,15 +749,10 @@ export class PurchaseInvoicesService {
       .getRawOne<{ invoiceNumber?: string }>();
 
     const current = latest?.invoiceNumber
-      ? Number(
-          latest.invoiceNumber.replace(prefix, ''),
-        )
+      ? Number(latest.invoiceNumber.replace(prefix, ''))
       : 0;
 
-    return `${prefix}${String(current + 1).padStart(
-      6,
-      '0',
-    )}`;
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
   }
 
   private optional(value?: string): string | null {
@@ -930,8 +797,7 @@ export class PurchaseInvoicesService {
       purchaseOrderId: invoice.purchaseOrderId,
       goodsReceiptId: invoice.goodsReceiptId,
       invoiceNumber: invoice.invoiceNumber,
-      supplierInvoiceNumber:
-        invoice.supplierInvoiceNumber,
+      supplierInvoiceNumber: invoice.supplierInvoiceNumber,
       invoiceDate: invoice.invoiceDate,
       dueDate: invoice.dueDate,
       status: invoice.status,
@@ -945,9 +811,7 @@ export class PurchaseInvoicesService {
       balanceDue: Number(invoice.balanceDue),
       billingAddress: invoice.billingAddress,
       notes: invoice.notes,
-      items: (invoice.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (invoice.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: invoice.createdBy,
       updatedBy: invoice.updatedBy,
       postedBy: invoice.postedBy,

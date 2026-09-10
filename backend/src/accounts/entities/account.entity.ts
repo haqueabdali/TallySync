@@ -70,21 +70,14 @@ export class AccountEntity {
   })
   parentId!: string | null;
 
-  @ManyToOne(
-    () => AccountEntity,
-    (account) => account.children,
-    {
-      nullable: true,
-      onDelete: 'RESTRICT',
-    },
-  )
+  @ManyToOne(() => AccountEntity, (account) => account.children, {
+    nullable: true,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'parent_id' })
   parent!: AccountEntity | null;
 
-  @OneToMany(
-    () => AccountEntity,
-    (account) => account.parent,
-  )
+  @OneToMany(() => AccountEntity, (account) => account.parent)
   children!: AccountEntity[];
 
   @Column({

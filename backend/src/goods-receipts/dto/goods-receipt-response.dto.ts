@@ -27,10 +27,10 @@ export class GoodsReceiptItemResponseDto {
   unitCost: number;
 
   @ApiProperty({
-  required: false,
-  nullable: true,
-})
-remarks?: string | null;
+    required: false,
+    nullable: true,
+  })
+  remarks?: string | null;
 }
 
 export class GoodsReceiptResponseDto {
@@ -58,10 +58,10 @@ export class GoodsReceiptResponseDto {
   status: GoodsReceiptStatus;
 
   @ApiProperty({
-  required: false,
-  nullable: true,
-})
-remarks?: string | null;
+    required: false,
+    nullable: true,
+  })
+  remarks?: string | null;
 
   @ApiProperty({
     type: [GoodsReceiptItemResponseDto],
@@ -69,18 +69,18 @@ remarks?: string | null;
   items: GoodsReceiptItemResponseDto[];
 
   @ApiProperty({
-  required: false,
-  nullable: true,
-})
-createdBy!: string | null;
+    required: false,
+    nullable: true,
+  })
+  createdBy!: string | null;
 
-@ApiProperty({
-  required: false,
-  nullable: true,
-})
-updatedBy!: string | null;  
+  @ApiProperty({
+    required: false,
+    nullable: true,
+  })
+  updatedBy!: string | null;
 
-@ApiProperty()
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

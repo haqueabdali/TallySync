@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-08-24T14:44:26.000Z",
+  "startedAt": "2026-08-24T14:44:25.992Z",
+  "branch": "feature/mobile-order-production",
+  "commit": "079ff3bd1ef69dcb24ed28fc384bbe18d0e50cd7",
+  "dirty": true,
+  "results": [
+    {
+      "name": "build",
+      "passed": false,
+      "durationMs": 6,
+      "exitCode": null
+    }
+  ],
+  "passed": false
+}

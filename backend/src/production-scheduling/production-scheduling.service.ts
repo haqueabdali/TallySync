@@ -34,10 +34,7 @@ export class ProductionSchedulingService {
     const end = new Date(dto.plannedEndAt);
     this.validateWindow(start, end);
 
-    await this.ensureOrderHasNoOpenSchedule(
-      companyId,
-      dto.productionOrderId,
-    );
+    await this.ensureOrderHasNoOpenSchedule(companyId, dto.productionOrderId);
 
     const schedule = this.repository.create({
       companyId,
@@ -76,7 +73,9 @@ export class ProductionSchedulingService {
       qb.andWhere('schedule.status = :status', { status: query.status });
     }
     if (query.priority) {
-      qb.andWhere('schedule.priority = :priority', { priority: query.priority });
+      qb.andWhere('schedule.priority = :priority', {
+        priority: query.priority,
+      });
     }
     if (query.workCenterCode?.trim()) {
       qb.andWhere('schedule.work_center_code = :workCenterCode', {
@@ -206,7 +205,9 @@ export class ProductionSchedulingService {
   ): Promise<ProductionScheduleResponseDto> {
     const entity = await this.getEntity(companyId, id);
     if (entity.status !== ProductionScheduleStatus.IN_PROGRESS) {
-      throw new ConflictException('Only in-progress production can be completed.');
+      throw new ConflictException(
+        'Only in-progress production can be completed.',
+      );
     }
     entity.status = ProductionScheduleStatus.COMPLETED;
     entity.actualEndAt = new Date();
@@ -281,13 +282,15 @@ export class ProductionSchedulingService {
           qb.where('schedule.planned_start_at BETWEEN :start AND :end', {
             start,
             end,
-          }).orWhere('schedule.planned_end_at BETWEEN :start AND :end', {
-            start,
-            end,
-          }).orWhere(
-            'schedule.planned_start_at <= :start AND schedule.planned_end_at >= :end',
-            { start, end },
-          );
+          })
+            .orWhere('schedule.planned_end_at BETWEEN :start AND :end', {
+              start,
+              end,
+            })
+            .orWhere(
+              'schedule.planned_start_at <= :start AND schedule.planned_end_at >= :end',
+              { start, end },
+            );
         }),
       )
       .orderBy('schedule.planned_start_at', 'ASC')
@@ -364,10 +367,7 @@ export class ProductionSchedulingService {
   }
 
   private validateWindow(start: Date, end: Date): void {
-    if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime())
-    ) {
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
       throw new BadRequestException('Invalid production schedule date.');
     }
     if (end.getTime() <= start.getTime()) {
@@ -382,10 +382,7 @@ export class ProductionSchedulingService {
     return normalized ? normalized : null;
   }
 
-  private appendReason(
-    notes: string | null,
-    reason?: string,
-  ): string | null {
+  private appendReason(notes: string | null, reason?: string): string | null {
     const normalized = reason?.trim();
     if (!normalized) return notes;
     const entry = `Rescheduled: ${normalized}`;

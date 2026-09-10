@@ -61,9 +61,7 @@ export class BalanceSheetService {
       }
 
       const amount = this.round(
-        row.accountType === AccountType.ASSET
-          ? debit - credit
-          : credit - debit,
+        row.accountType === AccountType.ASSET ? debit - credit : credit - debit,
       );
 
       if (!includeZeroBalances && amount === 0) {
@@ -97,9 +95,7 @@ export class BalanceSheetService {
     const totalLiabilitiesAndEquity = this.round(
       liabilities.total + totalEquity,
     );
-    const difference = this.round(
-      assets.total - totalLiabilitiesAndEquity,
-    );
+    const difference = this.round(assets.total - totalLiabilitiesAndEquity);
 
     return {
       asOfDate: filter.asOfDate,
@@ -118,8 +114,7 @@ export class BalanceSheetService {
       totalEquity,
       totalLiabilitiesAndEquity,
       difference,
-      isBalanced:
-        Math.abs(difference) <= BalanceSheetService.BALANCE_TOLERANCE,
+      isBalanced: Math.abs(difference) <= BalanceSheetService.BALANCE_TOLERANCE,
     };
   }
 
@@ -140,11 +135,7 @@ export class BalanceSheetService {
 
     const query = this.accountRepository
       .createQueryBuilder('account')
-      .leftJoin(
-        JournalEntryLineEntity,
-        'line',
-        'line.accountId = account.id',
-      )
+      .leftJoin(JournalEntryLineEntity, 'line', 'line.accountId = account.id')
       .leftJoin(JournalEntryEntity, 'entry', joinConditions)
       .select('account.id', 'accountId')
       .addSelect('account.code', 'accountCode')

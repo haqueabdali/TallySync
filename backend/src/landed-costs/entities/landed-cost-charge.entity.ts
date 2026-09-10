@@ -28,14 +28,10 @@ export class LandedCostChargeEntity {
   @Column({ name: 'landed_cost_id', type: 'uuid' })
   landedCostId!: string;
 
-  @ManyToOne(
-    'LandedCostEntity',
-    'charges',
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne('LandedCostEntity', 'charges', {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'landed_cost_id' })
   landedCost!: LandedCostEntity;
 

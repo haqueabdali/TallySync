@@ -29,9 +29,7 @@ describe('AccountingSettingsService', () => {
       ],
     }).compile();
 
-    service = module.get<AccountingSettingsService>(
-      AccountingSettingsService,
-    );
+    service = module.get<AccountingSettingsService>(AccountingSettingsService);
   });
 
   it('should be defined', () => {

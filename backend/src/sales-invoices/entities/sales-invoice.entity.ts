@@ -33,14 +33,10 @@ const decimalTransformer = {
 @Index('IDX_sales_invoices_sales_order', ['salesOrderId'])
 @Index('IDX_sales_invoices_delivery_note', ['deliveryNoteId'])
 @Index('IDX_sales_invoices_status', ['companyId', 'status'])
-@Index(
-  'UQ_sales_invoices_company_number',
-  ['companyId', 'invoiceNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_sales_invoices_company_number', ['companyId', 'invoiceNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class SalesInvoiceEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -253,14 +249,10 @@ export class SalesInvoiceEntity {
   })
   cancelledAt!: Date | null;
 
-  @OneToMany(
-    () => SalesInvoiceItemEntity,
-    (item) => item.salesInvoice,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => SalesInvoiceItemEntity, (item) => item.salesInvoice, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: SalesInvoiceItemEntity[];
 
   @CreateDateColumn({

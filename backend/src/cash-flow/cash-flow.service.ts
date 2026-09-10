@@ -55,7 +55,9 @@ export class CashFlowService {
     }
 
     if (account.isGroup) {
-      throw new BadRequestException('A group account cannot be mapped for cash flow.');
+      throw new BadRequestException(
+        'A group account cannot be mapped for cash flow.',
+      );
     }
 
     let mapping = await this.mappingRepository.findOne({
@@ -76,7 +78,9 @@ export class CashFlowService {
     return this.mappingRepository.save(mapping);
   }
 
-  async listMappings(companyId: string): Promise<CashFlowAccountMappingEntity[]> {
+  async listMappings(
+    companyId: string,
+  ): Promise<CashFlowAccountMappingEntity[]> {
     return this.mappingRepository.find({
       where: { companyId },
       relations: { account: true },
@@ -286,7 +290,9 @@ export class CashFlowService {
     sections: CashFlowSectionResponseDto[],
     activity: CashFlowActivity,
   ): number {
-    return sections.find((section) => section.activity === activity)?.total ?? 0;
+    return (
+      sections.find((section) => section.activity === activity)?.total ?? 0
+    );
   }
 
   private round(value: number): number {

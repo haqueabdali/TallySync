@@ -1,8 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateFifoCostingTables1785952800000
-  implements MigrationInterface
-{
+export class CreateFifoCostingTables1785952800000 implements MigrationInterface {
   name = 'CreateFifoCostingTables1785952800000';
 
   async up(queryRunner: QueryRunner): Promise<void> {

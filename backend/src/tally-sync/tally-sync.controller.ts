@@ -22,6 +22,7 @@ import { TallyCacheService } from './tally-cache.service';
 import { TallyMasterService } from './tally-master.service';
 import { TallyRetryService } from './tally-retry.service';
 import { TallySyncService } from './tally-sync.service';
+import { TallyMasterPullService } from './tally-master-pull.service';
 
 type AuthenticatedTallyRequest = Request & { user: AuthenticatedUser };
 
@@ -35,6 +36,7 @@ export class TallySyncController {
     private readonly tallySyncService: TallySyncService,
     private readonly tallyCacheService: TallyCacheService,
     private readonly tallyMasterService: TallyMasterService,
+    private readonly tallyMasterPullService: TallyMasterPullService,
     private readonly tallyRetryService: TallyRetryService,
   ) {}
 
@@ -98,6 +100,19 @@ export class TallySyncController {
     return this.tallySyncService.syncPendingSalesOrders(
       this.companyId(request),
     );
+  }
+
+  @Get('masters/preview')
+  previewMasters(@Req() request: AuthenticatedTallyRequest) {
+    this.companyId(request);
+    return this.tallyMasterPullService.previewMasters();
+  }
+
+  @Post('masters/pull')
+  pullMasters(@Req() request: AuthenticatedTallyRequest) {
+    const companyId = this.companyId(request);
+
+    return this.tallyMasterPullService.pullMasters(companyId);
   }
 
   private companyId(request: AuthenticatedTallyRequest): string {

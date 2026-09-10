@@ -11,7 +11,11 @@ import { NegativeInventoryMode } from '../enums/negative-inventory-mode.enum';
 
 @Entity('negative_inventory_policies')
 @Index('IDX_negative_inventory_policy_company', ['companyId'])
-@Index('IDX_negative_inventory_policy_scope', ['companyId', 'warehouseId', 'itemId'])
+@Index('IDX_negative_inventory_policy_scope', [
+  'companyId',
+  'warehouseId',
+  'itemId',
+])
 export class NegativeInventoryPolicyEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

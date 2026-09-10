@@ -35,9 +35,7 @@ describe('JournalEntriesService', () => {
       ],
     }).compile();
 
-    service = module.get<JournalEntriesService>(
-      JournalEntriesService,
-    );
+    service = module.get<JournalEntriesService>(JournalEntriesService);
   });
 
   it('should be defined', () => {

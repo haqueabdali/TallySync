@@ -57,8 +57,7 @@ export class BackgroundJobsService {
     companyId: string,
     dto: CreateBackgroundJobDto,
   ): Promise<BackgroundJobEntity> {
-    const normalizedIdempotencyKey =
-      dto.idempotencyKey?.trim() || null;
+    const normalizedIdempotencyKey = dto.idempotencyKey?.trim() || null;
 
     if (normalizedIdempotencyKey) {
       const existing = await this.repository.findOne({
@@ -81,9 +80,7 @@ export class BackgroundJobsService {
       result: null,
       maxAttempts: dto.maxAttempts ?? 3,
       priority: dto.priority ?? 0,
-      availableAt: dto.availableAt
-        ? new Date(dto.availableAt)
-        : new Date(),
+      availableAt: dto.availableAt ? new Date(dto.availableAt) : new Date(),
       idempotencyKey: normalizedIdempotencyKey,
       status: BackgroundJobStatus.PENDING,
     });
@@ -91,10 +88,7 @@ export class BackgroundJobsService {
     try {
       return await this.repository.save(entity);
     } catch (error: unknown) {
-      if (
-        normalizedIdempotencyKey &&
-        this.isUniqueViolation(error)
-      ) {
+      if (normalizedIdempotencyKey && this.isUniqueViolation(error)) {
         const existing = await this.repository.findOne({
           where: {
             companyId,
@@ -153,10 +147,7 @@ export class BackgroundJobsService {
     };
   }
 
-  async findOne(
-    companyId: string,
-    id: string,
-  ): Promise<BackgroundJobEntity> {
+  async findOne(companyId: string, id: string): Promise<BackgroundJobEntity> {
     const job = await this.repository.findOne({
       where: {
         id,
@@ -171,10 +162,7 @@ export class BackgroundJobsService {
     return job;
   }
 
-  async cancel(
-    companyId: string,
-    id: string,
-  ): Promise<BackgroundJobEntity> {
+  async cancel(companyId: string, id: string): Promise<BackgroundJobEntity> {
     const job = await this.findOne(companyId, id);
 
     if (
@@ -194,16 +182,11 @@ export class BackgroundJobsService {
     return this.repository.save(job);
   }
 
-  async retry(
-    companyId: string,
-    id: string,
-  ): Promise<BackgroundJobEntity> {
+  async retry(companyId: string, id: string): Promise<BackgroundJobEntity> {
     const job = await this.findOne(companyId, id);
 
     if (job.status !== BackgroundJobStatus.FAILED) {
-      throw new ConflictException(
-        'Only failed background jobs can be retried',
-      );
+      throw new ConflictException('Only failed background jobs can be retried');
     }
 
     job.status = BackgroundJobStatus.PENDING;
@@ -280,30 +263,20 @@ export class BackgroundJobsService {
 
       await this.markCompleted(job.id, result ?? {});
     } catch (error: unknown) {
-      await this.markFailure(
-        job,
-        this.getErrorMessage(error),
-      );
+      await this.markFailure(job, this.getErrorMessage(error));
     }
 
     return true;
   }
 
-  async recoverStaleJobs(
-    staleAfterSeconds: number,
-  ): Promise<number> {
-    if (
-      !Number.isFinite(staleAfterSeconds) ||
-      staleAfterSeconds <= 0
-    ) {
+  async recoverStaleJobs(staleAfterSeconds: number): Promise<number> {
+    if (!Number.isFinite(staleAfterSeconds) || staleAfterSeconds <= 0) {
       throw new BadRequestException(
         'Stale job timeout must be greater than zero',
       );
     }
 
-    const threshold = new Date(
-      Date.now() - staleAfterSeconds * 1000,
-    );
+    const threshold = new Date(Date.now() - staleAfterSeconds * 1000);
 
     const result = await this.repository
       .createQueryBuilder()
@@ -385,11 +358,7 @@ export class BackgroundJobsService {
         WHERE job.id = candidate.id
         RETURNING job.id
       `,
-      [
-        BackgroundJobStatus.PENDING,
-        BackgroundJobStatus.PROCESSING,
-        workerId,
-      ],
+      [BackgroundJobStatus.PENDING, BackgroundJobStatus.PROCESSING, workerId],
     );
 
     const claimed = rows[0];
@@ -421,8 +390,7 @@ export class BackgroundJobsService {
       return;
     }
 
-    const exhausted =
-      currentJob.attempts >= currentJob.maxAttempts;
+    const exhausted = currentJob.attempts >= currentJob.maxAttempts;
 
     const delaySeconds = Math.min(
       3600,

@@ -4,14 +4,8 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 function parseDatabasePort(value: string | undefined): number {
   const port = Number(value ?? 5432);
 
-  if (
-    !Number.isInteger(port) ||
-    port < 1 ||
-    port > 65535
-  ) {
-    throw new Error(
-      'DATABASE_PORT must be an integer between 1 and 65535',
-    );
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error('DATABASE_PORT must be an integer between 1 and 65535');
   }
 
   return port;
@@ -29,10 +23,7 @@ function parsePositiveInteger(
   return parsed;
 }
 
-function parseBoolean(
-  value: string | undefined,
-  fallback: boolean,
-): boolean {
+function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) {
     return fallback;
   }
@@ -47,52 +38,31 @@ function parseBoolean(
     return false;
   }
 
-  throw new Error(
-    `Invalid boolean value "${value}"`,
-  );
+  throw new Error(`Invalid boolean value "${value}"`);
 }
 
 export function createDatabaseOptions(
   config: ConfigService,
 ): TypeOrmModuleOptions {
-  const nodeEnv =
-    config.get<string>('NODE_ENV') ??
-    'development';
+  const nodeEnv = config.get<string>('NODE_ENV') ?? 'development';
 
-  const host =
-    config.get<string>('DATABASE_HOST') ??
-    'localhost';
+  const host = config.get<string>('DATABASE_HOST') ?? 'localhost';
 
-  const username =
-    config.get<string>('DATABASE_USER') ??
-    'postgres';
+  const username = config.get<string>('DATABASE_USER') ?? 'postgres';
 
-  const database =
-    config.get<string>('DATABASE_NAME') ??
-    'tallysync_db';
+  const database = config.get<string>('DATABASE_NAME') ?? 'tallysync_db';
 
-  const password =
-    config.get<string>('DATABASE_PASSWORD');
+  const password = config.get<string>('DATABASE_PASSWORD');
 
-  const sslEnabled = parseBoolean(
-    config.get<string>('DATABASE_SSL'),
-    false,
-  );
+  const sslEnabled = parseBoolean(config.get<string>('DATABASE_SSL'), false);
 
   const rejectUnauthorized = parseBoolean(
-    config.get<string>(
-      'DATABASE_SSL_REJECT_UNAUTHORIZED',
-    ),
+    config.get<string>('DATABASE_SSL_REJECT_UNAUTHORIZED'),
     true,
   );
 
-  if (
-    nodeEnv === 'production' &&
-    !password?.trim()
-  ) {
-    throw new Error(
-      'DATABASE_PASSWORD is required in production',
-    );
+  if (nodeEnv === 'production' && !password?.trim()) {
+    throw new Error('DATABASE_PASSWORD is required in production');
   }
 
   const poolMax = parsePositiveInteger(
@@ -120,9 +90,7 @@ export function createDatabaseOptions(
   return {
     type: 'postgres',
     host,
-    port: parseDatabasePort(
-      config.get<string>('DATABASE_PORT'),
-    ),
+    port: parseDatabasePort(config.get<string>('DATABASE_PORT')),
     username,
     password,
     database,
@@ -152,10 +120,7 @@ export function createDatabaseOptions(
      */
     autoLoadEntities: true,
 
-    logging:
-      nodeEnv === 'development'
-        ? ['error', 'warn']
-        : ['error'],
+    logging: nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
 
     retryAttempts: 5,
     retryDelay: 3_000,
@@ -163,14 +128,10 @@ export function createDatabaseOptions(
     extra: {
       max: poolMax,
       connectionTimeoutMillis: Number(
-        config.get<string>(
-          'DATABASE_CONNECTION_TIMEOUT_MS',
-        ) ?? 10_000,
+        config.get<string>('DATABASE_CONNECTION_TIMEOUT_MS') ?? 10_000,
       ),
       idleTimeoutMillis: Number(
-        config.get<string>(
-          'DATABASE_IDLE_TIMEOUT_MS',
-        ) ?? 30_000,
+        config.get<string>('DATABASE_IDLE_TIMEOUT_MS') ?? 30_000,
       ),
     },
   };

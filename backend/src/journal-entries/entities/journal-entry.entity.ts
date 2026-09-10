@@ -28,14 +28,10 @@ const decimalTransformer = {
 @Index('IDX_journal_entries_entry_date', ['companyId', 'entryDate'])
 @Index('IDX_journal_entries_status', ['companyId', 'status'])
 @Index('IDX_journal_entries_source', ['companyId', 'sourceType', 'sourceId'])
-@Index(
-  'UQ_journal_entries_company_number',
-  ['companyId', 'entryNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_journal_entries_company_number', ['companyId', 'entryNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class JournalEntryEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -172,14 +168,10 @@ export class JournalEntryEntity {
   })
   reversalEntryId!: string | null;
 
-  @OneToMany(
-    () => JournalEntryLineEntity,
-    (line) => line.journalEntry,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => JournalEntryLineEntity, (line) => line.journalEntry, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   lines!: JournalEntryLineEntity[];
 
   @CreateDateColumn({

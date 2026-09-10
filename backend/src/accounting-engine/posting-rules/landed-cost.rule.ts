@@ -14,39 +14,29 @@ import { PostingDocument } from '../interfaces/posting-document.interface';
 import { PostingRule } from '../interfaces/posting-rule.interface';
 
 @Injectable()
-export class LandedCostPostingRule
-  implements PostingRule<LandedCostEntity>
-{
+export class LandedCostPostingRule implements PostingRule<LandedCostEntity> {
   constructor(
     @InjectRepository(LandedCostEntity)
-    private readonly landedCostRepository:
-      Repository<LandedCostEntity>,
+    private readonly landedCostRepository: Repository<LandedCostEntity>,
 
     @InjectRepository(AccountingSettingsEntity)
-    private readonly settingsRepository:
-      Repository<AccountingSettingsEntity>,
+    private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
-  async load(
-    sourceId: string,
-    companyId: string,
-  ): Promise<LandedCostEntity> {
-    const landedCost =
-      await this.landedCostRepository.findOne({
-        where: {
-          id: sourceId,
-          companyId,
-        },
-        relations: {
-          charges: true,
-          itemAllocations: true,
-        },
-      });
+  async load(sourceId: string, companyId: string): Promise<LandedCostEntity> {
+    const landedCost = await this.landedCostRepository.findOne({
+      where: {
+        id: sourceId,
+        companyId,
+      },
+      relations: {
+        charges: true,
+        itemAllocations: true,
+      },
+    });
 
     if (!landedCost) {
-      throw new NotFoundException(
-        'Landed cost document not found.',
-      );
+      throw new NotFoundException('Landed cost document not found.');
     }
 
     return landedCost;
@@ -57,9 +47,7 @@ export class LandedCostPostingRule
     companyId: string,
   ): Promise<PostingDocument> {
     if (landedCost.companyId !== companyId) {
-      throw new NotFoundException(
-        'Landed cost document not found.',
-      );
+      throw new NotFoundException('Landed cost document not found.');
     }
 
     if (landedCost.status !== LandedCostStatus.Posted) {
@@ -74,10 +62,9 @@ export class LandedCostPostingRule
       );
     }
 
-    const settings =
-      await this.settingsRepository.findOne({
-        where: { companyId },
-      });
+    const settings = await this.settingsRepository.findOne({
+      where: { companyId },
+    });
 
     if (!settings) {
       throw new NotFoundException(
@@ -85,21 +72,17 @@ export class LandedCostPostingRule
       );
     }
 
-    const inventoryAccountId =
-      this.requireAccount(
-        settings.inventoryAccountId,
-        'Inventory',
-      );
-
-    const accountsPayableAccountId =
-      this.requireAccount(
-        settings.accountsPayableAccountId,
-        'Accounts Payable',
-      );
-
-    const totalCost = this.round(
-      Number(landedCost.totalCost),
+    const inventoryAccountId = this.requireAccount(
+      settings.inventoryAccountId,
+      'Inventory',
     );
+
+    const accountsPayableAccountId = this.requireAccount(
+      settings.accountsPayableAccountId,
+      'Accounts Payable',
+    );
+
+    const totalCost = this.round(Number(landedCost.totalCost));
 
     if (totalCost <= 0) {
       throw new ConflictException(
@@ -109,15 +92,12 @@ export class LandedCostPostingRule
 
     const chargeTotal = this.round(
       landedCost.charges.reduce(
-        (sum, charge) =>
-          sum + Number(charge.amount),
+        (sum, charge) => sum + Number(charge.amount),
         0,
       ),
     );
 
-    if (
-      Math.abs(chargeTotal - totalCost) > 0.009
-    ) {
+    if (Math.abs(chargeTotal - totalCost) > 0.009) {
       throw new ConflictException(
         'Landed cost charge total does not match the document total.',
       );
@@ -128,8 +108,7 @@ export class LandedCostPostingRule
         accountId: inventoryAccountId,
         debit: totalCost,
         credit: 0,
-        description:
-          `Inventory capitalization for landed cost ${landedCost.landedCostNumber}`,
+        description: `Inventory capitalization for landed cost ${landedCost.landedCostNumber}`,
         partyType: null,
         partyId: null,
         costCenter: null,
@@ -137,9 +116,7 @@ export class LandedCostPostingRule
     ];
 
     for (const charge of landedCost.charges) {
-      const amount = this.round(
-        Number(charge.amount),
-      );
+      const amount = this.round(Number(charge.amount));
 
       if (amount <= 0) {
         throw new ConflictException(
@@ -154,9 +131,7 @@ export class LandedCostPostingRule
         description:
           charge.description ??
           `${charge.costType} for landed cost ${landedCost.landedCostNumber}`,
-        partyType: charge.supplierId
-          ? 'supplier'
-          : null,
+        partyType: charge.supplierId ? 'supplier' : null,
         partyId: charge.supplierId ?? null,
         costCenter: null,
       });
@@ -164,35 +139,25 @@ export class LandedCostPostingRule
 
     return {
       companyId,
-      sourceType:
-        JournalEntrySourceType.LANDED_COST,
+      sourceType: JournalEntrySourceType.LANDED_COST,
       sourceId: landedCost.id,
       entryDate: landedCost.costDate,
-      referenceNumber:
-        landedCost.landedCostNumber,
+      referenceNumber: landedCost.landedCostNumber,
       currency: landedCost.currency,
-      narration:
-        `Automatic posting for landed cost ${landedCost.landedCostNumber}`,
+      narration: `Automatic posting for landed cost ${landedCost.landedCostNumber}`,
       lines,
     };
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;
   }
 
   private round(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 100,
-    ) / 100;
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

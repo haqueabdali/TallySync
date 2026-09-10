@@ -24,8 +24,7 @@ export const JOURNAL_ENTRY_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type JournalEntrySortField =
-  (typeof JOURNAL_ENTRY_SORT_FIELDS)[number];
+export type JournalEntrySortField = (typeof JOURNAL_ENTRY_SORT_FIELDS)[number];
 
 export class JournalEntryFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { GoodsReceiptItem } from '../goods-receipts/entities/goods-receipt-item.entity';
 import { GoodsReceipt } from '../goods-receipts/entities/goods-receipt.entity';
@@ -31,7 +27,6 @@ import { PurchaseReturn } from './entities/purchase-return.entity';
 import { PurchaseReturnStatus } from './enums/purchase-return-status.enum';
 import { PurchaseInvoiceItemEntity } from '../purchase-invoices/entities/purchase-invoice-item.entity';
 import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
-
 
 @Injectable()
 export class PurchaseReturnsService {
@@ -116,10 +111,8 @@ export class PurchaseReturnsService {
         return itemRepository.create({
           purchaseReturnId: savedReturn.id,
           itemId: line.itemId,
-          purchaseInvoiceItemId:
-            line.purchaseInvoiceItemId ?? null,
-          goodsReceiptItemId:
-            line.goodsReceiptItemId ?? null,
+          purchaseInvoiceItemId: line.purchaseInvoiceItemId ?? null,
+          goodsReceiptItemId: line.goodsReceiptItemId ?? null,
           description: this.optional(line.description),
           quantity: line.quantity,
           unitPrice: line.unitPrice,
@@ -132,9 +125,7 @@ export class PurchaseReturnsService {
       savedReturn.items = await itemRepository.save(savedReturn.items);
       this.calculateReturnTotals(savedReturn);
 
-      return this.toResponse(
-        await returnRepository.save(savedReturn),
-      );
+      return this.toResponse(await returnRepository.save(savedReturn));
     });
   }
 
@@ -157,10 +148,7 @@ export class PurchaseReturnsService {
 
       query.andWhere(
         new Brackets((qb) => {
-          qb.where(
-            'purchaseReturn.return_number ILIKE :search',
-            { search },
-          )
+          qb.where('purchaseReturn.return_number ILIKE :search', { search })
             .orWhere('purchaseReturn.reason ILIKE :search', {
               search,
             })
@@ -172,17 +160,15 @@ export class PurchaseReturnsService {
     }
 
     if (filter.supplierId) {
-      query.andWhere(
-        'purchaseReturn.supplier_id = :supplierId',
-        { supplierId: filter.supplierId },
-      );
+      query.andWhere('purchaseReturn.supplier_id = :supplierId', {
+        supplierId: filter.supplierId,
+      });
     }
 
     if (filter.warehouseId) {
-      query.andWhere(
-        'purchaseReturn.warehouse_id = :warehouseId',
-        { warehouseId: filter.warehouseId },
-      );
+      query.andWhere('purchaseReturn.warehouse_id = :warehouseId', {
+        warehouseId: filter.warehouseId,
+      });
     }
 
     if (filter.purchaseInvoiceId) {
@@ -193,10 +179,9 @@ export class PurchaseReturnsService {
     }
 
     if (filter.goodsReceiptId) {
-      query.andWhere(
-        'purchaseReturn.goods_receipt_id = :goodsReceiptId',
-        { goodsReceiptId: filter.goodsReceiptId },
-      );
+      query.andWhere('purchaseReturn.goods_receipt_id = :goodsReceiptId', {
+        goodsReceiptId: filter.goodsReceiptId,
+      });
     }
 
     if (filter.status) {
@@ -206,17 +191,15 @@ export class PurchaseReturnsService {
     }
 
     if (filter.dateFrom) {
-      query.andWhere(
-        'purchaseReturn.return_date >= :dateFrom',
-        { dateFrom: filter.dateFrom },
-      );
+      query.andWhere('purchaseReturn.return_date >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
     }
 
     if (filter.dateTo) {
-      query.andWhere(
-        'purchaseReturn.return_date <= :dateTo',
-        { dateTo: filter.dateTo },
-      );
+      query.andWhere('purchaseReturn.return_date <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
     }
 
     const sortColumns: Record<string, string> = {
@@ -229,8 +212,7 @@ export class PurchaseReturnsService {
 
     query
       .orderBy(
-        sortColumns[filter.sortBy] ??
-          'purchaseReturn.created_at',
+        sortColumns[filter.sortBy] ?? 'purchaseReturn.created_at',
         filter.sortOrder,
       )
       .addOrderBy('purchaseReturn.id', 'DESC')
@@ -242,9 +224,7 @@ export class PurchaseReturnsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: returns.map((purchaseReturn) =>
-        this.toResponse(purchaseReturn),
-      ),
+      data: returns.map((purchaseReturn) => this.toResponse(purchaseReturn)),
       meta: {
         page,
         limit,
@@ -292,9 +272,7 @@ export class PurchaseReturnsService {
           purchaseReturn.purchaseInvoiceId ??
           undefined,
         goodsReceiptId:
-          dto.goodsReceiptId ??
-          purchaseReturn.goodsReceiptId ??
-          undefined,
+          dto.goodsReceiptId ?? purchaseReturn.goodsReceiptId ?? undefined,
         returnDate: dto.returnDate ?? purchaseReturn.returnDate,
         currency: dto.currency ?? purchaseReturn.currency,
         reason: dto.reason ?? purchaseReturn.reason ?? undefined,
@@ -303,10 +281,8 @@ export class PurchaseReturnsService {
           dto.items ??
           purchaseReturn.items.map((item) => ({
             itemId: item.itemId,
-            purchaseInvoiceItemId:
-              item.purchaseInvoiceItemId ?? undefined,
-            goodsReceiptItemId:
-              item.goodsReceiptItemId ?? undefined,
+            purchaseInvoiceItemId: item.purchaseInvoiceItemId ?? undefined,
+            goodsReceiptItemId: item.goodsReceiptItemId ?? undefined,
             description: item.description ?? undefined,
             quantity: Number(item.quantity),
             unitPrice: Number(item.unitPrice),
@@ -335,10 +311,8 @@ export class PurchaseReturnsService {
           return itemRepository.create({
             purchaseReturnId: purchaseReturn.id,
             itemId: line.itemId,
-            purchaseInvoiceItemId:
-              line.purchaseInvoiceItemId ?? null,
-            goodsReceiptItemId:
-              line.goodsReceiptItemId ?? null,
+            purchaseInvoiceItemId: line.purchaseInvoiceItemId ?? null,
+            goodsReceiptItemId: line.goodsReceiptItemId ?? null,
             description: this.optional(line.description),
             quantity: line.quantity,
             unitPrice: line.unitPrice,
@@ -348,9 +322,7 @@ export class PurchaseReturnsService {
           });
         });
 
-        purchaseReturn.items = await itemRepository.save(
-          purchaseReturn.items,
-        );
+        purchaseReturn.items = await itemRepository.save(purchaseReturn.items);
       }
 
       if (dto.supplierId !== undefined) {
@@ -362,13 +334,11 @@ export class PurchaseReturnsService {
       }
 
       if (dto.purchaseInvoiceId !== undefined) {
-        purchaseReturn.purchaseInvoiceId =
-          dto.purchaseInvoiceId ?? null;
+        purchaseReturn.purchaseInvoiceId = dto.purchaseInvoiceId ?? null;
       }
 
       if (dto.goodsReceiptId !== undefined) {
-        purchaseReturn.goodsReceiptId =
-          dto.goodsReceiptId ?? null;
+        purchaseReturn.goodsReceiptId = dto.goodsReceiptId ?? null;
       }
 
       if (dto.returnDate !== undefined) {
@@ -390,9 +360,7 @@ export class PurchaseReturnsService {
       purchaseReturn.updatedBy = userId;
       this.calculateReturnTotals(purchaseReturn);
 
-      return this.toResponse(
-        await returnRepository.save(purchaseReturn),
-      );
+      return this.toResponse(await returnRepository.save(purchaseReturn));
     });
   }
 
@@ -423,10 +391,7 @@ export class PurchaseReturnsService {
         );
       }
 
-      await this.validateReturnQuantities(
-        purchaseReturn,
-        companyId,
-      );
+      await this.validateReturnQuantities(purchaseReturn, companyId);
 
       for (const line of purchaseReturn.items) {
         const item = await itemRepository.findOne({
@@ -437,9 +402,7 @@ export class PurchaseReturnsService {
         });
 
         if (!item) {
-          throw new NotFoundException(
-            `Item ${line.itemId} not found.`,
-          );
+          throw new NotFoundException(`Item ${line.itemId} not found.`);
         }
 
         const currentStock = Number(item.currentStock ?? 0);
@@ -451,9 +414,7 @@ export class PurchaseReturnsService {
           );
         }
 
-        item.currentStock = this.roundStock(
-          currentStock - returnQuantity,
-        );
+        item.currentStock = this.roundStock(currentStock - returnQuantity);
 
         await itemRepository.save(item);
       }
@@ -479,9 +440,7 @@ export class PurchaseReturnsService {
       purchaseReturn.status = PurchaseReturnStatus.Posted;
       purchaseReturn.updatedBy = userId;
 
-      return this.toResponse(
-        await returnRepository.save(purchaseReturn),
-      );
+      return this.toResponse(await returnRepository.save(purchaseReturn));
     });
   }
 
@@ -518,14 +477,11 @@ export class PurchaseReturnsService {
           });
 
           if (!item) {
-            throw new NotFoundException(
-              `Item ${line.itemId} not found.`,
-            );
+            throw new NotFoundException(`Item ${line.itemId} not found.`);
           }
 
           item.currentStock = this.roundStock(
-            Number(item.currentStock ?? 0) +
-              Number(line.quantity),
+            Number(item.currentStock ?? 0) + Number(line.quantity),
           );
 
           await itemRepository.save(item);
@@ -553,16 +509,11 @@ export class PurchaseReturnsService {
       purchaseReturn.status = PurchaseReturnStatus.Cancelled;
       purchaseReturn.updatedBy = userId;
 
-      return this.toResponse(
-        await returnRepository.save(purchaseReturn),
-      );
+      return this.toResponse(await returnRepository.save(purchaseReturn));
     });
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const purchaseReturn = await this.getEntity(id, companyId);
     this.ensureDraft(purchaseReturn);
 
@@ -609,9 +560,7 @@ export class PurchaseReturnsService {
       });
 
       if (!invoice) {
-        throw new NotFoundException(
-          'Purchase invoice not found.',
-        );
+        throw new NotFoundException('Purchase invoice not found.');
       }
 
       if (
@@ -634,9 +583,7 @@ export class PurchaseReturnsService {
       });
 
       if (!goodsReceipt) {
-        throw new NotFoundException(
-          'Goods Receipt not found.',
-        );
+        throw new NotFoundException('Goods Receipt not found.');
       }
 
       if (goodsReceipt.status !== GoodsReceiptStatus.Posted) {
@@ -655,19 +602,16 @@ export class PurchaseReturnsService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Item ${line.itemId} not found.`);
       }
 
       if (line.purchaseInvoiceItemId) {
-        const invoiceLine =
-          await this.purchaseInvoiceItemRepository.findOne({
-            where: {
-              id: line.purchaseInvoiceItemId,
-              itemId: line.itemId,
-            },
-          });
+        const invoiceLine = await this.purchaseInvoiceItemRepository.findOne({
+          where: {
+            id: line.purchaseInvoiceItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!invoiceLine) {
           throw new BadRequestException(
@@ -686,13 +630,12 @@ export class PurchaseReturnsService {
       }
 
       if (line.goodsReceiptItemId) {
-        const receiptLine =
-          await this.goodsReceiptItemRepository.findOne({
-            where: {
-              id: line.goodsReceiptItemId,
-              itemId: line.itemId,
-            },
-          });
+        const receiptLine = await this.goodsReceiptItemRepository.findOne({
+          where: {
+            id: line.goodsReceiptItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!receiptLine) {
           throw new BadRequestException(
@@ -720,13 +663,12 @@ export class PurchaseReturnsService {
       let sourceQuantity: number | null = null;
 
       if (line.purchaseInvoiceItemId) {
-        const invoiceLine =
-          await this.purchaseInvoiceItemRepository.findOne({
-            where: {
-              id: line.purchaseInvoiceItemId,
-              itemId: line.itemId,
-            },
-          });
+        const invoiceLine = await this.purchaseInvoiceItemRepository.findOne({
+          where: {
+            id: line.purchaseInvoiceItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!invoiceLine) {
           throw new NotFoundException(
@@ -738,13 +680,12 @@ export class PurchaseReturnsService {
       }
 
       if (line.goodsReceiptItemId) {
-        const receiptLine =
-          await this.goodsReceiptItemRepository.findOne({
-            where: {
-              id: line.goodsReceiptItemId,
-              itemId: line.itemId,
-            },
-          });
+        const receiptLine = await this.goodsReceiptItemRepository.findOne({
+          where: {
+            id: line.goodsReceiptItemId,
+            itemId: line.itemId,
+          },
+        });
 
         if (!receiptLine) {
           throw new NotFoundException(
@@ -770,10 +711,7 @@ export class PurchaseReturnsService {
           'purchaseReturn',
           'purchaseReturn.id = returnItem.purchase_return_id',
         )
-        .select(
-          'COALESCE(SUM(returnItem.quantity), 0)',
-          'returnedQuantity',
-        )
+        .select('COALESCE(SUM(returnItem.quantity), 0)', 'returnedQuantity')
         .where('purchaseReturn.company_id = :companyId', {
           companyId,
         })
@@ -804,12 +742,9 @@ export class PurchaseReturnsService {
         returnedQuantity?: string;
       }>();
 
-      const alreadyReturned = Number(
-        previous?.returnedQuantity ?? 0,
-      );
+      const alreadyReturned = Number(previous?.returnedQuantity ?? 0);
       const requestedQuantity = Number(line.quantity);
-      const remainingQuantity =
-        sourceQuantity - alreadyReturned;
+      const remainingQuantity = sourceQuantity - alreadyReturned;
 
       if (requestedQuantity > remainingQuantity) {
         throw new BadRequestException(
@@ -845,9 +780,7 @@ export class PurchaseReturnsService {
 
   private ensureUniqueItems(itemIds: string[]): void {
     if (new Set(itemIds).size !== itemIds.length) {
-      throw new BadRequestException(
-        'Duplicate items are not allowed.',
-      );
+      throw new BadRequestException('Duplicate items are not allowed.');
     }
   }
 
@@ -861,15 +794,9 @@ export class PurchaseReturnsService {
     'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitPrice);
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
     const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
@@ -880,9 +807,7 @@ export class PurchaseReturnsService {
     };
   }
 
-  private calculateReturnTotals(
-    purchaseReturn: PurchaseReturn,
-  ): void {
+  private calculateReturnTotals(purchaseReturn: PurchaseReturn): void {
     purchaseReturn.subtotal = this.round(
       purchaseReturn.items.reduce(
         (sum, item) => sum + Number(item.lineSubtotal),
@@ -921,17 +846,13 @@ export class PurchaseReturnsService {
     const latest = await this.returnRepository
       .createQueryBuilder('purchaseReturn')
       .withDeleted()
-      .select(
-        'purchaseReturn.return_number',
-        'returnNumber',
-      )
+      .select('purchaseReturn.return_number', 'returnNumber')
       .where('purchaseReturn.company_id = :companyId', {
         companyId,
       })
-      .andWhere(
-        'purchaseReturn.return_number LIKE :prefix',
-        { prefix: `${prefix}%` },
-      )
+      .andWhere('purchaseReturn.return_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
       .orderBy('purchaseReturn.return_number', 'DESC')
       .getRawOne<{ returnNumber?: string }>();
 
@@ -952,9 +873,7 @@ export class PurchaseReturnsService {
   }
 
   private roundStock(value: number): number {
-    return (
-      Math.round((value + Number.EPSILON) * 10000) / 10000
-    );
+    return Math.round((value + Number.EPSILON) * 10000) / 10000;
   }
 
   private toItemResponse(

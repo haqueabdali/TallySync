@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class StabilizePurchaseInvoiceUnitCostCompatibility1788050000000
-  implements MigrationInterface
-{
-  name =
-    'StabilizePurchaseInvoiceUnitCostCompatibility1788050000000';
+export class StabilizePurchaseInvoiceUnitCostCompatibility1788050000000 implements MigrationInterface {
+  name = 'StabilizePurchaseInvoiceUnitCostCompatibility1788050000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * Legacy schema requires purchase_invoice_items.unit_price NOT NULL.
      * Current entity/service writes unit_cost instead.
@@ -66,9 +58,7 @@ export class StabilizePurchaseInvoiceUnitCostCompatibility1788050000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       UPDATE "purchase_invoice_items"
       SET "unit_price" =

@@ -44,8 +44,7 @@ export class CustomersService {
       email,
       phone: this.normalizeNullableText(dto.phone),
       address: this.normalizeNullableText(dto.address),
-      tallyLedgerName:
-        this.normalizeNullableText(dto.tallyLedgerName) ?? name,
+      tallyLedgerName: this.normalizeNullableText(dto.tallyLedgerName) ?? name,
       creditLimit: this.ensureNonNegativeNumber(
         dto.creditLimit ?? 0,
         'Credit limit',
@@ -298,7 +297,9 @@ export class CustomersService {
     return normalized;
   }
 
-  private normalizeNullableText(value: string | null | undefined): string | null {
+  private normalizeNullableText(
+    value: string | null | undefined,
+  ): string | null {
     if (value === undefined || value === null) {
       return null;
     }

@@ -1,6 +1,4 @@
-import {
-  DataSource,
-} from 'typeorm';
+import { DataSource } from 'typeorm';
 
 interface JournalLineRow {
   journalEntryId: string;
@@ -25,13 +23,8 @@ export interface SourceJournalSummary {
   }>;
 }
 
-function round(
-  value: number,
-): number {
-  return Math.round(
-    (value + Number.EPSILON) *
-      100,
-  ) / 100;
+function round(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
 export async function getSourceJournalSummary(
@@ -40,11 +33,8 @@ export async function getSourceJournalSummary(
   sourceType: string,
   sourceId: string,
 ): Promise<SourceJournalSummary> {
-  const rows =
-    await dataSource.query<
-      JournalLineRow[]
-    >(
-      `
+  const rows = await dataSource.query<JournalLineRow[]>(
+    `
         SELECT
           entry.id AS "journalEntryId",
           entry.source_type AS "sourceType",
@@ -62,64 +52,25 @@ export async function getSourceJournalSummary(
           AND entry.status = 'Posted'
         ORDER BY entry.created_at, line.id
       `,
-      [
-        companyId,
-        sourceType,
-        sourceId,
-      ],
-    );
+    [companyId, sourceType, sourceId],
+  );
 
-  const journalIds =
-    new Set(
-      rows.map(
-        (row) =>
-          row.journalEntryId,
-      ),
-    );
+  const journalIds = new Set(rows.map((row) => row.journalEntryId));
 
-  const lines =
-    rows.map(
-      (row) => ({
-        accountId:
-          row.accountId,
-        debit:
-          round(
-            Number(
-              row.debit ?? 0,
-            ),
-          ),
-        credit:
-          round(
-            Number(
-              row.credit ?? 0,
-            ),
-          ),
-      }),
-    );
+  const lines = rows.map((row) => ({
+    accountId: row.accountId,
+    debit: round(Number(row.debit ?? 0)),
+    credit: round(Number(row.credit ?? 0)),
+  }));
 
-  const totalDebit =
-    round(
-      lines.reduce(
-        (sum, line) =>
-          sum + line.debit,
-        0,
-      ),
-    );
+  const totalDebit = round(lines.reduce((sum, line) => sum + line.debit, 0));
 
-  const totalCredit =
-    round(
-      lines.reduce(
-        (sum, line) =>
-          sum + line.credit,
-        0,
-      ),
-    );
+  const totalCredit = round(lines.reduce((sum, line) => sum + line.credit, 0));
 
   return {
     sourceType,
     sourceId,
-    journalCount:
-      journalIds.size,
+    journalCount: journalIds.size,
     totalDebit,
     totalCredit,
     lines,
@@ -136,14 +87,13 @@ export async function getAccountMovement(
   credit: number;
   netDebit: number;
 }> {
-  const rows =
-    await dataSource.query<
-      Array<{
-        debit: string | number;
-        credit: string | number;
-      }>
-    >(
-      `
+  const rows = await dataSource.query<
+    Array<{
+      debit: string | number;
+      credit: string | number;
+    }>
+  >(
+    `
         SELECT
           COALESCE(SUM(line.debit), 0) AS debit,
           COALESCE(SUM(line.credit), 0) AS credit
@@ -155,33 +105,16 @@ export async function getAccountMovement(
           AND entry.status = 'Posted'
           AND entry.source_type = ANY($3)
       `,
-      [
-        companyId,
-        accountId,
-        sourceTypes,
-      ],
-    );
+    [companyId, accountId, sourceTypes],
+  );
 
-  const debit =
-    round(
-      Number(
-        rows[0]?.debit ?? 0,
-      ),
-    );
+  const debit = round(Number(rows[0]?.debit ?? 0));
 
-  const credit =
-    round(
-      Number(
-        rows[0]?.credit ?? 0,
-      ),
-    );
+  const credit = round(Number(rows[0]?.credit ?? 0));
 
   return {
     debit,
     credit,
-    netDebit:
-      round(
-        debit - credit,
-      ),
+    netDebit: round(debit - credit),
   };
 }

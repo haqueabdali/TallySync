@@ -60,7 +60,11 @@ export class PlatformUsersController {
     @CurrentUser() actor: AuthenticatedUser,
     @Req() request: Request,
   ) {
-    return this.platformUsersService.create(dto, actor, this.extractIp(request));
+    return this.platformUsersService.create(
+      dto,
+      actor,
+      this.extractIp(request),
+    );
   }
 
   @Patch(':id')
@@ -71,7 +75,12 @@ export class PlatformUsersController {
     @CurrentUser() actor: AuthenticatedUser,
     @Req() request: Request,
   ) {
-    return this.platformUsersService.update(id, dto, actor, this.extractIp(request));
+    return this.platformUsersService.update(
+      id,
+      dto,
+      actor,
+      this.extractIp(request),
+    );
   }
 
   @Post(':id/assign-role')
@@ -82,7 +91,12 @@ export class PlatformUsersController {
     @CurrentUser() actor: AuthenticatedUser,
     @Req() request: Request,
   ) {
-    return this.platformUsersService.assignRole(id, dto, actor, this.extractIp(request));
+    return this.platformUsersService.assignRole(
+      id,
+      dto,
+      actor,
+      this.extractIp(request),
+    );
   }
 
   @Delete(':id')

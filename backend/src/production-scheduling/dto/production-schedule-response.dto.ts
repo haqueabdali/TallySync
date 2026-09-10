@@ -11,8 +11,10 @@ export class ProductionScheduleResponseDto {
   @ApiProperty() plannedEndAt!: Date;
   @ApiProperty({ nullable: true }) actualStartAt!: Date | null;
   @ApiProperty({ nullable: true }) actualEndAt!: Date | null;
-  @ApiProperty({ enum: ProductionScheduleStatus }) status!: ProductionScheduleStatus;
-  @ApiProperty({ enum: ProductionSchedulePriority }) priority!: ProductionSchedulePriority;
+  @ApiProperty({ enum: ProductionScheduleStatus })
+  status!: ProductionScheduleStatus;
+  @ApiProperty({ enum: ProductionSchedulePriority })
+  priority!: ProductionSchedulePriority;
   @ApiProperty({ nullable: true }) workCenterCode!: string | null;
   @ApiProperty({ nullable: true }) notes!: string | null;
   @ApiProperty({ nullable: true }) createdBy!: string | null;

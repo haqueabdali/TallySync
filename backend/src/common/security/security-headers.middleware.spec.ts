@@ -9,10 +9,7 @@ describe('securityHeadersMiddleware', () => {
 
     securityHeadersMiddleware({} as Request, response, next);
 
-    expect(setHeader).toHaveBeenCalledWith(
-      'X-Content-Type-Options',
-      'nosniff',
-    );
+    expect(setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
     expect(setHeader).toHaveBeenCalledWith('X-Frame-Options', 'DENY');
     expect(next).toHaveBeenCalledTimes(1);
   });

@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddPurchaseReturnAccountingSettings1788090000000
-  implements MigrationInterface
-{
-  name =
-    'AddPurchaseReturnAccountingSettings1788090000000';
+export class AddPurchaseReturnAccountingSettings1788090000000 implements MigrationInterface {
+  name = 'AddPurchaseReturnAccountingSettings1788090000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * PurchaseReturnPostingRule already supports a dedicated purchase
      * returns account with inventory fallback. Persist that configuration.
@@ -46,9 +38,7 @@ export class AddPurchaseReturnAccountingSettings1788090000000
      */
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     /*
      * PostgreSQL enum values are intentionally not removed in-place.
      */

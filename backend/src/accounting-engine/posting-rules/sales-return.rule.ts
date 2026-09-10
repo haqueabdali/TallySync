@@ -15,9 +15,7 @@ import { PostingRule } from '../interfaces/posting-rule.interface';
 import { PostingLine } from '../interfaces/posting-line.interface';
 
 @Injectable()
-export class SalesReturnPostingRule
-  implements PostingRule<SalesReturnEntity>
-{
+export class SalesReturnPostingRule implements PostingRule<SalesReturnEntity> {
   constructor(
     @InjectRepository(SalesReturnEntity)
     private readonly salesReturnRepository: Repository<SalesReturnEntity>,
@@ -26,20 +24,16 @@ export class SalesReturnPostingRule
     private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
-  async load(
-    sourceId: string,
-    companyId: string,
-  ): Promise<SalesReturnEntity> {
-    const salesReturn =
-      await this.salesReturnRepository.findOne({
-        where: {
-          id: sourceId,
-          companyId,
-        },
-        relations: {
-          items: true,
-        },
-      });
+  async load(sourceId: string, companyId: string): Promise<SalesReturnEntity> {
+    const salesReturn = await this.salesReturnRepository.findOne({
+      where: {
+        id: sourceId,
+        companyId,
+      },
+      relations: {
+        items: true,
+      },
+    });
 
     if (!salesReturn) {
       throw new NotFoundException('Sales return not found.');
@@ -69,61 +63,55 @@ export class SalesReturnPostingRule
       'Sales Returns',
     );
 
-    const accountsReceivableAccountId =
-      this.requireAccount(
-        settings.accountsReceivableAccountId,
-        'Accounts Receivable',
-      );
+    const accountsReceivableAccountId = this.requireAccount(
+      settings.accountsReceivableAccountId,
+      'Accounts Receivable',
+    );
 
     const returnAmount = this.round(
-      Number(salesReturn.subtotal) -
-        Number(salesReturn.discountTotal),
+      Number(salesReturn.subtotal) - Number(salesReturn.discountTotal),
     );
 
-    const taxAmount = this.round(
-      Number(salesReturn.taxTotal),
-    );
+    const taxAmount = this.round(Number(salesReturn.taxTotal));
 
-    const totalCredit = this.round(
-      Number(salesReturn.grandTotal),
-    );
+    const totalCredit = this.round(Number(salesReturn.grandTotal));
 
     const lines: PostingLine[] = [
-  {
-    accountId: salesReturnsAccountId,
-    debit: returnAmount,
-    credit: 0,
-    description: `Sales return ${salesReturn.returnNumber}`,
-    partyType: null,
-    partyId: null,
-    costCenter: null,
-  },
-];
+      {
+        accountId: salesReturnsAccountId,
+        debit: returnAmount,
+        credit: 0,
+        description: `Sales return ${salesReturn.returnNumber}`,
+        partyType: null,
+        partyId: null,
+        costCenter: null,
+      },
+    ];
 
-if (taxAmount > 0) {
-  lines.push({
-    accountId: this.requireAccount(
-      settings.outputTaxAccountId,
-      'Output Tax',
-    ),
-    debit: taxAmount,
-    credit: 0,
-    description: `Output tax reversal for sales return ${salesReturn.returnNumber}`,
-    partyType: null,
-    partyId: null,
-    costCenter: null,
-  });
-}
+    if (taxAmount > 0) {
+      lines.push({
+        accountId: this.requireAccount(
+          settings.outputTaxAccountId,
+          'Output Tax',
+        ),
+        debit: taxAmount,
+        credit: 0,
+        description: `Output tax reversal for sales return ${salesReturn.returnNumber}`,
+        partyType: null,
+        partyId: null,
+        costCenter: null,
+      });
+    }
 
-lines.push({
-  accountId: accountsReceivableAccountId,
-  debit: 0,
-  credit: totalCredit,
-  description: `Accounts receivable reduction for sales return ${salesReturn.returnNumber}`,
-  partyType: 'customer',
-  partyId: salesReturn.customerId,
-  costCenter: null,
-});
+    lines.push({
+      accountId: accountsReceivableAccountId,
+      debit: 0,
+      credit: totalCredit,
+      description: `Accounts receivable reduction for sales return ${salesReturn.returnNumber}`,
+      partyType: 'customer',
+      partyId: salesReturn.customerId,
+      costCenter: null,
+    });
 
     return {
       companyId,
@@ -159,14 +147,9 @@ lines.push({
     return settings;
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;

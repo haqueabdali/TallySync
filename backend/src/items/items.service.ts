@@ -4,18 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  EntityManager,
-  QueryFailedError,
-  Repository,
-} from 'typeorm';
+import { Brackets, EntityManager, QueryFailedError, Repository } from 'typeorm';
 import { CreateItemDto } from './dto/create-item.dto';
-import {
-  ItemFilterDto,
-  ItemSortField,
-  SortOrder,
-} from './dto/item-filter.dto';
+import { ItemFilterDto, ItemSortField, SortOrder } from './dto/item-filter.dto';
 import { ItemResponseDto } from './dto/item-response.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemEntity } from './entities/item.entity';
@@ -29,7 +20,10 @@ export class ItemsService {
     private readonly itemsRepository: Repository<ItemEntity>,
   ) {}
 
-  async create(companyId: string, dto: CreateItemDto): Promise<ItemResponseDto> {
+  async create(
+    companyId: string,
+    dto: CreateItemDto,
+  ): Promise<ItemResponseDto> {
     const sku = this.normalizeSku(dto.sku);
     const barcode = this.normalizeNullable(dto.barcode);
 
@@ -214,7 +208,8 @@ export class ItemsService {
     }
     if (dto.barcode !== undefined) {
       const barcode = this.normalizeNullable(dto.barcode);
-      if (barcode) await this.ensureBarcodeAvailable(companyId, barcode, item.id);
+      if (barcode)
+        await this.ensureBarcodeAvailable(companyId, barcode, item.id);
       item.barcode = barcode;
     }
     if (dto.categoryId !== undefined) item.categoryId = dto.categoryId;

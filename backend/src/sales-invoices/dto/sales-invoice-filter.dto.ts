@@ -24,8 +24,7 @@ export const SALES_INVOICE_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type SalesInvoiceSortField =
-  (typeof SALES_INVOICE_SORT_FIELDS)[number];
+export type SalesInvoiceSortField = (typeof SALES_INVOICE_SORT_FIELDS)[number];
 
 export class SalesInvoiceFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

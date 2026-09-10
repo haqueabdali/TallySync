@@ -27,7 +27,6 @@ import { MaterialConsumptionPostingRule } from './posting-rules/material-consump
 import { ProductionCompletionPostingRule } from './posting-rules/production-completion.rule';
 import { ProductionVariancePostingRule } from './posting-rules/production-variance.rule';
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([

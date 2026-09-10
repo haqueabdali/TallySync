@@ -18,6 +18,9 @@ interface PendingOrderDao {
     @Query("SELECT COUNT(*) FROM pending_orders WHERE status IN ('PENDING', 'FAILED', 'SYNCING')")
     fun observePendingCount(): Flow<Int>
 
+    @Query("SELECT * FROM pending_orders ORDER BY createdAt DESC")
+    fun observePendingOrders(): Flow<List<PendingOrderEntity>>
+
     @Query("DELETE FROM pending_orders WHERE id = :id")
     suspend fun deleteById(id: String)
 

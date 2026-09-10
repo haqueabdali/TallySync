@@ -13,7 +13,11 @@ import { ProductionScheduleStatus } from '../enums/production-schedule-status.en
 @Entity('production_schedules')
 @Index('IDX_production_schedules_company', ['companyId'])
 @Index('IDX_production_schedules_order', ['companyId', 'productionOrderId'])
-@Index('IDX_production_schedules_window', ['companyId', 'plannedStartAt', 'plannedEndAt'])
+@Index('IDX_production_schedules_window', [
+  'companyId',
+  'plannedStartAt',
+  'plannedEndAt',
+])
 @Index('IDX_production_schedules_status', ['companyId', 'status'])
 export class ProductionScheduleEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -54,7 +58,12 @@ export class ProductionScheduleEntity {
   })
   priority!: ProductionSchedulePriority;
 
-  @Column({ name: 'work_center_code', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'work_center_code',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   workCenterCode!: string | null;
 
   @Column({ type: 'text', nullable: true })

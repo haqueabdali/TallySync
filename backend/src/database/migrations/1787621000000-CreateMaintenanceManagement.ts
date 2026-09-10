@@ -1,8 +1,6 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateMaintenanceManagement1787621000000
-  implements MigrationInterface
-{
+export class CreateMaintenanceManagement1787621000000 implements MigrationInterface {
   name = 'CreateMaintenanceManagement1787621000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -181,9 +179,17 @@ export class CreateMaintenanceManagement1787621000000
     await queryRunner.query('DROP TABLE IF EXISTS "maintenance_plans"');
     await queryRunner.query('DROP TABLE IF EXISTS "maintenance_assets"');
 
-    await queryRunner.query('DROP TYPE IF EXISTS "maintenance_work_orders_status_enum"');
-    await queryRunner.query('DROP TYPE IF EXISTS "maintenance_work_orders_type_enum"');
-    await queryRunner.query('DROP TYPE IF EXISTS "maintenance_plans_frequency_enum"');
-    await queryRunner.query('DROP TYPE IF EXISTS "maintenance_assets_status_enum"');
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS "maintenance_work_orders_status_enum"',
+    );
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS "maintenance_work_orders_type_enum"',
+    );
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS "maintenance_plans_frequency_enum"',
+    );
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS "maintenance_assets_status_enum"',
+    );
   }
 }

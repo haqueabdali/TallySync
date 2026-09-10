@@ -45,11 +45,7 @@ export class TrialBalanceService {
 
     const builder = this.journalEntryLineRepository.manager
       .createQueryBuilder(AccountEntity, 'account')
-      .leftJoin(
-        JournalEntryLineEntity,
-        'line',
-        'line.account_id = account.id',
-      )
+      .leftJoin(JournalEntryLineEntity, 'line', 'line.account_id = account.id')
       .leftJoin(
         JournalEntryEntity,
         'entry',
@@ -131,9 +127,7 @@ export class TrialBalanceService {
         const periodDebit = this.round(Number(row.periodDebit ?? 0));
         const periodCredit = this.round(Number(row.periodCredit ?? 0));
 
-        const opening = this.netToSides(
-          openingDebitRaw - openingCreditRaw,
-        );
+        const opening = this.netToSides(openingDebitRaw - openingCreditRaw);
         const closing = this.netToSides(
           openingDebitRaw - openingCreditRaw + periodDebit - periodCredit,
         );
@@ -153,9 +147,7 @@ export class TrialBalanceService {
         };
       })
       .filter((line) =>
-        query.includeZeroBalances
-          ? true
-          : this.hasNonZeroBalance(line),
+        query.includeZeroBalances ? true : this.hasNonZeroBalance(line),
       );
 
     const totals = this.calculateTotals(lines);
@@ -185,9 +177,7 @@ export class TrialBalanceService {
     };
   }
 
-  private calculateTotals(
-    lines: TrialBalanceLineDto[],
-  ): TrialBalanceTotalsDto {
+  private calculateTotals(lines: TrialBalanceLineDto[]): TrialBalanceTotalsDto {
     return lines.reduce<TrialBalanceTotalsDto>(
       (totals, line) => ({
         openingDebit: this.round(totals.openingDebit + line.openingDebit),

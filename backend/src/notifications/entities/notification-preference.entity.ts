@@ -9,7 +9,11 @@ import {
 import { NotificationChannel } from '../enums/notification-channel.enum';
 
 @Entity('notification_preferences')
-@Index('UQ_notification_preferences_company_user_channel', ['companyId', 'userId', 'channel'], { unique: true })
+@Index(
+  'UQ_notification_preferences_company_user_channel',
+  ['companyId', 'userId', 'channel'],
+  { unique: true },
+)
 export class NotificationPreferenceEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

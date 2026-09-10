@@ -39,8 +39,6 @@ import { MaterialConsumptionPostingRule } from './posting-rules/material-consump
 import { ProductionCompletionPostingRule } from './posting-rules/production-completion.rule';
 import { ProductionVariancePostingRule } from './posting-rules/production-variance.rule';
 
-
-
 @Injectable()
 export class AccountingEngineService {
   constructor(
@@ -52,9 +50,9 @@ export class AccountingEngineService {
 
     @InjectRepository(AccountingSettingsEntity)
     private readonly accountingSettingsRepository: Repository<AccountingSettingsEntity>,
-    private readonly materialConsumptionPostingRule:MaterialConsumptionPostingRule,
-    private readonly productionCompletionPostingRule:ProductionCompletionPostingRule,
-    private readonly productionVariancePostingRule:ProductionVariancePostingRule,
+    private readonly materialConsumptionPostingRule: MaterialConsumptionPostingRule,
+    private readonly productionCompletionPostingRule: ProductionCompletionPostingRule,
+    private readonly productionVariancePostingRule: ProductionVariancePostingRule,
     private readonly journalEntriesService: JournalEntriesService,
     private readonly salesInvoicePostingRule: SalesInvoicePostingRule,
     private readonly customerPaymentPostingRule: CustomerPaymentPostingRule,
@@ -113,8 +111,7 @@ export class AccountingEngineService {
         entryDate: document.entryDate,
         sourceType: document.sourceType,
         sourceId: document.sourceId,
-        referenceNumber:
-          document.referenceNumber ?? undefined,
+        referenceNumber: document.referenceNumber ?? undefined,
         currency: document.currency,
         narration: document.narration ?? undefined,
         lines: document.lines.map((line) => ({
@@ -246,52 +243,49 @@ export class AccountingEngineService {
   }
 
   async postMaterialConsumption(
-  consumptionId: string,
-  companyId: string,
-  userId: string,
-): Promise<PostingResultResponseDto> {
-  return this.post(
-    {
-      sourceType:
-        JournalEntrySourceType.MATERIAL_CONSUMPTION,
-      sourceId: consumptionId,
-    },
-    companyId,
-    userId,
-  );
-}
+    consumptionId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<PostingResultResponseDto> {
+    return this.post(
+      {
+        sourceType: JournalEntrySourceType.MATERIAL_CONSUMPTION,
+        sourceId: consumptionId,
+      },
+      companyId,
+      userId,
+    );
+  }
 
-async postProductionCompletion(
-  productionOrderId: string,
-  companyId: string,
-  userId: string,
-): Promise<PostingResultResponseDto> {
-  return this.post(
-    {
-      sourceType:
-        JournalEntrySourceType.PRODUCTION_COMPLETION,
-      sourceId: productionOrderId,
-    },
-    companyId,
-    userId,
-  );
-}
+  async postProductionCompletion(
+    productionOrderId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<PostingResultResponseDto> {
+    return this.post(
+      {
+        sourceType: JournalEntrySourceType.PRODUCTION_COMPLETION,
+        sourceId: productionOrderId,
+      },
+      companyId,
+      userId,
+    );
+  }
 
-async postProductionVariance(
-  varianceId: string,
-  companyId: string,
-  userId: string,
-): Promise<PostingResultResponseDto> {
-  return this.post(
-    {
-      sourceType:
-        JournalEntrySourceType.PRODUCTION_VARIANCE,
-      sourceId: varianceId,
-    },
-    companyId,
-    userId,
-  );
-}
+  async postProductionVariance(
+    varianceId: string,
+    companyId: string,
+    userId: string,
+  ): Promise<PostingResultResponseDto> {
+    return this.post(
+      {
+        sourceType: JournalEntrySourceType.PRODUCTION_VARIANCE,
+        sourceId: varianceId,
+      },
+      companyId,
+      userId,
+    );
+  }
 
   async postCustomerPayment(
     paymentId: string,
@@ -353,8 +347,6 @@ async postProductionVariance(
     );
   }
 
-  
-
   private async buildPostingDocument(
     sourceType: JournalEntrySourceType,
     sourceId: string,
@@ -367,10 +359,7 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.salesInvoicePostingRule.build(
-          source,
-          companyId,
-        );
+        return this.salesInvoicePostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.CUSTOMER_PAYMENT: {
@@ -379,10 +368,7 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.customerPaymentPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.customerPaymentPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.SALES_RETURN: {
@@ -391,10 +377,7 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.salesReturnPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.salesReturnPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.SUPPLIER_PAYMENT: {
@@ -403,10 +386,7 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.supplierPaymentPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.supplierPaymentPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.PURCHASE_INVOICE: {
@@ -415,10 +395,7 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.purchaseInvoicePostingRule.build(
-          source,
-          companyId,
-        );
+        return this.purchaseInvoicePostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.LANDED_COST: {
@@ -427,49 +404,28 @@ async postProductionVariance(
           companyId,
         );
 
-        return this.landedCostPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.landedCostPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.MATERIAL_CONSUMPTION: {
         const source: MaterialConsumptionEntity =
-          await this.materialConsumptionPostingRule.load(
-            sourceId,
-            companyId,
-          );
+          await this.materialConsumptionPostingRule.load(sourceId, companyId);
 
-        return this.materialConsumptionPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.materialConsumptionPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.PRODUCTION_COMPLETION: {
         const source: ProductionOrderEntity =
-          await this.productionCompletionPostingRule.load(
-            sourceId,
-            companyId,
-          );
+          await this.productionCompletionPostingRule.load(sourceId, companyId);
 
-        return this.productionCompletionPostingRule.build(
-          source,
-          companyId,
-        );
+        return this.productionCompletionPostingRule.build(source, companyId);
       }
 
       case JournalEntrySourceType.PRODUCTION_VARIANCE: {
         const source: ProductionVarianceEntity =
-          await this.productionVariancePostingRule.load(
-            sourceId,
-            companyId,
-          );
+          await this.productionVariancePostingRule.load(sourceId, companyId);
 
-        return this.productionVariancePostingRule.build(
-          source,
-          companyId,
-        );
+        return this.productionVariancePostingRule.build(source, companyId);
       }
 
       default:
@@ -502,9 +458,7 @@ async postProductionVariance(
     }
 
     const accountIds = [
-      ...new Set(
-        document.lines.map((line) => line.accountId),
-      ),
+      ...new Set(document.lines.map((line) => line.accountId)),
     ];
 
     const accounts = await this.accountRepository.find({
@@ -530,9 +484,7 @@ async postProductionVariance(
       }
 
       if (account.status !== AccountStatus.ACTIVE) {
-        throw new ConflictException(
-          `Account ${account.code} is inactive.`,
-        );
+        throw new ConflictException(`Account ${account.code} is inactive.`);
       }
 
       if (account.isGroup) {
@@ -545,15 +497,10 @@ async postProductionVariance(
       const credit = this.round(Number(line.credit ?? 0));
 
       if (debit < 0 || credit < 0) {
-        throw new BadRequestException(
-          'Posting amounts cannot be negative.',
-        );
+        throw new BadRequestException('Posting amounts cannot be negative.');
       }
 
-      if (
-        (debit === 0 && credit === 0) ||
-        (debit > 0 && credit > 0)
-      ) {
+      if ((debit === 0 && credit === 0) || (debit > 0 && credit > 0)) {
         throw new BadRequestException(
           'Each posting line must contain either a debit or a credit amount.',
         );
@@ -609,17 +556,11 @@ async postProductionVariance(
     document: PostingDocument,
   ): PostingPreviewResponseDto {
     const totalDebit = this.round(
-      document.lines.reduce(
-        (sum, line) => sum + Number(line.debit ?? 0),
-        0,
-      ),
+      document.lines.reduce((sum, line) => sum + Number(line.debit ?? 0), 0),
     );
 
     const totalCredit = this.round(
-      document.lines.reduce(
-        (sum, line) => sum + Number(line.credit ?? 0),
-        0,
-      ),
+      document.lines.reduce((sum, line) => sum + Number(line.credit ?? 0), 0),
     );
 
     return {
@@ -627,14 +568,12 @@ async postProductionVariance(
       sourceType: document.sourceType,
       sourceId: document.sourceId,
       entryDate: document.entryDate,
-      referenceNumber:
-        document.referenceNumber ?? null,
+      referenceNumber: document.referenceNumber ?? null,
       currency: document.currency,
       narration: document.narration ?? null,
       totalDebit,
       totalCredit,
-      isBalanced:
-        Math.abs(totalDebit - totalCredit) <= 0.009,
+      isBalanced: Math.abs(totalDebit - totalCredit) <= 0.009,
       lines: document.lines.map((line) => ({
         accountId: line.accountId,
         debit: this.round(Number(line.debit ?? 0)),
@@ -648,8 +587,6 @@ async postProductionVariance(
   }
 
   private round(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 100,
-    ) / 100;
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

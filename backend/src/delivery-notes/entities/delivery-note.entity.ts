@@ -161,14 +161,10 @@ export class DeliveryNoteEntity {
   })
   cancelledAt!: Date | null;
 
-  @OneToMany(
-    () => DeliveryNoteItemEntity,
-    (item) => item.deliveryNote,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => DeliveryNoteItemEntity, (item) => item.deliveryNote, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: DeliveryNoteItemEntity[];
 
   @CreateDateColumn({

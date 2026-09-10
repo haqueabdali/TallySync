@@ -48,7 +48,9 @@ function buildService(user: UserEntity | null = customerUser()) {
     orderBy: jest.fn().mockReturnThis(),
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
-    getManyAndCount: jest.fn().mockResolvedValue([user ? [user] : [], user ? 1 : 0]),
+    getManyAndCount: jest
+      .fn()
+      .mockResolvedValue([user ? [user] : [], user ? 1 : 0]),
   };
   const userRepository = {
     createQueryBuilder: jest.fn(() => qb),
@@ -60,7 +62,9 @@ function buildService(user: UserEntity | null = customerUser()) {
     createUser: jest.fn().mockResolvedValue({ id: 'user-1' }),
     updateUser: jest.fn().mockResolvedValue({ id: 'user-1' }),
     assignRole: jest.fn().mockResolvedValue({ id: 'user-1' }),
-    deleteUser: jest.fn().mockResolvedValue({ message: 'User deleted successfully' }),
+    deleteUser: jest
+      .fn()
+      .mockResolvedValue({ message: 'User deleted successfully' }),
     getUserActivity: jest.fn().mockResolvedValue({ data: [], meta: {} }),
   };
   return {

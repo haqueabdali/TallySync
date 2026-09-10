@@ -57,7 +57,6 @@ export class PlatformLicensingController {
     return this.licensingService.list(query);
   }
 
-
   @Get('notifications')
   @ApiOperation({ summary: 'List cross-company commercial notifications' })
   commercialNotifications(@Query() query: ListCommercialNotificationsQueryDto) {
@@ -65,7 +64,9 @@ export class PlatformLicensingController {
   }
 
   @Post('notifications/scan-expirations')
-  @ApiOperation({ summary: 'Generate idempotent customer license-expiration reminders' })
+  @ApiOperation({
+    summary: 'Generate idempotent customer license-expiration reminders',
+  })
   scanExpirationNotifications() {
     return this.commercialNotificationsService.scanExpirationReminders();
   }

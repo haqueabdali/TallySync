@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-08-24T21:45:35.787Z",
+  "startedAt": "2026-08-24T21:41:35.275Z",
+  "branch": "feature/mobile-order-production",
+  "commit": "079ff3bd1ef69dcb24ed28fc384bbe18d0e50cd7",
+  "dirty": true,
+  "nodeExecutable": "C:\\nvm4w\\nodejs\\node.exe",
+  "npmExecPath": "C:\\Users\\PC\\AppData\\Local\\nvm\\v24.7.0\\node_modules\\npm\\bin\\npm-cli.js",
+  "results": [
+    {
+      "name": "build",
+      "passed": true,
+      "durationMs": 19918,
+      "exitCode": 0
+    },
+    {
+      "name": "unit-tests",
+      "passed": true,
+      "durationMs": 60971,
+      "exitCode": 0
+    },
+    {
+      "name": "e2e-tests",
+      "passed": true,
+      "durationMs": 21921,
+      "exitCode": 0
+    },
+    {
+      "name": "production-config",
+      "passed": true,
+      "durationMs": 2625,
+      "exitCode": 0
+    },
+    {
+      "name": "tracked-secret-scan",
+      "passed": true,
+      "durationMs": 99048,
+      "exitCode": 0
+    },
+    {
+      "name": "production-dependency-audit",
+      "passed": true,
+      "durationMs": 7390,
+      "exitCode": 0
+    },
+    {
+      "name": "observability",
+      "passed": true,
+      "durationMs": 3458,
+      "exitCode": 0
+    },
+    {
+      "name": "backup-restore",
+      "passed": true,
+      "durationMs": 21603,
+      "exitCode": 0
+    },
+    {
+      "name": "capacity-failover",
+      "passed": false,
+      "durationMs": 3567,
+      "exitCode": 1
+    }
+  ],
+  "passed": false
+}

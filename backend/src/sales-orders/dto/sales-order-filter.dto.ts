@@ -23,8 +23,7 @@ export const SALES_ORDER_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type SalesOrderSortField =
-  (typeof SALES_ORDER_SORT_FIELDS)[number];
+export type SalesOrderSortField = (typeof SALES_ORDER_SORT_FIELDS)[number];
 
 export class SalesOrderFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

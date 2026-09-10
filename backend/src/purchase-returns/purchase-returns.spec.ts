@@ -37,56 +37,53 @@ describe('PurchaseReturnsService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          PurchaseReturnsService,
-          {
-            provide: DataSource,
-            useValue: dataSourceMock,
-          },
-          {
-            provide: getRepositoryToken(PurchaseReturn),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(PurchaseReturnItem),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(SupplierEntity),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(WarehouseEntity),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(PurchaseInvoiceEntity),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(PurchaseInvoiceItemEntity),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(GoodsReceipt),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(GoodsReceiptItem),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(ItemEntity),
-            useValue: repositoryMock,
-          },
-        ],
-      }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PurchaseReturnsService,
+        {
+          provide: DataSource,
+          useValue: dataSourceMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseReturn),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseReturnItem),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(SupplierEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(WarehouseEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceItemEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(GoodsReceipt),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(GoodsReceiptItem),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(ItemEntity),
+          useValue: repositoryMock,
+        },
+      ],
+    }).compile();
 
-    service = module.get<PurchaseReturnsService>(
-      PurchaseReturnsService,
-    );
+    service = module.get<PurchaseReturnsService>(PurchaseReturnsService);
   });
 
   afterEach(() => {

@@ -32,14 +32,10 @@ export class SalesReturnItemEntity {
   @Column({ name: 'sales_return_id', type: 'uuid' })
   salesReturnId!: string;
 
-  @ManyToOne(
-    () => SalesReturnEntity,
-    (salesReturn) => salesReturn.items,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => SalesReturnEntity, (salesReturn) => salesReturn.items, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sales_return_id' })
   salesReturn!: SalesReturnEntity;
 

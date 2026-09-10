@@ -10,9 +10,17 @@ import { NotificationChannel } from '../enums/notification-channel.enum';
 import { NotificationStatus } from '../enums/notification-status.enum';
 
 @Entity('notifications')
-@Index('IDX_notifications_company_recipient_created', ['companyId', 'recipientUserId', 'createdAt'])
+@Index('IDX_notifications_company_recipient_created', [
+  'companyId',
+  'recipientUserId',
+  'createdAt',
+])
 @Index('IDX_notifications_status_available', ['status', 'availableAt'])
-@Index('UQ_notifications_company_idempotency', ['companyId', 'idempotencyKey'], { unique: true, where: '"idempotencyKey" IS NOT NULL' })
+@Index(
+  'UQ_notifications_company_idempotency',
+  ['companyId', 'idempotencyKey'],
+  { unique: true, where: '"idempotencyKey" IS NOT NULL' },
+)
 export class NotificationEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -39,7 +47,11 @@ export class NotificationEntity {
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
   metadata!: Record<string, unknown>;
 
-  @Column({ type: 'enum', enum: NotificationStatus, default: NotificationStatus.PENDING })
+  @Column({
+    type: 'enum',
+    enum: NotificationStatus,
+    default: NotificationStatus.PENDING,
+  })
   status!: NotificationStatus;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

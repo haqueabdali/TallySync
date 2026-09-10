@@ -57,10 +57,20 @@ export class LicenseActivationEntity {
   })
   activationTokenHash: string | null;
 
-  @Column({ name: 'last_ip_address', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'last_ip_address',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   lastIpAddress: string | null;
 
-  @Column({ name: 'last_user_agent', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'last_user_agent',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   lastUserAgent: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

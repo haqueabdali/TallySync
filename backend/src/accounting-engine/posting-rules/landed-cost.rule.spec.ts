@@ -1,7 +1,4 @@
-import {
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
@@ -52,31 +49,25 @@ function createLandedCost(
   landedCost.id = overrides.id ?? '22222222-2222-4222-8222-222222222222';
   landedCost.companyId =
     overrides.companyId ?? '33333333-3333-4333-8333-333333333333';
-  landedCost.landedCostNumber =
-    overrides.landedCostNumber ?? 'LC-2026-000001';
+  landedCost.landedCostNumber = overrides.landedCostNumber ?? 'LC-2026-000001';
   landedCost.costDate = overrides.costDate ?? '2026-08-07';
   landedCost.status = overrides.status ?? LandedCostStatus.Posted;
   landedCost.currency = overrides.currency ?? 'EUR';
   landedCost.totalCost = overrides.totalCost ?? 150;
-  landedCost.charges =
-    overrides.charges ?? [
-      createCharge(100, '44444444-4444-4444-8444-444444444444'),
-      createCharge(50),
-    ];
+  landedCost.charges = overrides.charges ?? [
+    createCharge(100, '44444444-4444-4444-8444-444444444444'),
+    createCharge(50),
+  ];
   landedCost.itemAllocations = overrides.itemAllocations ?? [];
   return landedCost;
 }
 
-function createSettings(
-  companyId: string,
-): AccountingSettingsEntity {
+function createSettings(companyId: string): AccountingSettingsEntity {
   const settings = new AccountingSettingsEntity();
   settings.id = '55555555-5555-4555-8555-555555555555';
   settings.companyId = companyId;
-  settings.inventoryAccountId =
-    '66666666-6666-4666-8666-666666666666';
-  settings.accountsPayableAccountId =
-    '77777777-7777-4777-8777-777777777777';
+  settings.inventoryAccountId = '66666666-6666-4666-8666-666666666666';
+  settings.accountsPayableAccountId = '77777777-7777-4777-8777-777777777777';
   return settings;
 }
 
@@ -114,9 +105,9 @@ describe('LandedCostPostingRule', () => {
     const landedCost = createLandedCost();
     landedCostRepository.findOne.mockResolvedValue(landedCost);
 
-    await expect(
-      rule.load(landedCost.id, landedCost.companyId),
-    ).resolves.toBe(landedCost);
+    await expect(rule.load(landedCost.id, landedCost.companyId)).resolves.toBe(
+      landedCost,
+    );
 
     expect(landedCostRepository.findOne).toHaveBeenCalledWith({
       where: {
@@ -146,14 +137,9 @@ describe('LandedCostPostingRule', () => {
     const settings = createSettings(landedCost.companyId);
     settingsRepository.findOne.mockResolvedValue(settings);
 
-    const document = await rule.build(
-      landedCost,
-      landedCost.companyId,
-    );
+    const document = await rule.build(landedCost, landedCost.companyId);
 
-    expect(document.sourceType).toBe(
-      JournalEntrySourceType.LANDED_COST,
-    );
+    expect(document.sourceType).toBe(JournalEntrySourceType.LANDED_COST);
     expect(document.lines).toHaveLength(3);
 
     expect(document.lines[0]).toEqual(
@@ -178,24 +164,17 @@ describe('LandedCostPostingRule', () => {
   });
 
   it('maps supplier party data on supplier charges', async () => {
-    const supplierId =
-      '44444444-4444-4444-8444-444444444444';
+    const supplierId = '44444444-4444-4444-8444-444444444444';
     const landedCost = createLandedCost({
       totalCost: 100,
-      charges: [
-        createCharge(60, supplierId),
-        createCharge(40),
-      ],
+      charges: [createCharge(60, supplierId), createCharge(40)],
     });
 
     settingsRepository.findOne.mockResolvedValue(
       createSettings(landedCost.companyId),
     );
 
-    const document = await rule.build(
-      landedCost,
-      landedCost.companyId,
-    );
+    const document = await rule.build(landedCost, landedCost.companyId);
 
     expect(document.lines[1]).toEqual(
       expect.objectContaining({
@@ -215,10 +194,7 @@ describe('LandedCostPostingRule', () => {
     const landedCost = createLandedCost();
 
     await expect(
-      rule.build(
-        landedCost,
-        '88888888-8888-4888-8888-888888888888',
-      ),
+      rule.build(landedCost, '88888888-8888-4888-8888-888888888888'),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -227,26 +203,26 @@ describe('LandedCostPostingRule', () => {
       status: LandedCostStatus.Draft,
     });
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects missing charges', async () => {
     const landedCost = createLandedCost({ charges: [] });
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects missing accounting settings', async () => {
     const landedCost = createLandedCost();
     settingsRepository.findOne.mockResolvedValue(null);
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(NotFoundException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('rejects missing inventory account', async () => {
@@ -255,9 +231,9 @@ describe('LandedCostPostingRule', () => {
     settings.inventoryAccountId = null;
     settingsRepository.findOne.mockResolvedValue(settings);
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects missing accounts payable account', async () => {
@@ -266,9 +242,9 @@ describe('LandedCostPostingRule', () => {
     settings.accountsPayableAccountId = null;
     settingsRepository.findOne.mockResolvedValue(settings);
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects a non-positive document total', async () => {
@@ -280,9 +256,9 @@ describe('LandedCostPostingRule', () => {
       createSettings(landedCost.companyId),
     );
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('rejects mismatched charge totals', async () => {
@@ -294,8 +270,8 @@ describe('LandedCostPostingRule', () => {
       createSettings(landedCost.companyId),
     );
 
-    await expect(
-      rule.build(landedCost, landedCost.companyId),
-    ).rejects.toThrow(ConflictException);
+    await expect(rule.build(landedCost, landedCost.companyId)).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

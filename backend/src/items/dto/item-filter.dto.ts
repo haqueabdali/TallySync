@@ -83,7 +83,10 @@ export class ItemFilterDto {
   @IsEnum(ItemSyncStatus)
   syncStatus?: ItemSyncStatus;
 
-  @ApiPropertyOptional({ enum: ItemSortField, default: ItemSortField.CREATED_AT })
+  @ApiPropertyOptional({
+    enum: ItemSortField,
+    default: ItemSortField.CREATED_AT,
+  })
   @IsOptional()
   @IsEnum(ItemSortField)
   sortBy: ItemSortField = ItemSortField.CREATED_AT;

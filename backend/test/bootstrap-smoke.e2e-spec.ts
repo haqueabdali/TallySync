@@ -26,7 +26,6 @@ import { PlatformCompaniesController } from '../src/platform-admin/platform-comp
 import { PlatformCompaniesService } from '../src/platform-admin/platform-companies.service';
 import { ApplicationLifecycleService } from '../src/health/application-lifecycle.service';
 
-
 describe('Bootstrap Smoke', () => {
   let app: INestApplication | undefined;
 

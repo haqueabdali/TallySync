@@ -48,9 +48,7 @@ describe('CustomerPaymentsService', () => {
       ],
     }).compile();
 
-    service = module.get<CustomerPaymentsService>(
-      CustomerPaymentsService,
-    );
+    service = module.get<CustomerPaymentsService>(CustomerPaymentsService);
   });
 
   it('should be defined', () => {

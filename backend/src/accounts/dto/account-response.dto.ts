@@ -9,7 +9,8 @@ export class AccountResponseDto {
   @ApiProperty() code!: string;
   @ApiProperty() name!: string;
   @ApiProperty({ enum: AccountType }) type!: AccountType;
-  @ApiProperty({ enum: AccountNormalBalance }) normalBalance!: AccountNormalBalance;
+  @ApiProperty({ enum: AccountNormalBalance })
+  normalBalance!: AccountNormalBalance;
   @ApiProperty({ enum: AccountStatus }) status!: AccountStatus;
   @ApiProperty({ required: false, nullable: true }) parentId!: string | null;
   @ApiProperty() isGroup!: boolean;

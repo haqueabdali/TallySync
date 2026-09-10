@@ -33,14 +33,10 @@ export class QualityInspectionCheckEntity {
   })
   inspectionId!: string;
 
-  @ManyToOne(
-    () => QualityInspectionEntity,
-    (inspection) => inspection.checks,
-    {
-      onDelete: 'CASCADE',
-      nullable: false,
-    },
-  )
+  @ManyToOne(() => QualityInspectionEntity, (inspection) => inspection.checks, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinColumn({ name: 'inspection_id' })
   inspection!: QualityInspectionEntity;
 

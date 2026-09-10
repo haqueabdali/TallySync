@@ -68,7 +68,12 @@ export class LicensingService {
       ipAddress: string | null;
       createdAt: Date;
       actor: null | { id: string; fullName: string; email: string };
-      license: { id: string; licenseNumber: string; companyId: string; companyName: string };
+      license: {
+        id: string;
+        licenseNumber: string;
+        companyId: string;
+        companyName: string;
+      };
     }>;
     page: number;
     limit: number;
@@ -87,14 +92,24 @@ export class LicensingService {
       .take(limit);
 
     if (query.licenseId) {
-      qb.andWhere('audit.license_id = :licenseId', { licenseId: query.licenseId });
+      qb.andWhere('audit.license_id = :licenseId', {
+        licenseId: query.licenseId,
+      });
     }
     if (query.action?.trim()) {
-      qb.andWhere('audit.action ILIKE :action', { action: `%${query.action.trim()}%` });
+      qb.andWhere('audit.action ILIKE :action', {
+        action: `%${query.action.trim()}%`,
+      });
     }
 
     const [logs, total] = await qb.getManyAndCount();
-    const actorIds = [...new Set(logs.map((log) => log.actorUserId).filter((id): id is string => Boolean(id)))];
+    const actorIds = [
+      ...new Set(
+        logs
+          .map((log) => log.actorUserId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const actors = actorIds.length
       ? await this.userRepository.find({ where: { id: In(actorIds) } })
       : [];
@@ -102,7 +117,9 @@ export class LicensingService {
 
     return {
       data: logs.map((log) => {
-        const actor = log.actorUserId ? actorById.get(log.actorUserId) : undefined;
+        const actor = log.actorUserId
+          ? actorById.get(log.actorUserId)
+          : undefined;
         return {
           id: log.id,
           licenseId: log.licenseId,
@@ -110,7 +127,9 @@ export class LicensingService {
           metadata: log.metadata,
           ipAddress: log.ipAddress,
           createdAt: log.createdAt,
-          actor: actor ? { id: actor.id, fullName: actor.fullName, email: actor.email } : null,
+          actor: actor
+            ? { id: actor.id, fullName: actor.fullName, email: actor.email }
+            : null,
           license: {
             id: log.license.id,
             licenseNumber: log.license.licenseNumber,
@@ -321,11 +340,19 @@ export class LicensingService {
     if (nextExpiresAt.getTime() <= Date.now()) {
       throw new BadRequestException('Renewal expiration must be in the future');
     }
-    if (license.validFrom && nextExpiresAt.getTime() <= license.validFrom.getTime()) {
+    if (
+      license.validFrom &&
+      nextExpiresAt.getTime() <= license.validFrom.getTime()
+    ) {
       throw new BadRequestException('expiresAt must be after validFrom');
     }
-    if (license.expiresAt && nextExpiresAt.getTime() <= license.expiresAt.getTime()) {
-      throw new BadRequestException('Renewal expiration must extend the current expiration');
+    if (
+      license.expiresAt &&
+      nextExpiresAt.getTime() <= license.expiresAt.getTime()
+    ) {
+      throw new BadRequestException(
+        'Renewal expiration must extend the current expiration',
+      );
     }
 
     const previousExpiresAt = license.expiresAt;
@@ -343,10 +370,14 @@ export class LicensingService {
       renewalNote: dto.renewalNote?.trim() || null,
     });
     const renewed = await this.findOne(id);
-    await this.commercialNotifications?.notifyCompanyAdmins(renewed, 'license.renewed', {
-      previousExpiresAt: previousExpiresAt?.toISOString() ?? null,
-      expiresAt: nextExpiresAt.toISOString(),
-    });
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      renewed,
+      'license.renewed',
+      {
+        previousExpiresAt: previousExpiresAt?.toISOString() ?? null,
+        expiresAt: nextExpiresAt.toISOString(),
+      },
+    );
     return renewed;
   }
 
@@ -366,7 +397,10 @@ export class LicensingService {
     await this.licenseRepository.save(license);
     await this.writeAudit(id, actor.id, 'license.activated');
     const activated = await this.findOne(id);
-    await this.commercialNotifications?.notifyCompanyAdmins(activated, 'license.activated');
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      activated,
+      'license.activated',
+    );
     return activated;
   }
 
@@ -381,7 +415,10 @@ export class LicensingService {
     await this.licenseRepository.save(license);
     await this.writeAudit(id, actor.id, 'license.suspended');
     const suspended = await this.findOne(id);
-    await this.commercialNotifications?.notifyCompanyAdmins(suspended, 'license.suspended');
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      suspended,
+      'license.suspended',
+    );
     return suspended;
   }
 
@@ -401,7 +438,10 @@ export class LicensingService {
     );
     await this.writeAudit(id, actor.id, 'license.revoked');
     const revoked = await this.findOne(id);
-    await this.commercialNotifications?.notifyCompanyAdmins(revoked, 'license.revoked');
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      revoked,
+      'license.revoked',
+    );
     return revoked;
   }
 
@@ -466,9 +506,16 @@ export class LicensingService {
         installationId: saved.installationId,
         appVersion: saved.appVersion,
       });
-      await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.authorized', {
-        activationId: saved.id, installationId: saved.installationId, appVersion: saved.appVersion, refreshed: true,
-      });
+      await this.commercialNotifications?.notifyCompanyAdmins(
+        license,
+        'activation.authorized',
+        {
+          activationId: saved.id,
+          installationId: saved.installationId,
+          appVersion: saved.appVersion,
+          refreshed: true,
+        },
+      );
       return saved;
     }
 
@@ -488,9 +535,16 @@ export class LicensingService {
       installationId: saved.installationId,
       appVersion: saved.appVersion,
     });
-    await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.authorized', {
-      activationId: saved.id, installationId: saved.installationId, appVersion: saved.appVersion, refreshed: false,
-    });
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      license,
+      'activation.authorized',
+      {
+        activationId: saved.id,
+        installationId: saved.installationId,
+        appVersion: saved.appVersion,
+        refreshed: false,
+      },
+    );
     return saved;
   }
 
@@ -515,9 +569,14 @@ export class LicensingService {
       installationId: activation.installationId,
     });
     const license = await this.findOne(licenseId);
-    await this.commercialNotifications?.notifyCompanyAdmins(license, 'activation.revoked', {
-      activationId, installationId: activation.installationId,
-    });
+    await this.commercialNotifications?.notifyCompanyAdmins(
+      license,
+      'activation.revoked',
+      {
+        activationId,
+        installationId: activation.installationId,
+      },
+    );
     return saved;
   }
 

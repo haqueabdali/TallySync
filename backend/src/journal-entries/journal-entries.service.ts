@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { AccountEntity } from '../accounts/entities/account.entity';
 import { AccountStatus } from '../accounts/enums/account-status.enum';
@@ -58,21 +54,15 @@ export class JournalEntriesService {
     this.ensureBalanced(totals.totalDebit, totals.totalCredit);
 
     return this.dataSource.transaction(async (manager) => {
-      const entryRepository =
-        manager.getRepository(JournalEntryEntity);
-      const lineRepository =
-        manager.getRepository(JournalEntryLineEntity);
+      const entryRepository = manager.getRepository(JournalEntryEntity);
+      const lineRepository = manager.getRepository(JournalEntryLineEntity);
 
       const entry = entryRepository.create({
         companyId,
-        entryNumber: await this.generateEntryNumber(
-          companyId,
-          dto.entryDate,
-        ),
+        entryNumber: await this.generateEntryNumber(companyId, dto.entryDate),
         entryDate: dto.entryDate,
         status: JournalEntryStatus.DRAFT,
-        sourceType:
-          dto.sourceType ?? JournalEntrySourceType.MANUAL,
+        sourceType: dto.sourceType ?? JournalEntrySourceType.MANUAL,
         sourceId: dto.sourceId ?? null,
         referenceNumber: this.optional(dto.referenceNumber),
         currency: (dto.currency ?? 'EUR').toUpperCase(),
@@ -105,9 +95,7 @@ export class JournalEntriesService {
         }),
       );
 
-      savedEntry.lines = await lineRepository.save(
-        savedEntry.lines,
-      );
+      savedEntry.lines = await lineRepository.save(savedEntry.lines);
 
       return this.toResponse(savedEntry);
     });
@@ -135,10 +123,7 @@ export class JournalEntriesService {
           qb.where('entry.entry_number ILIKE :search', {
             search,
           })
-            .orWhere(
-              'entry.reference_number ILIKE :search',
-              { search },
-            )
+            .orWhere('entry.reference_number ILIKE :search', { search })
             .orWhere('entry.narration ILIKE :search', {
               search,
             });
@@ -231,10 +216,8 @@ export class JournalEntriesService {
     userId: string,
   ): Promise<JournalEntryResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const entryRepository =
-        manager.getRepository(JournalEntryEntity);
-      const lineRepository =
-        manager.getRepository(JournalEntryLineEntity);
+      const entryRepository = manager.getRepository(JournalEntryEntity);
+      const lineRepository = manager.getRepository(JournalEntryLineEntity);
 
       const entry = await entryRepository.findOne({
         where: { id, companyId },
@@ -247,21 +230,13 @@ export class JournalEntriesService {
 
       this.ensureDraft(entry);
 
-      const nextSourceType =
-        dto.sourceType ?? entry.sourceType;
+      const nextSourceType = dto.sourceType ?? entry.sourceType;
 
       if (dto.lines) {
-        await this.validateLines(
-          dto.lines,
-          companyId,
-          nextSourceType,
-        );
+        await this.validateLines(dto.lines, companyId, nextSourceType);
 
         const totals = this.calculateTotals(dto.lines);
-        this.ensureBalanced(
-          totals.totalDebit,
-          totals.totalCredit,
-        );
+        this.ensureBalanced(totals.totalDebit, totals.totalCredit);
 
         await lineRepository.delete({
           journalEntryId: entry.id,
@@ -298,9 +273,7 @@ export class JournalEntriesService {
       }
 
       if (dto.referenceNumber !== undefined) {
-        entry.referenceNumber = this.optional(
-          dto.referenceNumber,
-        );
+        entry.referenceNumber = this.optional(dto.referenceNumber);
       }
 
       if (dto.currency !== undefined) {
@@ -313,9 +286,7 @@ export class JournalEntriesService {
 
       entry.updatedBy = userId;
 
-      return this.toResponse(
-        await entryRepository.save(entry),
-      );
+      return this.toResponse(await entryRepository.save(entry));
     });
   }
 
@@ -325,8 +296,7 @@ export class JournalEntriesService {
     userId: string,
   ): Promise<JournalEntryResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const entryRepository =
-        manager.getRepository(JournalEntryEntity);
+      const entryRepository = manager.getRepository(JournalEntryEntity);
 
       const entry = await entryRepository.findOne({
         where: { id, companyId },
@@ -345,16 +315,10 @@ export class JournalEntriesService {
         );
       }
 
-      await this.validateStoredLines(
-        entry,
-        companyId,
-      );
+      await this.validateStoredLines(entry, companyId);
 
       const totals = this.calculateTotals(entry.lines);
-      this.ensureBalanced(
-        totals.totalDebit,
-        totals.totalCredit,
-      );
+      this.ensureBalanced(totals.totalDebit, totals.totalCredit);
 
       entry.totalDebit = totals.totalDebit;
       entry.totalCredit = totals.totalCredit;
@@ -363,9 +327,7 @@ export class JournalEntriesService {
       entry.postedAt = new Date();
       entry.updatedBy = userId;
 
-      return this.toResponse(
-        await entryRepository.save(entry),
-      );
+      return this.toResponse(await entryRepository.save(entry));
     });
   }
 
@@ -376,10 +338,8 @@ export class JournalEntriesService {
     userId: string,
   ): Promise<JournalEntryResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const entryRepository =
-        manager.getRepository(JournalEntryEntity);
-      const lineRepository =
-        manager.getRepository(JournalEntryLineEntity);
+      const entryRepository = manager.getRepository(JournalEntryEntity);
+      const lineRepository = manager.getRepository(JournalEntryLineEntity);
 
       const original = await entryRepository.findOne({
         where: { id, companyId },
@@ -402,15 +362,11 @@ export class JournalEntriesService {
         );
       }
 
-      const reversalDate =
-        dto.reversalDate ?? original.entryDate;
+      const reversalDate = dto.reversalDate ?? original.entryDate;
 
       const reversal = entryRepository.create({
         companyId,
-        entryNumber: await this.generateEntryNumber(
-          companyId,
-          reversalDate,
-        ),
+        entryNumber: await this.generateEntryNumber(companyId, reversalDate),
         entryDate: reversalDate,
         status: JournalEntryStatus.POSTED,
         sourceType: JournalEntrySourceType.OTHER,
@@ -431,8 +387,7 @@ export class JournalEntriesService {
         lines: [],
       });
 
-      const savedReversal =
-        await entryRepository.save(reversal);
+      const savedReversal = await entryRepository.save(reversal);
 
       savedReversal.lines = original.lines.map((line) =>
         lineRepository.create({
@@ -444,20 +399,16 @@ export class JournalEntriesService {
           partyId: line.partyId,
           costCenter: line.costCenter,
           description:
-            line.description ??
-            `Reversal of ${original.entryNumber}`,
+            line.description ?? `Reversal of ${original.entryNumber}`,
         }),
       );
 
-      savedReversal.lines = await lineRepository.save(
-        savedReversal.lines,
-      );
+      savedReversal.lines = await lineRepository.save(savedReversal.lines);
 
       original.status = JournalEntryStatus.REVERSED;
       original.reversedBy = userId;
       original.reversedAt = new Date();
-      original.reversalReason =
-        dto.reversalReason.trim();
+      original.reversalReason = dto.reversalReason.trim();
       original.reversalEntryId = savedReversal.id;
       original.updatedBy = userId;
 
@@ -483,15 +434,10 @@ export class JournalEntriesService {
     entry.status = JournalEntryStatus.CANCELLED;
     entry.updatedBy = userId;
 
-    return this.toResponse(
-      await this.journalEntryRepository.save(entry),
-    );
+    return this.toResponse(await this.journalEntryRepository.save(entry));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const entry = await this.getEntity(id, companyId);
     this.ensureDraft(entry);
 
@@ -527,15 +473,10 @@ export class JournalEntriesService {
       });
 
       if (!account) {
-        throw new NotFoundException(
-          `Account ${line.accountId} not found.`,
-        );
+        throw new NotFoundException(`Account ${line.accountId} not found.`);
       }
 
-      this.validateAccountForPosting(
-        account,
-        sourceType,
-      );
+      this.validateAccountForPosting(account, sourceType);
 
       if (
         (line.partyType && !line.partyId) ||
@@ -566,15 +507,10 @@ export class JournalEntriesService {
       });
 
       if (!account) {
-        throw new NotFoundException(
-          `Account ${line.accountId} not found.`,
-        );
+        throw new NotFoundException(`Account ${line.accountId} not found.`);
       }
 
-      this.validateAccountForPosting(
-        account,
-        entry.sourceType,
-      );
+      this.validateAccountForPosting(account, entry.sourceType);
 
       if (
         (line.partyType && !line.partyId) ||
@@ -592,9 +528,7 @@ export class JournalEntriesService {
     sourceType: JournalEntrySourceType,
   ): void {
     if (account.status !== AccountStatus.ACTIVE) {
-      throw new ConflictException(
-        `Account ${account.code} is inactive.`,
-      );
+      throw new ConflictException(`Account ${account.code} is inactive.`);
     }
 
     if (account.isGroup) {
@@ -613,10 +547,7 @@ export class JournalEntriesService {
     }
   }
 
-  private validateDebitCredit(
-    debit: number,
-    credit: number,
-  ): void {
+  private validateDebitCredit(debit: number, credit: number): void {
     if (debit === 0 && credit === 0) {
       throw new BadRequestException(
         'Each journal line must contain either a debit or a credit amount.',
@@ -640,17 +571,11 @@ export class JournalEntriesService {
     totalCredit: number;
   } {
     const totalDebit = this.round(
-      lines.reduce(
-        (sum, line) => sum + Number(line.debit ?? 0),
-        0,
-      ),
+      lines.reduce((sum, line) => sum + Number(line.debit ?? 0), 0),
     );
 
     const totalCredit = this.round(
-      lines.reduce(
-        (sum, line) => sum + Number(line.credit ?? 0),
-        0,
-      ),
+      lines.reduce((sum, line) => sum + Number(line.credit ?? 0), 0),
     );
 
     return {
@@ -659,10 +584,7 @@ export class JournalEntriesService {
     };
   }
 
-  private ensureBalanced(
-    totalDebit: number,
-    totalCredit: number,
-  ): void {
+  private ensureBalanced(totalDebit: number, totalCredit: number): void {
     if (totalDebit <= 0 || totalCredit <= 0) {
       throw new BadRequestException(
         'Journal entry totals must be greater than zero.',
@@ -726,10 +648,7 @@ export class JournalEntriesService {
       ? Number(latest.entryNumber.replace(prefix, ''))
       : 0;
 
-    return `${prefix}${String(current + 1).padStart(
-      6,
-      '0',
-    )}`;
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
   }
 
   private optional(value?: string): string | null {
@@ -756,9 +675,7 @@ export class JournalEntriesService {
     };
   }
 
-  private toResponse(
-    entry: JournalEntryEntity,
-  ): JournalEntryResponseDto {
+  private toResponse(entry: JournalEntryEntity): JournalEntryResponseDto {
     return {
       id: entry.id,
       companyId: entry.companyId,
@@ -772,9 +689,7 @@ export class JournalEntriesService {
       totalDebit: Number(entry.totalDebit),
       totalCredit: Number(entry.totalCredit),
       narration: entry.narration,
-      lines: (entry.lines ?? []).map((line) =>
-        this.toLineResponse(line),
-      ),
+      lines: (entry.lines ?? []).map((line) => this.toLineResponse(line)),
       createdBy: entry.createdBy,
       updatedBy: entry.updatedBy,
       postedBy: entry.postedBy,

@@ -90,9 +90,13 @@
     "seed:platform-owner": "ts-node -r tsconfig-paths/register scripts/licensing/create-platform-admin.ts",
     "seed:platform-owner:prod": "node scripts/licensing/create-platform-admin.runtime.js",
     "verify:docker:backup-restore": "ts-node -r tsconfig-paths/register scripts/verification/postgres-backup-restore-v7.ts",
-    "verify:docker:observability": "ts-node -r tsconfig-paths/register scripts/verification/docker-observability-v8.ts"
-
-
+    "verify:docker:observability": "ts-node -r tsconfig-paths/register scripts/verification/docker-observability-v8.ts",
+    "release:validate-config": "ts-node -r tsconfig-paths/register scripts/security/validate-production-config.ts",
+    "security:scan-secrets": "ts-node -r tsconfig-paths/register scripts/security/scan-tracked-secrets.ts",
+    "release:gate": "ts-node -r tsconfig-paths/register scripts/release/release-gate-v9.ts",
+    "verify:e2e:release": "ts-node -r tsconfig-paths/register scripts/verification/e2e-release-integrity-v10.ts"
+  
+  
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

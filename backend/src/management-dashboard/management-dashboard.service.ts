@@ -192,7 +192,9 @@ export class ManagementDashboardService {
 
   private validateDates(dateFrom: string, dateTo: string): void {
     if (dateFrom > dateTo) {
-      throw new BadRequestException('dateFrom must be before or equal to dateTo.');
+      throw new BadRequestException(
+        'dateFrom must be before or equal to dateTo.',
+      );
     }
   }
 

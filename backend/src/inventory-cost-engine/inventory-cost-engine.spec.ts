@@ -43,7 +43,11 @@ describe('InventoryCostEngineService', () => {
     jest.spyOn(balanceRepository, 'findOne').mockResolvedValue(balance);
 
     await expect(
-      service.getBalance(balance.companyId, balance.itemId, balance.warehouseId),
+      service.getBalance(
+        balance.companyId,
+        balance.itemId,
+        balance.warehouseId,
+      ),
     ).resolves.toEqual(balance);
   });
 

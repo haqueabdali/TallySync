@@ -28,9 +28,7 @@ describe('GeneralLedgerService', () => {
       ],
     }).compile();
 
-    service = module.get<GeneralLedgerService>(
-      GeneralLedgerService,
-    );
+    service = module.get<GeneralLedgerService>(GeneralLedgerService);
   });
 
   it('should be defined', () => {

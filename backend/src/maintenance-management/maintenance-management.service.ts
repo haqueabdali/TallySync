@@ -113,11 +113,15 @@ export class MaintenanceManagementService {
     }
 
     if (dto.assetName !== undefined) entity.assetName = dto.assetName.trim();
-    if (dto.category !== undefined) entity.category = this.optional(dto.category);
-    if (dto.manufacturer !== undefined) entity.manufacturer = this.optional(dto.manufacturer);
+    if (dto.category !== undefined)
+      entity.category = this.optional(dto.category);
+    if (dto.manufacturer !== undefined)
+      entity.manufacturer = this.optional(dto.manufacturer);
     if (dto.model !== undefined) entity.model = this.optional(dto.model);
-    if (dto.serialNumber !== undefined) entity.serialNumber = this.optional(dto.serialNumber);
-    if (dto.location !== undefined) entity.location = this.optional(dto.location);
+    if (dto.serialNumber !== undefined)
+      entity.serialNumber = this.optional(dto.serialNumber);
+    if (dto.location !== undefined)
+      entity.location = this.optional(dto.location);
     if (dto.status !== undefined) entity.status = dto.status;
     if (dto.commissionedDate !== undefined) {
       entity.commissionedDate = dto.commissionedDate?.slice(0, 10) ?? null;
@@ -136,7 +140,9 @@ export class MaintenanceManagementService {
     const asset = await this.getAsset(companyId, dto.assetId);
 
     if (asset.status === MaintenanceAssetStatus.RETIRED) {
-      throw new ConflictException('Cannot create a maintenance plan for a retired asset.');
+      throw new ConflictException(
+        'Cannot create a maintenance plan for a retired asset.',
+      );
     }
 
     const startDate = dto.startDate.slice(0, 10);
@@ -158,7 +164,10 @@ export class MaintenanceManagementService {
 
     const saved = await this.planRepository.save(plan);
 
-    if (!asset.nextMaintenanceDate || saved.nextDueDate < asset.nextMaintenanceDate) {
+    if (
+      !asset.nextMaintenanceDate ||
+      saved.nextDueDate < asset.nextMaintenanceDate
+    ) {
       asset.nextMaintenanceDate = saved.nextDueDate;
       asset.updatedBy = userId;
       await this.assetRepository.save(asset);
@@ -187,8 +196,10 @@ export class MaintenanceManagementService {
     }
     if (dto.planName !== undefined) plan.planName = dto.planName.trim();
     if (dto.frequency !== undefined) plan.frequency = dto.frequency;
-    if (dto.startDate !== undefined) plan.startDate = dto.startDate.slice(0, 10);
-    if (dto.estimatedMinutes !== undefined) plan.estimatedMinutes = dto.estimatedMinutes;
+    if (dto.startDate !== undefined)
+      plan.startDate = dto.startDate.slice(0, 10);
+    if (dto.estimatedMinutes !== undefined)
+      plan.estimatedMinutes = dto.estimatedMinutes;
     if (dto.isActive !== undefined) plan.isActive = dto.isActive;
     if (dto.instructions !== undefined) {
       plan.instructions = this.optional(dto.instructions);
@@ -211,14 +222,18 @@ export class MaintenanceManagementService {
       asset.status === MaintenanceAssetStatus.RETIRED ||
       asset.status === MaintenanceAssetStatus.INACTIVE
     ) {
-      throw new ConflictException('Maintenance work cannot be created for this asset status.');
+      throw new ConflictException(
+        'Maintenance work cannot be created for this asset status.',
+      );
     }
 
     const start = dto.scheduledStartAt ? new Date(dto.scheduledStartAt) : null;
     const end = dto.scheduledEndAt ? new Date(dto.scheduledEndAt) : null;
 
     if (start && end && end.getTime() <= start.getTime()) {
-      throw new BadRequestException('scheduledEndAt must be later than scheduledStartAt.');
+      throw new BadRequestException(
+        'scheduledEndAt must be later than scheduledStartAt.',
+      );
     }
 
     if (dto.maintenancePlanId) {
@@ -231,7 +246,9 @@ export class MaintenanceManagementService {
       });
 
       if (!plan) {
-        throw new NotFoundException('Maintenance plan not found for this asset.');
+        throw new NotFoundException(
+          'Maintenance plan not found for this asset.',
+        );
       }
     }
 
@@ -271,7 +288,9 @@ export class MaintenanceManagementService {
       order.status !== MaintenanceWorkOrderStatus.OPEN &&
       order.status !== MaintenanceWorkOrderStatus.SCHEDULED
     ) {
-      throw new ConflictException('Only open or scheduled work orders can be started.');
+      throw new ConflictException(
+        'Only open or scheduled work orders can be started.',
+      );
     }
 
     order.status = MaintenanceWorkOrderStatus.IN_PROGRESS;
@@ -290,7 +309,9 @@ export class MaintenanceManagementService {
     const order = await this.getWorkOrder(companyId, id);
 
     if (order.status !== MaintenanceWorkOrderStatus.IN_PROGRESS) {
-      throw new ConflictException('Only in-progress work orders can be completed.');
+      throw new ConflictException(
+        'Only in-progress work orders can be completed.',
+      );
     }
 
     order.status = MaintenanceWorkOrderStatus.COMPLETED;
@@ -304,28 +325,28 @@ export class MaintenanceManagementService {
 
     const completedAt = new Date();
 
-order.status = MaintenanceWorkOrderStatus.COMPLETED;
-order.actualEndAt = completedAt;
+    order.status = MaintenanceWorkOrderStatus.COMPLETED;
+    order.actualEndAt = completedAt;
 
-if (dto.resolutionNotes !== undefined) {
-  order.resolutionNotes = this.optional(dto.resolutionNotes);
-}
+    if (dto.resolutionNotes !== undefined) {
+      order.resolutionNotes = this.optional(dto.resolutionNotes);
+    }
 
-if (dto.laborCost !== undefined) {
-  order.laborCost = dto.laborCost;
-}
+    if (dto.laborCost !== undefined) {
+      order.laborCost = dto.laborCost;
+    }
 
-if (dto.partsCost !== undefined) {
-  order.partsCost = dto.partsCost;
-}
+    if (dto.partsCost !== undefined) {
+      order.partsCost = dto.partsCost;
+    }
 
-order.updatedBy = userId;
+    order.updatedBy = userId;
 
-const saved = await this.workOrderRepository.save(order);
+    const saved = await this.workOrderRepository.save(order);
 
-const asset = await this.getAsset(companyId, order.assetId);
-const completedDate = completedAt.toISOString().slice(0, 10);
-asset.lastMaintenanceDate = completedDate;
+    const asset = await this.getAsset(companyId, order.assetId);
+    const completedDate = completedAt.toISOString().slice(0, 10);
+    asset.lastMaintenanceDate = completedDate;
 
     if (order.maintenancePlanId) {
       const plan = await this.planRepository.findOne({
@@ -368,7 +389,9 @@ asset.lastMaintenanceDate = completedDate;
       const workOrder = await this.getWorkOrder(companyId, dto.workOrderId);
 
       if (workOrder.assetId !== dto.assetId) {
-        throw new BadRequestException('Downtime asset does not match work-order asset.');
+        throw new BadRequestException(
+          'Downtime asset does not match work-order asset.',
+        );
       }
     }
 
@@ -418,7 +441,9 @@ asset.lastMaintenanceDate = completedDate;
     const dateTo = query.dateTo.slice(0, 10);
 
     if (new Date(dateFrom).getTime() > new Date(dateTo).getTime()) {
-      throw new BadRequestException('dateFrom must be earlier than or equal to dateTo.');
+      throw new BadRequestException(
+        'dateFrom must be earlier than or equal to dateTo.',
+      );
     }
 
     const [
@@ -451,10 +476,13 @@ asset.lastMaintenanceDate = completedDate;
         .andWhere('workOrder.status = :status', {
           status: MaintenanceWorkOrderStatus.COMPLETED,
         })
-        .andWhere('DATE(workOrder.actual_end_at) BETWEEN :dateFrom AND :dateTo', {
-          dateFrom,
-          dateTo,
-        })
+        .andWhere(
+          'DATE(workOrder.actual_end_at) BETWEEN :dateFrom AND :dateTo',
+          {
+            dateFrom,
+            dateTo,
+          },
+        )
         .getCount(),
       this.planRepository
         .createQueryBuilder('plan')
@@ -471,10 +499,13 @@ asset.lastMaintenanceDate = completedDate;
         .andWhere('workOrder.status = :status', {
           status: MaintenanceWorkOrderStatus.COMPLETED,
         })
-        .andWhere('DATE(workOrder.actual_end_at) BETWEEN :dateFrom AND :dateTo', {
-          dateFrom,
-          dateTo,
-        })
+        .andWhere(
+          'DATE(workOrder.actual_end_at) BETWEEN :dateFrom AND :dateTo',
+          {
+            dateFrom,
+            dateTo,
+          },
+        )
         .getMany(),
       this.downtimeRepository
         .createQueryBuilder('downtime')
@@ -515,7 +546,8 @@ asset.lastMaintenanceDate = completedDate;
       completedWorkOrders,
       overduePlans,
       downtimeMinutes,
-      maintenanceCost: Math.round((maintenanceCost + Number.EPSILON) * 100) / 100,
+      maintenanceCost:
+        Math.round((maintenanceCost + Number.EPSILON) * 100) / 100,
     };
   }
 

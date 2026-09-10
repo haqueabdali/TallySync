@@ -105,6 +105,20 @@ export class SalesOrdersController {
     );
   }
 
+  @Post(':id/fulfill')
+  @ApiOperation({ summary: 'Fulfill a sales order' })
+  @ApiOkResponse({ type: SalesOrderResponseDto })
+  fulfill(
+    @Req() request: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<SalesOrderResponseDto> {
+    return this.salesOrdersService.fulfill(
+      id,
+      request.user.companyId,
+      request.user.id,
+    );
+  }
+
   @Post(':id/cancel')
   @ApiOperation({ summary: 'Cancel a sales order' })
   @ApiOkResponse({ type: SalesOrderResponseDto })

@@ -25,14 +25,10 @@ const decimalTransformer = {
 @Index('IDX_sales_quotations_company', ['companyId'])
 @Index('IDX_sales_quotations_customer', ['customerId'])
 @Index('IDX_sales_quotations_status', ['companyId', 'status'])
-@Index(
-  'UQ_sales_quotations_company_number',
-  ['companyId', 'quotationNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_sales_quotations_company_number', ['companyId', 'quotationNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class SalesQuotation {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -111,7 +107,12 @@ export class SalesQuotation {
   })
   grandTotal!: number;
 
-  @Column({ name: 'customer_reference', type: 'varchar', length: 120, nullable: true })
+  @Column({
+    name: 'customer_reference',
+    type: 'varchar',
+    length: 120,
+    nullable: true,
+  })
   customerReference!: string | null;
 
   @Column({ type: 'text', nullable: true })
@@ -126,14 +127,10 @@ export class SalesQuotation {
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy!: string | null;
 
-  @OneToMany(
-    () => SalesQuotationItem,
-    (item) => item.salesQuotation,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => SalesQuotationItem, (item) => item.salesQuotation, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: SalesQuotationItem[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

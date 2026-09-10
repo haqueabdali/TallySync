@@ -28,11 +28,9 @@ export class SalesQuotationItem {
   @Column({ name: 'sales_quotation_id', type: 'uuid' })
   salesQuotationId!: string;
 
-  @ManyToOne(
-    () => SalesQuotation,
-    (quotation) => quotation.items,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => SalesQuotation, (quotation) => quotation.items, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sales_quotation_id' })
   salesQuotation!: SalesQuotation;
 

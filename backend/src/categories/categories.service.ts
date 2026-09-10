@@ -76,10 +76,7 @@ export class CategoriesService {
     return query.getMany();
   }
 
-  async findOne(
-    company_id: string,
-    id: string,
-  ): Promise<CategoryEntity> {
+  async findOne(company_id: string, id: string): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findOne({
       where: {
         id,
@@ -133,10 +130,7 @@ export class CategoriesService {
     return this.categoryRepository.save(category);
   }
 
-  async remove(
-    company_id: string,
-    id: string,
-  ): Promise<{ message: string }> {
+  async remove(company_id: string, id: string): Promise<{ message: string }> {
     const category = await this.findOne(company_id, id);
 
     await this.categoryRepository.softRemove(category);
@@ -146,10 +140,7 @@ export class CategoriesService {
     };
   }
 
-  async restore(
-    company_id: string,
-    id: string,
-  ): Promise<CategoryEntity> {
+  async restore(company_id: string, id: string): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findOne({
       where: {
         id,

@@ -113,12 +113,19 @@ export class CommercialNotificationsService {
     for (const license of licenses) {
       if (!license.expiresAt) continue;
       const msRemaining = license.expiresAt.getTime() - now.getTime();
-      const daysRemaining = Math.max(0, Math.ceil(msRemaining / (24 * 60 * 60 * 1000)));
+      const daysRemaining = Math.max(
+        0,
+        Math.ceil(msRemaining / (24 * 60 * 60 * 1000)),
+      );
       const threshold = daysRemaining <= 1 ? 1 : daysRemaining <= 7 ? 7 : 30;
       notificationsCreated += await this.notifyCompanyAdmins(
         license,
         'license.expiring',
-        { expiresAt: license.expiresAt.toISOString(), daysRemaining, thresholdDays: threshold },
+        {
+          expiresAt: license.expiresAt.toISOString(),
+          daysRemaining,
+          thresholdDays: threshold,
+        },
         `threshold-${threshold}:${license.expiresAt.toISOString()}`,
       );
     }
@@ -135,13 +142,21 @@ export class CommercialNotificationsService {
   }> {
     const qb = this.notificationRepository
       .createQueryBuilder('notification')
-      .where("notification.metadata ->> 'category' = :category", { category: 'commercial' })
+      .where("notification.metadata ->> 'category' = :category", {
+        category: 'commercial',
+      })
       .orderBy('notification.createdAt', 'DESC')
       .skip((query.page - 1) * query.limit)
       .take(query.limit);
 
-    if (query.companyId) qb.andWhere('notification.companyId = :companyId', { companyId: query.companyId });
-    if (query.event?.trim()) qb.andWhere("notification.metadata ->> 'event' = :event", { event: query.event.trim() });
+    if (query.companyId)
+      qb.andWhere('notification.companyId = :companyId', {
+        companyId: query.companyId,
+      });
+    if (query.event?.trim())
+      qb.andWhere("notification.metadata ->> 'event' = :event", {
+        event: query.event.trim(),
+      });
 
     const [data, total] = await qb.getManyAndCount();
     return {
@@ -161,19 +176,40 @@ export class CommercialNotificationsService {
     const number = license.licenseNumber;
     switch (event) {
       case 'license.activated':
-        return { subject: 'TallySync license activated', body: `License ${number} has been activated.` };
+        return {
+          subject: 'TallySync license activated',
+          body: `License ${number} has been activated.`,
+        };
       case 'license.suspended':
-        return { subject: 'TallySync license suspended', body: `License ${number} has been suspended. Contact your TallySync administrator for assistance.` };
+        return {
+          subject: 'TallySync license suspended',
+          body: `License ${number} has been suspended. Contact your TallySync administrator for assistance.`,
+        };
       case 'license.revoked':
-        return { subject: 'TallySync license revoked', body: `License ${number} has been revoked and is no longer authorized.` };
+        return {
+          subject: 'TallySync license revoked',
+          body: `License ${number} has been revoked and is no longer authorized.`,
+        };
       case 'license.renewed':
-        return { subject: 'TallySync license renewed', body: `License ${number} has been renewed until ${String(details.expiresAt ?? 'the new expiration date')}.` };
+        return {
+          subject: 'TallySync license renewed',
+          body: `License ${number} has been renewed until ${String(details.expiresAt ?? 'the new expiration date')}.`,
+        };
       case 'license.expiring':
-        return { subject: 'TallySync license expiration reminder', body: `License ${number} expires in ${String(details.daysRemaining ?? '?')} day(s). Please arrange renewal before expiration.` };
+        return {
+          subject: 'TallySync license expiration reminder',
+          body: `License ${number} expires in ${String(details.daysRemaining ?? '?')} day(s). Please arrange renewal before expiration.`,
+        };
       case 'activation.authorized':
-        return { subject: 'TallySync installation authorized', body: `A TallySync installation was authorized for license ${number}.` };
+        return {
+          subject: 'TallySync installation authorized',
+          body: `A TallySync installation was authorized for license ${number}.`,
+        };
       case 'activation.revoked':
-        return { subject: 'TallySync installation revoked', body: `A TallySync installation authorization was revoked for license ${number}.` };
+        return {
+          subject: 'TallySync installation revoked',
+          body: `A TallySync installation authorization was revoked for license ${number}.`,
+        };
     }
   }
 }

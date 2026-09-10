@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +23,8 @@ import com.example.tallysyncapp.data.network.SalesOrderSummary
 fun OrdersScreen(
     state: AppUiState,
     onSelectFilter: (String?) -> Unit,
-    onOpenOrder: (String) -> Unit
+    onOpenOrder: (String) -> Unit,
+    onRetryLocalOrders: () -> Unit
 ) {
     Column(
         modifier = Modifier.padding(16.dp),
@@ -39,7 +41,10 @@ fun OrdersScreen(
             ).forEach { (label, value) ->
                 AssistChip(
                     onClick = { onSelectFilter(value) },
-                    label = { Text(label) }
+                    label = {
+                        val selected = state.selectedFilter == value
+                        Text(if (selected) "✓ $label" else label)
+                    }
                 )
             }
         }
@@ -50,6 +55,37 @@ fun OrdersScreen(
 
         state.error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
+        }
+
+        if (state.localPendingOrderItems.isNotEmpty()) {
+            Text(
+                "Local offline queue (${state.localPendingOrders})",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            state.localPendingOrderItems.take(5).forEach { localOrder ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(localOrder.localOrderNumber, style = MaterialTheme.typography.titleSmall)
+                        Text("Local status: ${localOrder.status}")
+                        if (localOrder.retryCount > 0) Text("Retries: ${localOrder.retryCount}")
+                        localOrder.lastError?.takeIf { it.isNotBlank() }?.let {
+                            Text(it, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = onRetryLocalOrders,
+                enabled = !state.loading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Retry local order uploads")
+            }
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -83,7 +119,7 @@ private fun OrderCard(
             )
             Text(order.customerName)
             Text("Total: ${order.grandTotal}")
-            Text("Sync: ${order.syncStatus}")
+            Text("Tally sync: ${order.syncStatus}")
 
             order.tallySyncError?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)

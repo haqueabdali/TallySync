@@ -128,10 +128,7 @@ export class AuditLogsService {
     };
   }
 
-  async findOne(
-    companyId: string,
-    id: string,
-  ): Promise<AuditLogEntity> {
+  async findOne(companyId: string, id: string): Promise<AuditLogEntity> {
     const auditLog = await this.repository.findOne({
       where: { id, companyId },
     });
@@ -207,9 +204,7 @@ export class AuditLogsService {
     }
   }
 
-  private normalizeOptional(
-    value: string | null | undefined,
-  ): string | null {
+  private normalizeOptional(value: string | null | undefined): string | null {
     const normalized = value?.trim();
     return normalized ? normalized : null;
   }

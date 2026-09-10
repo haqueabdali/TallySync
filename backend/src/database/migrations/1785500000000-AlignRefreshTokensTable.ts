@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignRefreshTokensTable1785500000000
-  implements MigrationInterface
-{
+export class AlignRefreshTokensTable1785500000000 implements MigrationInterface {
   name = 'AlignRefreshTokensTable1785500000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

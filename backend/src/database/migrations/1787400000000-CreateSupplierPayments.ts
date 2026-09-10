@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateSupplierPayments1787400000000
-  implements MigrationInterface
-{
+export class CreateSupplierPayments1787400000000 implements MigrationInterface {
   name = 'CreateSupplierPayments1787400000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -87,14 +85,30 @@ export class CreateSupplierPayments1787400000000
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_company" ON "supplier_payments" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_supplier" ON "supplier_payments" ("supplier_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_status" ON "supplier_payments" ("company_id", "status")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_date" ON "supplier_payments" ("company_id", "payment_date")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS "UQ_supplier_payments_company_number" ON "supplier_payments" ("company_id", "payment_number") WHERE "deleted_at" IS NULL`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payment_allocations_payment" ON "supplier_payment_allocations" ("supplier_payment_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_supplier_payment_allocations_invoice" ON "supplier_payment_allocations" ("purchase_invoice_id")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS "UQ_supplier_payment_allocation_payment_invoice" ON "supplier_payment_allocations" ("supplier_payment_id", "purchase_invoice_id")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_company" ON "supplier_payments" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_supplier" ON "supplier_payments" ("supplier_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_status" ON "supplier_payments" ("company_id", "status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payments_date" ON "supplier_payments" ("company_id", "payment_date")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_supplier_payments_company_number" ON "supplier_payments" ("company_id", "payment_number") WHERE "deleted_at" IS NULL`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payment_allocations_payment" ON "supplier_payment_allocations" ("supplier_payment_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_supplier_payment_allocations_invoice" ON "supplier_payment_allocations" ("purchase_invoice_id")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_supplier_payment_allocation_payment_invoice" ON "supplier_payment_allocations" ("supplier_payment_id", "purchase_invoice_id")`,
+    );
 
     await queryRunner.query(`
       DO $$ BEGIN
@@ -131,12 +145,24 @@ export class CreateSupplierPayments1787400000000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE IF EXISTS "supplier_payment_allocations" DROP CONSTRAINT IF EXISTS "FK_supplier_payment_allocations_invoice"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "supplier_payment_allocations" DROP CONSTRAINT IF EXISTS "FK_supplier_payment_allocations_payment"`);
-    await queryRunner.query(`ALTER TABLE IF EXISTS "supplier_payments" DROP CONSTRAINT IF EXISTS "FK_supplier_payments_supplier"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "supplier_payment_allocations"`);
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "supplier_payment_allocations" DROP CONSTRAINT IF EXISTS "FK_supplier_payment_allocations_invoice"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "supplier_payment_allocations" DROP CONSTRAINT IF EXISTS "FK_supplier_payment_allocations_payment"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "supplier_payments" DROP CONSTRAINT IF EXISTS "FK_supplier_payments_supplier"`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "supplier_payment_allocations"`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "supplier_payments"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."supplier_payments_payment_method_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."supplier_payments_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."supplier_payments_payment_method_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."supplier_payments_status_enum"`,
+    );
   }
 }

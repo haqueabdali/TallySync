@@ -9,7 +9,15 @@ import { VatSettlementController } from './vat-settlement.controller';
 import { VatSettlementService } from './vat-settlement.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([VatSettlementSettingsEntity, VatSettlementEntity, AccountEntity, VatReturnEntity]), JournalEntriesModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      VatSettlementSettingsEntity,
+      VatSettlementEntity,
+      AccountEntity,
+      VatReturnEntity,
+    ]),
+    JournalEntriesModule,
+  ],
   controllers: [VatSettlementController],
   providers: [VatSettlementService],
   exports: [VatSettlementService],

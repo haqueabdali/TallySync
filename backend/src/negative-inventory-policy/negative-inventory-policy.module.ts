@@ -7,7 +7,13 @@ import { NegativeInventoryPolicyController } from './negative-inventory-policy.c
 import { NegativeInventoryPolicyService } from './negative-inventory-policy.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([NegativeInventoryPolicyEntity, ItemEntity, WarehouseEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      NegativeInventoryPolicyEntity,
+      ItemEntity,
+      WarehouseEntity,
+    ]),
+  ],
   controllers: [NegativeInventoryPolicyController],
   providers: [NegativeInventoryPolicyService],
   exports: [NegativeInventoryPolicyService],

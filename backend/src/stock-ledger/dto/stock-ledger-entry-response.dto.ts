@@ -7,8 +7,10 @@ export class StockLedgerEntryResponseDto {
   @ApiProperty({ format: 'uuid' }) itemId!: string;
   @ApiProperty({ format: 'uuid' }) warehouseId!: string;
   @ApiProperty({ type: String, format: 'date' }) transactionDate!: string;
-  @ApiProperty({ enum: InventoryCostTransactionType }) transactionType!: InventoryCostTransactionType;
-  @ApiProperty({ enum: InventoryCostSourceType }) sourceType!: InventoryCostSourceType;
+  @ApiProperty({ enum: InventoryCostTransactionType })
+  transactionType!: InventoryCostTransactionType;
+  @ApiProperty({ enum: InventoryCostSourceType })
+  sourceType!: InventoryCostSourceType;
   @ApiProperty({ format: 'uuid' }) sourceId!: string;
   @ApiProperty({ format: 'uuid' }) sourceLineId!: string;
   @ApiProperty() quantityIn!: number;

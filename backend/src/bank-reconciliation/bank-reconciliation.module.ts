@@ -8,5 +8,19 @@ import { BankReconciliationService } from './bank-reconciliation.service';
 import { BankReconciliationEntity } from './entities/bank-reconciliation.entity';
 import { BankReconciliationMatchEntity } from './entities/bank-reconciliation-match.entity';
 import { BankStatementLineEntity } from './entities/bank-statement-line.entity';
-@Module({ imports: [TypeOrmModule.forFeature([BankReconciliationEntity, BankStatementLineEntity, BankReconciliationMatchEntity, AccountEntity, JournalEntryEntity, JournalEntryLineEntity])], controllers: [BankReconciliationController], providers: [BankReconciliationService], exports: [BankReconciliationService] })
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      BankReconciliationEntity,
+      BankStatementLineEntity,
+      BankReconciliationMatchEntity,
+      AccountEntity,
+      JournalEntryEntity,
+      JournalEntryLineEntity,
+    ]),
+  ],
+  controllers: [BankReconciliationController],
+  providers: [BankReconciliationService],
+  exports: [BankReconciliationService],
+})
 export class BankReconciliationModule {}

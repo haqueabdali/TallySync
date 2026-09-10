@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
@@ -14,12 +11,8 @@ describe('CapacityPlanningService', () => {
   let service: CapacityPlanningService;
 
   const workCenterRepository = {
-    create: jest.fn(
-      (value: Partial<WorkCenterEntity>) => value,
-    ),
-    save: jest.fn(
-      async (value: WorkCenterEntity) => value,
-    ),
+    create: jest.fn((value: Partial<WorkCenterEntity>) => value),
+    save: jest.fn(async (value: WorkCenterEntity) => value),
     find: jest.fn().mockResolvedValue([]),
     findOne: jest.fn(),
   };
@@ -32,19 +25,11 @@ describe('CapacityPlanningService', () => {
 
   const overrideRepository = {
     create: jest.fn(
-      (
-        value: Partial<WorkCenterCapacityOverrideEntity>,
-      ) => value,
+      (value: Partial<WorkCenterCapacityOverrideEntity>) => value,
     ),
-    save: jest.fn(
-      async (
-        value: WorkCenterCapacityOverrideEntity,
-      ) => value,
-    ),
+    save: jest.fn(async (value: WorkCenterCapacityOverrideEntity) => value),
     findOne: jest.fn(),
-    createQueryBuilder: jest.fn(
-      () => overrideQuery,
-    ),
+    createQueryBuilder: jest.fn(() => overrideQuery),
   };
 
   const scheduleQuery = {
@@ -54,9 +39,7 @@ describe('CapacityPlanningService', () => {
   };
 
   const scheduleRepository = {
-    createQueryBuilder: jest.fn(
-      () => scheduleQuery,
-    ),
+    createQueryBuilder: jest.fn(() => scheduleQuery),
   };
 
   beforeEach(async () => {
@@ -70,30 +53,23 @@ describe('CapacityPlanningService', () => {
     scheduleQuery.andWhere.mockReturnThis();
     scheduleQuery.getMany.mockResolvedValue([]);
 
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          CapacityPlanningService,
-          {
-            provide: getRepositoryToken(
-              WorkCenterEntity,
-            ),
-            useValue: workCenterRepository,
-          },
-          {
-            provide: getRepositoryToken(
-              WorkCenterCapacityOverrideEntity,
-            ),
-            useValue: overrideRepository,
-          },
-          {
-            provide: getRepositoryToken(
-              ProductionScheduleEntity,
-            ),
-            useValue: scheduleRepository,
-          },
-        ],
-      }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CapacityPlanningService,
+        {
+          provide: getRepositoryToken(WorkCenterEntity),
+          useValue: workCenterRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkCenterCapacityOverrideEntity),
+          useValue: overrideRepository,
+        },
+        {
+          provide: getRepositoryToken(ProductionScheduleEntity),
+          useValue: scheduleRepository,
+        },
+      ],
+    }).compile();
 
     service = module.get(CapacityPlanningService);
   });

@@ -1,0 +1,7 @@
+{
+  "generatedAt": "2026-08-25T11:42:12.986Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "targetService": "api-a",
+  "error": "MULTI_INSTANCE_EMAIL and MULTI_INSTANCE_PASSWORD are required for V6.",
+  "passed": false
+}

@@ -37,12 +37,27 @@ export class CustomerEntity {
   address: string | null;
 
   @Column({
+    name: 'tally_ledger_id',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
+  tallyLedgerId: string | null;
+
+  @Column({
     name: 'tally_ledger_name',
     type: 'varchar',
     length: 255,
     nullable: true,
   })
   tallyLedgerName: string | null;
+
+  @Column({
+    name: 'tally_alter_id',
+    type: 'bigint',
+    nullable: true,
+  })
+  tallyAlterId: string | null;
 
   @Column({
     name: 'credit_limit',

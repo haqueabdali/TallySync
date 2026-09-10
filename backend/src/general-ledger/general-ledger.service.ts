@@ -102,16 +102,10 @@ export class GeneralLedgerService {
       dateTo: filter.dateTo ?? null,
       currency: filter.currency?.toUpperCase() ?? null,
       totalDebit: this.round(
-        result.reduce(
-          (sum, account) => sum + account.totalDebit,
-          0,
-        ),
+        result.reduce((sum, account) => sum + account.totalDebit, 0),
       ),
       totalCredit: this.round(
-        result.reduce(
-          (sum, account) => sum + account.totalCredit,
-          0,
-        ),
+        result.reduce((sum, account) => sum + account.totalCredit, 0),
       ),
       accounts: result,
     };
@@ -141,11 +135,7 @@ export class GeneralLedgerService {
       );
     }
 
-    return this.getAccountLedgerInternal(
-      account,
-      filter,
-      companyId,
-    );
+    return this.getAccountLedgerInternal(account, filter, companyId);
   }
 
   async getTrialBalance(
@@ -158,9 +148,7 @@ export class GeneralLedgerService {
       where: {
         companyId,
         isGroup: false,
-        ...(filter.currency
-          ? { currency: filter.currency.toUpperCase() }
-          : {}),
+        ...(filter.currency ? { currency: filter.currency.toUpperCase() } : {}),
       },
       order: {
         code: 'ASC',
@@ -182,98 +170,76 @@ export class GeneralLedgerService {
       true,
     );
 
-    const lines: TrialBalanceLineResponseDto[] = accounts.map(
-      (account) => {
-        const opening = openingMap.get(account.id) ?? {
-          debit: 0,
-          credit: 0,
-        };
+    const lines: TrialBalanceLineResponseDto[] = accounts.map((account) => {
+      const opening = openingMap.get(account.id) ?? {
+        debit: 0,
+        credit: 0,
+      };
 
-        const period = periodMap.get(account.id) ?? {
-          debit: 0,
-          credit: 0,
-        };
+      const period = periodMap.get(account.id) ?? {
+        debit: 0,
+        credit: 0,
+      };
 
-        const openingNet = this.getSignedBalance(
-          account.normalBalance,
-          opening.debit,
-          opening.credit,
-        );
+      const openingNet = this.getSignedBalance(
+        account.normalBalance,
+        opening.debit,
+        opening.credit,
+      );
 
-        const periodNet = this.getSignedBalance(
-          account.normalBalance,
-          period.debit,
-          period.credit,
-        );
+      const periodNet = this.getSignedBalance(
+        account.normalBalance,
+        period.debit,
+        period.credit,
+      );
 
-        const closingNet = this.round(
-          openingNet + periodNet,
-        );
+      const closingNet = this.round(openingNet + periodNet);
 
-        const openingSides = this.toDebitCreditSides(
-          account.normalBalance,
-          openingNet,
-        );
+      const openingSides = this.toDebitCreditSides(
+        account.normalBalance,
+        openingNet,
+      );
 
-        const closingSides = this.toDebitCreditSides(
-          account.normalBalance,
-          closingNet,
-        );
+      const closingSides = this.toDebitCreditSides(
+        account.normalBalance,
+        closingNet,
+      );
 
-        return {
-          accountId: account.id,
-          accountCode: account.code,
-          accountName: account.name,
-          accountType: account.type,
-          openingDebit: openingSides.debit,
-          openingCredit: openingSides.credit,
-          periodDebit: this.round(period.debit),
-          periodCredit: this.round(period.credit),
-          closingDebit: closingSides.debit,
-          closingCredit: closingSides.credit,
-        };
-      },
-    );
+      return {
+        accountId: account.id,
+        accountCode: account.code,
+        accountName: account.name,
+        accountType: account.type,
+        openingDebit: openingSides.debit,
+        openingCredit: openingSides.credit,
+        periodDebit: this.round(period.debit),
+        periodCredit: this.round(period.credit),
+        closingDebit: closingSides.debit,
+        closingCredit: closingSides.credit,
+      };
+    });
 
     return {
       dateFrom: filter.dateFrom ?? null,
       dateTo: filter.dateTo ?? null,
       currency: filter.currency?.toUpperCase() ?? null,
       openingDebitTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.openingDebit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.openingDebit, 0),
       ),
       openingCreditTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.openingCredit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.openingCredit, 0),
       ),
       periodDebitTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.periodDebit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.periodDebit, 0),
       ),
       periodCreditTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.periodCredit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.periodCredit, 0),
       ),
       closingDebitTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.closingDebit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.closingDebit, 0),
       ),
       closingCreditTotal: this.round(
-        lines.reduce(
-          (sum, line) => sum + line.closingCredit,
-          0,
-        ),
+        lines.reduce((sum, line) => sum + line.closingCredit, 0),
       ),
       lines,
     };
@@ -293,55 +259,45 @@ export class GeneralLedgerService {
       filter.costCenter,
     );
 
-    const rows = await this.getLedgerRows(
-      account.id,
-      companyId,
-      filter,
-    );
+    const rows = await this.getLedgerRows(account.id, companyId, filter);
 
     let runningBalance = opening;
     let totalDebit = 0;
     let totalCredit = 0;
 
-    const lines: GeneralLedgerLineResponseDto[] = rows.map(
-      (row) => {
-        const debit = Number(row.debit ?? 0);
-        const credit = Number(row.credit ?? 0);
+    const lines: GeneralLedgerLineResponseDto[] = rows.map((row) => {
+      const debit = Number(row.debit ?? 0);
+      const credit = Number(row.credit ?? 0);
 
-        totalDebit = this.round(totalDebit + debit);
-        totalCredit = this.round(totalCredit + credit);
+      totalDebit = this.round(totalDebit + debit);
+      totalCredit = this.round(totalCredit + credit);
 
-        runningBalance = this.round(
-          runningBalance +
-            this.getSignedBalance(
-              account.normalBalance,
-              debit,
-              credit,
-            ),
-        );
+      runningBalance = this.round(
+        runningBalance +
+          this.getSignedBalance(account.normalBalance, debit, credit),
+      );
 
-        return {
-          journalEntryId: row.journalEntryId,
-          journalEntryLineId: row.journalEntryLineId,
-          entryNumber: row.entryNumber,
-          entryDate: row.entryDate,
-          sourceType: row.sourceType as any,
-          sourceId: row.sourceId,
-          referenceNumber: row.referenceNumber,
-          accountId: row.accountId,
-          accountCode: row.accountCode,
-          accountName: row.accountName,
-          debit,
-          credit,
-          runningBalance,
-          partyType: row.partyType,
-          partyId: row.partyId,
-          costCenter: row.costCenter,
-          description: row.description,
-          narration: row.narration,
-        };
-      },
-    );
+      return {
+        journalEntryId: row.journalEntryId,
+        journalEntryLineId: row.journalEntryLineId,
+        entryNumber: row.entryNumber,
+        entryDate: row.entryDate,
+        sourceType: row.sourceType as any,
+        sourceId: row.sourceId,
+        referenceNumber: row.referenceNumber,
+        accountId: row.accountId,
+        accountCode: row.accountCode,
+        accountName: row.accountName,
+        debit,
+        credit,
+        runningBalance,
+        partyType: row.partyType,
+        partyId: row.partyId,
+        costCenter: row.costCenter,
+        description: row.description,
+        narration: row.narration,
+      };
+    });
 
     return {
       accountId: account.id,
@@ -392,9 +348,7 @@ export class GeneralLedgerService {
       );
     }
 
-    return query
-      .orderBy('account.code', 'ASC')
-      .getMany();
+    return query.orderBy('account.code', 'ASC').getMany();
   }
 
   private async getLedgerRows(
@@ -409,11 +363,7 @@ export class GeneralLedgerService {
         'entry',
         'entry.id = line.journal_entry_id',
       )
-      .innerJoin(
-        AccountEntity,
-        'account',
-        'account.id = line.account_id',
-      )
+      .innerJoin(AccountEntity, 'account', 'account.id = line.account_id')
       .select([
         'entry.id AS "journalEntryId"',
         'line.id AS "journalEntryLineId"',
@@ -564,9 +514,7 @@ export class GeneralLedgerService {
     dateTo?: string,
     currency?: string,
     includeDateFrom = false,
-  ): Promise<
-    Map<string, { debit: number; credit: number }>
-  > {
+  ): Promise<Map<string, { debit: number; credit: number }>> {
     const query = this.journalEntryLineRepository
       .createQueryBuilder('line')
       .innerJoin(
@@ -574,11 +522,7 @@ export class GeneralLedgerService {
         'entry',
         'entry.id = line.journal_entry_id',
       )
-      .innerJoin(
-        AccountEntity,
-        'account',
-        'account.id = line.account_id',
-      )
+      .innerJoin(AccountEntity, 'account', 'account.id = line.account_id')
       .select('line.account_id', 'accountId')
       .addSelect('COALESCE(SUM(line.debit), 0)', 'debit')
       .addSelect('COALESCE(SUM(line.credit), 0)', 'credit')
@@ -656,19 +600,13 @@ export class GeneralLedgerService {
       : { debit: this.round(Math.abs(signedBalance)), credit: 0 };
   }
 
-  private validateDateRange(
-    dateFrom?: string,
-    dateTo?: string,
-  ): void {
+  private validateDateRange(dateFrom?: string, dateTo?: string): void {
     if (
       dateFrom &&
       dateTo &&
-      new Date(dateFrom).getTime() >
-        new Date(dateTo).getTime()
+      new Date(dateFrom).getTime() > new Date(dateTo).getTime()
     ) {
-      throw new BadRequestException(
-        'dateFrom cannot be later than dateTo.',
-      );
+      throw new BadRequestException('dateFrom cannot be later than dateTo.');
     }
   }
 

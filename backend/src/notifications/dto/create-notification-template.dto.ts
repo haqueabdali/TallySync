@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsOptional, IsString, Length, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
 import { NotificationChannel } from '../enums/notification-channel.enum';
 
 export class CreateNotificationTemplateDto {
@@ -18,7 +25,10 @@ export class CreateNotificationTemplateDto {
   @MaxLength(255)
   subjectTemplate?: string;
 
-  @ApiProperty({ example: 'Invoice {{invoiceNumber}} has an outstanding balance of {{balance}}.' })
+  @ApiProperty({
+    example:
+      'Invoice {{invoiceNumber}} has an outstanding balance of {{balance}}.',
+  })
   @IsString()
   bodyTemplate!: string;
 

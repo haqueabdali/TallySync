@@ -14,9 +14,7 @@ describe('GoodsReceiptsService', () => {
       ],
     }).compile();
 
-    service = module.get<GoodsReceiptsService>(
-      GoodsReceiptsService,
-    );
+    service = module.get<GoodsReceiptsService>(GoodsReceiptsService);
   });
 
   it('should be defined', () => {

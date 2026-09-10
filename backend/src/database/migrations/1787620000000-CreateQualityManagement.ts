@@ -1,17 +1,9 @@
-import type {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateQualityManagement1787620000000
-  implements MigrationInterface
-{
-  name =
-    'CreateQualityManagement1787620000000';
+export class CreateQualityManagement1787620000000 implements MigrationInterface {
+  name = 'CreateQualityManagement1787620000000';
 
-  async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TYPE "quality_inspections_source_type_enum"
       AS ENUM (
@@ -144,15 +136,9 @@ export class CreateQualityManagement1787620000000
     `);
   }
 
-  async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.query(
-      'DROP TABLE IF EXISTS "quality_inspection_checks"',
-    );
-    await queryRunner.query(
-      'DROP TABLE IF EXISTS "quality_inspections"',
-    );
+  async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query('DROP TABLE IF EXISTS "quality_inspection_checks"');
+    await queryRunner.query('DROP TABLE IF EXISTS "quality_inspections"');
     await queryRunner.query(
       'DROP TYPE IF EXISTS "quality_inspection_checks_result_enum"',
     );

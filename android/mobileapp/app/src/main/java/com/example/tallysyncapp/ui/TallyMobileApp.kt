@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import com.example.tallysyncapp.invoice.InvoicePdfGenerator
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +33,12 @@ import com.example.tallysyncapp.ui.navigation.AppRoute
 import com.example.tallysyncapp.scanner.BarcodeScannerScreen
 import com.example.tallysyncapp.report.CsvReportExporter
 import com.example.tallysyncapp.report.buildSalesReport
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.unit.dp
+import android.util.Log
 
 @Composable
 fun TallyMobileApp(
@@ -84,7 +91,7 @@ private fun AuthenticatedTallyMobileApp(
         )
     }
 
-    val newOrderButtonRoutes = remember {
+    val floatingButtonRoutes = remember {
         setOf(
             AppRoute.Dashboard.route,
             AppRoute.Customers.route,
@@ -94,8 +101,8 @@ private fun AuthenticatedTallyMobileApp(
     }
 
     val showBottomBar = currentRoute != null && currentRoute in bottomBarRoutes
-    val showNewOrderButton =
-        currentRoute != null && currentRoute in newOrderButtonRoutes
+    val showFloatingButton =
+        currentRoute != null && currentRoute in floatingButtonRoutes
 
     LaunchedEffect(state.message) {
         val message = state.message
@@ -130,19 +137,43 @@ private fun AuthenticatedTallyMobileApp(
             }
         },
         floatingActionButton = {
-            if (showNewOrderButton) {
+            if (showFloatingButton) {
                 FloatingActionButton(
                     onClick = {
-                        navController.navigate(
-                            AppRoute.NewOrder.route
-                        ) {
-                            launchSingleTop = true
+                        when (currentRoute) {
+                            AppRoute.Customers.route -> {
+                                navController.navigate(
+                                    AppRoute.CustomerForm.route
+                                ) {
+                                    launchSingleTop = true
+                                }
+                            }
+
+                            AppRoute.Products.route -> {
+                                navController.navigate(
+                                    AppRoute.ProductForm.route
+                                ) {
+                                    launchSingleTop = true
+                                }
+                            }
+
+                            else -> {
+                                navController.navigate(
+                                    AppRoute.NewOrder.route
+                                ) {
+                                    launchSingleTop = true
+                                }
+                            }
                         }
                     }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Create new order"
+                        contentDescription = when (currentRoute) {
+                            AppRoute.Customers.route -> "Add customer"
+                            AppRoute.Products.route -> "Add product"
+                            else -> "Create new order"
+                        }
                     )
                 }
             }
@@ -165,69 +196,442 @@ private fun AuthenticatedTallyMobileApp(
                     appViewModel.loadDashboard()
                 }
 
-                DashboardScreen(
-                    state = state,
-                    onRefresh = {
-                        appViewModel.loadDashboard()
-                    },
-                    onOpenOrders = {
-                        navController.navigate(
-                            AppRoute.Orders.route
-                        ) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onOpenReports = {
-                        navController.navigate(AppRoute.Reports.route)
-                    },
-                    onOpenSuppliers = {
-                        navController.navigate(AppRoute.Suppliers.route)
-                    },
-                    onSyncPending = {
-                        appViewModel.syncPending()
-                    }
-                )
+    DashboardScreen(
+    state = state,
+    onRefresh = {
+        appViewModel.loadDashboard()
+    },
+    onOpenOrders = {
+        navController.navigate(
+            AppRoute.Orders.route
+        ) {
+            launchSingleTop = true
+        }
+    },
+    onOpenReports = {
+        navController.navigate(
+            AppRoute.Reports.route
+        ) {
+            launchSingleTop = true
+        }
+    },
+    onOpenSuppliers = {
+        navController.navigate(
+            AppRoute.Suppliers.route
+        ) {
+            launchSingleTop = true
+        }
+    },
+    onSyncPending = {
+        appViewModel.syncPending()
+    },
+    onRetryLocalOrders = {
+        appViewModel.retryOfflineOrders()
+    },
+    onOpenPurchaseOrders = {
+        navController.navigate(
+            AppRoute.PurchaseOrders.route
+        ) {
+            launchSingleTop = true
+        }
+    }
+)
             }
 
-            /*
-             * Suppliers
-             */
-            composable(route = AppRoute.Suppliers.route) {
-                LaunchedEffect(Unit) { appViewModel.loadSuppliers() }
-                SuppliersScreen(
-                    state = state,
-                    onSearchChange = appViewModel::updateSupplierSearch,
-                    onSearch = { appViewModel.loadSuppliers() },
-                    onAdd = {
-                        appViewModel.selectSupplier(null)
-                        navController.navigate(AppRoute.SupplierForm.createRoute())
-                    },
-                    onOpen = { supplier ->
-                        appViewModel.selectSupplier(supplier)
-                        navController.navigate(AppRoute.SupplierForm.createRoute(supplier.id))
-                    }
-                )
-            }
+         /*
+ * Suppliers
+ */
+composable(
+    route = AppRoute.Suppliers.route
+) {
+    LaunchedEffect(Unit) {
+        appViewModel.loadSuppliers()
+    }
 
-            composable(
-                route = AppRoute.SupplierForm.route,
-                arguments = listOf(navArgument("id") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                })
+    SuppliersScreen(
+        state = state,
+        onSearchChange = appViewModel::updateSupplierSearch,
+        onSearch = {
+            appViewModel.loadSuppliers()
+        },
+        onAdd = {
+            appViewModel.clearSupplierRecord()
+
+            navController.navigate(
+                AppRoute.SupplierForm.route
+            )
+        },
+        onOpen = { supplier ->
+            navController.navigate(
+                AppRoute.SupplierDetails.createRoute(
+                    supplier.id
+                )
+            )
+        }
+    )
+}
+
+/*
+ * Add supplier
+ */
+composable(
+    route = AppRoute.SupplierForm.route
+) {
+    SupplierEditorRoute(
+        supplier = null,
+        isSaving = state.isSavingSupplier,
+        onSave = { request ->
+            appViewModel.saveSupplier(request) {
+                navController.popBackStack()
+            }
+        },
+        onDelete = null,
+        onBack = {
+            navController.popBackStack()
+        }
+    )
+}
+
+/*
+ * Supplier details
+ */
+composable(
+    route = AppRoute.SupplierDetails.route,
+    arguments = listOf(
+        navArgument("id") {
+            type = NavType.StringType
+        }
+    )
+) { backStackEntry ->
+
+    val supplierId =
+        backStackEntry.arguments
+            ?.getString("id")
+            .orEmpty()
+
+    LaunchedEffect(supplierId) {
+        if (supplierId.isNotBlank()) {
+            appViewModel.loadSupplierRecord(
+                supplierId
+            )
+        }
+    }
+
+    SupplierDetailsScreen(
+        state = state,
+        supplierId = supplierId,
+        onBack = {
+            appViewModel.clearSupplierRecord()
+            navController.popBackStack()
+        },
+        onEdit = {
+            navController.navigate(
+                AppRoute.SupplierEdit.createRoute(
+                    supplierId
+                )
+            )
+        },
+        onStatusChange = { isActive ->
+            appViewModel.setSupplierActive(
+                supplierId = supplierId,
+                isActive = isActive
+            )
+        },
+        onDelete = {
+            appViewModel.deleteSupplier(
+                supplierId
             ) {
-                SupplierEditorRoute(
-                    supplier = state.selectedSupplier,
-                    isSaving = state.isSavingSupplier,
-                    onSave = { request ->
-                        appViewModel.saveSupplier(request) { navController.popBackStack() }
-                    },
-                    onDelete = state.selectedSupplier?.let {
-                        { appViewModel.deleteSelectedSupplier { navController.popBackStack() } }
-                    },
-                    onBack = { navController.popBackStack() }
+                navController.popBackStack(
+                    AppRoute.Suppliers.route,
+                    inclusive = false
                 )
             }
+        }
+    )
+}
+
+/*
+ * Edit supplier
+ */
+composable(
+    route = AppRoute.SupplierEdit.route,
+    arguments = listOf(
+        navArgument("id") {
+            type = NavType.StringType
+        }
+    )
+) { backStackEntry ->
+
+    val supplierId =
+        backStackEntry.arguments
+            ?.getString("id")
+            .orEmpty()
+
+    LaunchedEffect(supplierId) {
+        if (supplierId.isNotBlank()) {
+            appViewModel.loadSupplierRecord(
+                supplierId
+            )
+        }
+    }
+
+    SupplierEditorRoute(
+        supplier = state.supplierRecord
+            ?.takeIf {
+                it.id == supplierId
+            },
+        isSaving = state.isSavingSupplier,
+        onSave = { request ->
+            appViewModel.updateSupplier(
+                supplierId = supplierId,
+                request = request
+            ) {
+                navController.popBackStack()
+            }
+        },
+        onDelete = null,
+        onBack = {
+            navController.popBackStack()
+        }
+    )
+}
+
+/*
+ * Purchase Orders
+ */
+composable(
+    route = AppRoute.PurchaseOrders.route
+) {
+    LaunchedEffect(Unit) {
+        appViewModel.loadSuppliers()
+        appViewModel.loadWarehouses()
+        appViewModel.loadPurchaseOrders()
+    }
+
+    PurchaseOrdersScreen(
+        state = state,
+        onSearchChange =
+            appViewModel::updatePurchaseOrderSearch,
+        onSearch = {
+            appViewModel.loadPurchaseOrders(
+                search =
+                    state.purchaseOrderSearch,
+                status =
+                    state.purchaseOrderStatusFilter
+            )
+        },
+        onStatusFilter =
+            appViewModel::updatePurchaseOrderStatusFilter,
+        onOpen = { purchaseOrder ->
+            navController.navigate(
+                AppRoute.PurchaseOrderDetails
+                    .createRoute(
+                        purchaseOrder.id
+                    )
+            )
+        },
+        onAdd = {
+            appViewModel.clearPurchaseOrderRecord()
+            appViewModel.preparePurchaseOrderForm()
+
+            navController.navigate(
+                AppRoute.PurchaseOrderForm.route
+            )
+        }
+    )
+}
+
+composable(
+    route = AppRoute.PurchaseOrderForm.route
+) {
+    LaunchedEffect(Unit) {
+        appViewModel.clearPurchaseOrderRecord()
+        appViewModel.preparePurchaseOrderForm()
+    }
+
+    PurchaseOrderFormScreen(
+        purchaseOrder = null,
+        suppliers =
+            state.suppliers.filter {
+                it.isActive
+            },
+        warehouses =
+            state.warehouses.filter {
+                it.isActive
+            },
+        products = state.products,
+        isSaving =
+            state.isSavingPurchaseOrder,
+onSave = { request ->
+    Log.d(
+        "PO_DEBUG",
+        "ONSAVE_CALLBACK"
+    )
+
+    appViewModel.createPurchaseOrder(
+        request = request
+    ) { purchaseOrderId ->
+        Log.d(
+            "PO_DEBUG",
+            "CREATE_SUCCESS_CALLBACK"
+        )
+
+        navController.navigate(
+            AppRoute.PurchaseOrderDetails
+                .createRoute(
+                    purchaseOrderId
+                )
+        ) {
+            popUpTo(
+                AppRoute.PurchaseOrderForm.route
+            ) {
+                inclusive = true
+            }
+        }
+    }
+},
+        onBack = {
+            navController.popBackStack()
+        }
+    )
+}
+
+composable(
+    route = AppRoute.PurchaseOrderDetails.route
+) { backStackEntry ->
+
+    val purchaseOrderId =
+        backStackEntry.arguments
+            ?.getString("id")
+            .orEmpty()
+
+    LaunchedEffect(purchaseOrderId) {
+        if (purchaseOrderId.isNotBlank()) {
+            appViewModel.loadSuppliers()
+            appViewModel.loadWarehouses()
+            appViewModel.loadProducts()
+            appViewModel.loadPurchaseOrderRecord(
+                purchaseOrderId
+            )
+        }
+    }
+
+    PurchaseOrderDetailsScreen(
+        state = state,
+        purchaseOrderId =
+            purchaseOrderId,
+        onBack = {
+            appViewModel.clearPurchaseOrderRecord()
+            navController.popBackStack()
+        },
+        onEdit = {
+            navController.navigate(
+                AppRoute.PurchaseOrderEdit
+                    .createRoute(
+                        purchaseOrderId
+                    )
+            )
+        },
+        onSend = {
+            appViewModel.sendPurchaseOrder(
+                purchaseOrderId
+            )
+        },
+        onCancel = {
+            appViewModel.cancelPurchaseOrder(
+                purchaseOrderId
+            )
+        },
+        onDelete = {
+            appViewModel.deletePurchaseOrder(
+                purchaseOrderId
+            ) {
+                navController.popBackStack()
+            }
+        }
+    )
+}
+
+composable(
+    route = AppRoute.PurchaseOrderEdit.route
+) { backStackEntry ->
+
+    val purchaseOrderId =
+        backStackEntry.arguments
+            ?.getString("id")
+            .orEmpty()
+
+    LaunchedEffect(purchaseOrderId) {
+        if (purchaseOrderId.isNotBlank()) {
+            appViewModel.preparePurchaseOrderForm()
+            appViewModel.loadPurchaseOrderRecord(
+                purchaseOrderId
+            )
+        }
+    }
+
+    val purchaseOrder =
+        state.purchaseOrderRecord
+            ?.takeIf {
+                it.id == purchaseOrderId
+            }
+
+    if (purchaseOrder == null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            if (state.loading) {
+                CircularProgressIndicator()
+            } else {
+                Text(
+                    "Purchase order could not be loaded."
+                )
+
+                TextButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text("Back")
+                }
+            }
+        }
+    } else {
+        PurchaseOrderFormScreen(
+            purchaseOrder =
+                purchaseOrder,
+            suppliers =
+                state.suppliers.filter {
+                    it.isActive ||
+                        it.id ==
+                            purchaseOrder.supplierId
+                },
+            warehouses =
+                state.warehouses.filter {
+                    it.isActive ||
+                        it.id ==
+                            purchaseOrder.warehouseId
+                },
+            products =
+                state.products,
+            isSaving =
+                state.isSavingPurchaseOrder,
+            onSave = { request ->
+                appViewModel.updatePurchaseOrder(
+                    purchaseOrderId = purchaseOrderId,
+                        request = request
+                    ) {
+                    navController.popBackStack()
+                    }
+                },
+            onBack = {
+                navController.popBackStack()
+            }
+        )
+    }
+}
 
             /*
              * Customers
@@ -248,6 +652,61 @@ private fun AuthenticatedTallyMobileApp(
                         navController.navigate(
                             AppRoute.CustomerDetails.createRoute(customer.id)
                         )
+                    }
+                )
+            }
+
+            /*
+             * Add customer
+             */
+            composable(
+                route = AppRoute.CustomerForm.route
+            ) {
+                CustomerFormScreen(
+                    isSaving = state.isSavingCustomer,
+                    onSave = { request ->
+                        appViewModel.saveCustomer(request) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            /*
+             * Edit customer
+             */
+            composable(
+                route = AppRoute.CustomerEdit.route,
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val customerId =
+                    backStackEntry.arguments?.getString("id").orEmpty()
+
+                LaunchedEffect(customerId) {
+                    if (customerId.isNotBlank()) {
+                        appViewModel.loadCustomerRecord(customerId)
+                    }
+                }
+
+                CustomerFormScreen(
+                    isSaving = state.isSavingCustomer,
+                    customer = state.customerRecord
+                        ?.takeIf { it.id == customerId },
+                    onSave = { request ->
+                        appViewModel.updateCustomer(
+                            customerId = customerId,
+                            request = request
+                        ) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -286,8 +745,12 @@ private fun AuthenticatedTallyMobileApp(
                 val customerId = backStackEntry.arguments?.getString("id").orEmpty()
 
                 LaunchedEffect(customerId, state.customers) {
-                    if (customerId.isNotBlank() && state.customers.isNotEmpty()) {
-                        appViewModel.openCustomer(customerId)
+                    if (customerId.isNotBlank()) {
+                        appViewModel.loadCustomerRecord(customerId)
+
+                        if (state.customers.isNotEmpty()) {
+                            appViewModel.openCustomer(customerId)
+                        }
                     }
                 }
 
@@ -303,6 +766,20 @@ private fun AuthenticatedTallyMobileApp(
                     },
                     onOpenOrder = { orderId ->
                         navController.navigate(AppRoute.OrderDetails.createRoute(orderId))
+                    },
+                    onEdit = {
+                        navController.navigate(
+                            AppRoute.CustomerEdit.createRoute(customerId)
+                        )
+                    },
+                    onStatusChange = { isActive ->
+                    appViewModel.setCustomerActive(
+                        customerId = customerId,
+                        isActive = isActive
+                        )
+                    },
+                    onSyncWithTally = {
+                    appViewModel.syncCustomerWithTally(customerId)
                     }
                 )
             }
@@ -347,11 +824,112 @@ private fun AuthenticatedTallyMobileApp(
                     onSearchChange = appViewModel::updateProductSearch,
                     onSearch = { appViewModel.loadProducts() },
                     onAddProduct = appViewModel::addProductToCart,
+                    onProductClick = { product ->
+                        navController.navigate(
+                            AppRoute.ProductDetails.createRoute(product.id)
+                        )
+                    },
                     onOpenCart = {
                         navController.navigate(AppRoute.Cart.route)
                     },
                     onOpenScanner = {
                         navController.navigate(AppRoute.BarcodeScanner.route)
+                    }
+                )
+            }
+
+            /*
+             * Add product
+             */
+            composable(
+                route = AppRoute.ProductForm.route
+            ) {
+                ProductFormScreen(
+                    isSaving = state.isSavingProduct,
+                    onSave = { request ->
+                        appViewModel.saveProduct(request) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            /*
+             * Product details
+             */
+            composable(
+                route = AppRoute.ProductDetails.route,
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val productId =
+                    backStackEntry.arguments?.getString("id").orEmpty()
+
+                LaunchedEffect(productId) {
+                    if (productId.isNotBlank()) {
+                        appViewModel.loadProductRecord(productId)
+                    }
+                }
+
+                ProductDetailsScreen(
+                    state = state,
+                    onBack = {
+                        appViewModel.clearProductRecord()
+                        navController.popBackStack()
+                    },
+                    onEdit = {
+                        navController.navigate(
+                            AppRoute.ProductEdit.createRoute(productId)
+                        )
+                    },
+                    onStatusChange = { isActive ->
+    appViewModel.setProductActive(
+        productId = productId,
+        isActive = isActive
+    )
+},
+onSyncWithTally = {
+    appViewModel.syncProductWithTally(productId)
+}
+                )
+            }
+
+            /*
+             * Edit product
+             */
+            composable(
+                route = AppRoute.ProductEdit.route,
+                arguments = listOf(
+                    navArgument("id") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val productId =
+                    backStackEntry.arguments?.getString("id").orEmpty()
+
+                LaunchedEffect(productId) {
+                    if (productId.isNotBlank()) {
+                        appViewModel.loadProductRecord(productId)
+                    }
+                }
+
+                ProductFormScreen(
+                    isSaving = state.isSavingProduct,
+                    product = state.productRecord
+                        ?.takeIf { it.id == productId },
+                    onSave = { request ->
+                        appViewModel.updateProduct(
+                            productId = productId,
+                            request = request
+                        ) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -407,10 +985,18 @@ private fun AuthenticatedTallyMobileApp(
                 route = AppRoute.ReviewOrder.route
             ) {
                 ReviewOrderScreen(
-                    state = state,
-                    onNotesChange = { notes ->
-                        appViewModel.updateOrderNotes(notes)
-                    },
+    state = state,
+
+    onNotesChange = { notes ->
+        appViewModel.updateOrderNotes(notes)
+    },
+
+    onUnitPriceChange = { productId, unitPrice ->
+        appViewModel.updateCartUnitPrice(
+            productId = productId,
+            unitPrice = unitPrice
+        )
+    },
                     onBackToCart = {
                         navController.popBackStack()
                     },
@@ -492,6 +1078,9 @@ private fun AuthenticatedTallyMobileApp(
                                 orderId
                             )
                         )
+                    },
+                    onRetryLocalOrders = {
+                        appViewModel.retryOfflineOrders()
                     }
                 )
             }
@@ -518,15 +1107,26 @@ private fun AuthenticatedTallyMobileApp(
                     }
                 }
 
-                OrderDetailsScreen(
-                    state = state,
-                    onSync = { id ->
-                        appViewModel.syncOrder(id)
-                    },
-                    onRetry = { id ->
-                        appViewModel.retryOrder(id)
-                    },
-                    onCreateInvoicePdf = {
+               OrderDetailsScreen(
+    state = state,
+
+    onFulfill = { id ->
+        appViewModel.fulfillOrder(id)
+    },
+
+    onSync = { id ->
+        appViewModel.syncOrder(id)
+    },
+
+    onRetry = { id ->
+        appViewModel.retryOrder(id)
+    },
+
+    onRefresh = { id ->
+        appViewModel.loadOrder(id)
+    },
+
+    onCreateInvoicePdf = {
                         state.selectedOrder?.let { order ->
                             runCatching {
                                 InvoicePdfGenerator.createPdf(context, order)

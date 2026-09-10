@@ -21,7 +21,9 @@ export class ListCommercialNotificationsQueryDto {
   @IsUUID()
   companyId?: string;
 
-  @ApiPropertyOptional({ description: 'Commercial event name, for example license.renewed' })
+  @ApiPropertyOptional({
+    description: 'Commercial event name, for example license.renewed',
+  })
   @IsOptional()
   @IsString()
   event?: string;

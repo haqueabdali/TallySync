@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { AccountingEngineService } from '../accounting-engine/accounting-engine.service';
 import { CustomerEntity } from '../customers/entities/customer.entity';
@@ -58,15 +54,14 @@ export class CustomerPaymentsService {
     await this.validateAllocations(dto, customer.id, companyId);
 
     return this.dataSource.transaction(async (manager) => {
-      const paymentRepository =
-        manager.getRepository(CustomerPaymentEntity);
-      const allocationRepository =
-        manager.getRepository(CustomerPaymentAllocationEntity);
+      const paymentRepository = manager.getRepository(CustomerPaymentEntity);
+      const allocationRepository = manager.getRepository(
+        CustomerPaymentAllocationEntity,
+      );
 
       const allocatedAmount = this.round(
         dto.allocations.reduce(
-          (sum, allocation) =>
-            sum + Number(allocation.allocatedAmount),
+          (sum, allocation) => sum + Number(allocation.allocatedAmount),
           0,
         ),
       );
@@ -90,9 +85,7 @@ export class CustomerPaymentsService {
         currency: (dto.currency ?? 'EUR').toUpperCase(),
         amount: this.round(dto.amount),
         allocatedAmount,
-        unallocatedAmount: this.round(
-          Number(dto.amount) - allocatedAmount,
-        ),
+        unallocatedAmount: this.round(Number(dto.amount) - allocatedAmount),
         referenceNumber: this.optional(dto.referenceNumber),
         bankAccountName: this.optional(dto.bankAccountName),
         chequeNumber: this.optional(dto.chequeNumber),
@@ -110,23 +103,19 @@ export class CustomerPaymentsService {
 
       const savedPayment = await paymentRepository.save(payment);
 
-      savedPayment.allocations = dto.allocations.map(
-        (allocation) =>
-          allocationRepository.create({
-            customerPaymentId: savedPayment.id,
-            salesInvoiceId: allocation.salesInvoiceId,
-            allocatedAmount: this.round(
-              allocation.allocatedAmount,
-            ),
-            invoiceBalanceBefore: 0,
-            invoiceBalanceAfter: 0,
-          }),
+      savedPayment.allocations = dto.allocations.map((allocation) =>
+        allocationRepository.create({
+          customerPaymentId: savedPayment.id,
+          salesInvoiceId: allocation.salesInvoiceId,
+          allocatedAmount: this.round(allocation.allocatedAmount),
+          invoiceBalanceBefore: 0,
+          invoiceBalanceAfter: 0,
+        }),
       );
 
-      savedPayment.allocations =
-        await allocationRepository.save(
-          savedPayment.allocations,
-        );
+      savedPayment.allocations = await allocationRepository.save(
+        savedPayment.allocations,
+      );
 
       return this.toResponse(savedPayment);
     });
@@ -217,9 +206,7 @@ export class CustomerPaymentsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: payments.map((payment) =>
-        this.toResponse(payment),
-      ),
+      data: payments.map((payment) => this.toResponse(payment)),
       meta: {
         page,
         limit,
@@ -245,10 +232,10 @@ export class CustomerPaymentsService {
     userId: string,
   ): Promise<CustomerPaymentResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const paymentRepository =
-        manager.getRepository(CustomerPaymentEntity);
-      const allocationRepository =
-        manager.getRepository(CustomerPaymentAllocationEntity);
+      const paymentRepository = manager.getRepository(CustomerPaymentEntity);
+      const allocationRepository = manager.getRepository(
+        CustomerPaymentAllocationEntity,
+      );
 
       const payment = await paymentRepository.findOne({
         where: { id, companyId },
@@ -256,9 +243,7 @@ export class CustomerPaymentsService {
       });
 
       if (!payment) {
-        throw new NotFoundException(
-          'Customer payment not found.',
-        );
+        throw new NotFoundException('Customer payment not found.');
       }
 
       this.ensureDraft(payment);
@@ -266,41 +251,25 @@ export class CustomerPaymentsService {
       const mergedDto: CreateCustomerPaymentDto = {
         customerId: dto.customerId ?? payment.customerId,
         paymentDate: dto.paymentDate ?? payment.paymentDate,
-        paymentMethod:
-          dto.paymentMethod ?? payment.paymentMethod,
+        paymentMethod: dto.paymentMethod ?? payment.paymentMethod,
         currency: dto.currency ?? payment.currency,
         amount: dto.amount ?? Number(payment.amount),
         referenceNumber:
-          dto.referenceNumber ??
-          payment.referenceNumber ??
-          undefined,
+          dto.referenceNumber ?? payment.referenceNumber ?? undefined,
         bankAccountName:
-          dto.bankAccountName ??
-          payment.bankAccountName ??
-          undefined,
-        chequeNumber:
-          dto.chequeNumber ??
-          payment.chequeNumber ??
-          undefined,
-        chequeDate:
-          dto.chequeDate ??
-          payment.chequeDate ??
-          undefined,
+          dto.bankAccountName ?? payment.bankAccountName ?? undefined,
+        chequeNumber: dto.chequeNumber ?? payment.chequeNumber ?? undefined,
+        chequeDate: dto.chequeDate ?? payment.chequeDate ?? undefined,
         notes: dto.notes ?? payment.notes ?? undefined,
         allocations:
           dto.allocations ??
           payment.allocations.map((allocation) => ({
             salesInvoiceId: allocation.salesInvoiceId,
-            allocatedAmount: Number(
-              allocation.allocatedAmount,
-            ),
+            allocatedAmount: Number(allocation.allocatedAmount),
           })),
       };
 
-      await this.getCustomer(
-        mergedDto.customerId,
-        companyId,
-      );
+      await this.getCustomer(mergedDto.customerId, companyId);
       await this.validateAllocations(
         mergedDto,
         mergedDto.customerId,
@@ -309,8 +278,7 @@ export class CustomerPaymentsService {
 
       const allocatedAmount = this.round(
         mergedDto.allocations.reduce(
-          (sum, allocation) =>
-            sum + Number(allocation.allocatedAmount),
+          (sum, allocation) => sum + Number(allocation.allocatedAmount),
           0,
         ),
       );
@@ -326,23 +294,19 @@ export class CustomerPaymentsService {
           customerPaymentId: payment.id,
         });
 
-        payment.allocations = dto.allocations.map(
-          (allocation) =>
-            allocationRepository.create({
-              customerPaymentId: payment.id,
-              salesInvoiceId: allocation.salesInvoiceId,
-              allocatedAmount: this.round(
-                allocation.allocatedAmount,
-              ),
-              invoiceBalanceBefore: 0,
-              invoiceBalanceAfter: 0,
-            }),
+        payment.allocations = dto.allocations.map((allocation) =>
+          allocationRepository.create({
+            customerPaymentId: payment.id,
+            salesInvoiceId: allocation.salesInvoiceId,
+            allocatedAmount: this.round(allocation.allocatedAmount),
+            invoiceBalanceBefore: 0,
+            invoiceBalanceAfter: 0,
+          }),
         );
 
-        payment.allocations =
-          await allocationRepository.save(
-            payment.allocations,
-          );
+        payment.allocations = await allocationRepository.save(
+          payment.allocations,
+        );
       }
 
       if (dto.customerId !== undefined) {
@@ -366,21 +330,15 @@ export class CustomerPaymentsService {
       }
 
       if (dto.referenceNumber !== undefined) {
-        payment.referenceNumber = this.optional(
-          dto.referenceNumber,
-        );
+        payment.referenceNumber = this.optional(dto.referenceNumber);
       }
 
       if (dto.bankAccountName !== undefined) {
-        payment.bankAccountName = this.optional(
-          dto.bankAccountName,
-        );
+        payment.bankAccountName = this.optional(dto.bankAccountName);
       }
 
       if (dto.chequeNumber !== undefined) {
-        payment.chequeNumber = this.optional(
-          dto.chequeNumber,
-        );
+        payment.chequeNumber = this.optional(dto.chequeNumber);
       }
 
       if (dto.chequeDate !== undefined) {
@@ -397,9 +355,7 @@ export class CustomerPaymentsService {
       );
       payment.updatedBy = userId;
 
-      return this.toResponse(
-        await paymentRepository.save(payment),
-      );
+      return this.toResponse(await paymentRepository.save(payment));
     });
   }
 
@@ -409,14 +365,12 @@ export class CustomerPaymentsService {
     userId: string,
   ): Promise<CustomerPaymentResponseDto> {
     const postedPayment = await this.dataSource.transaction(async (manager) => {
-      const paymentRepository =
-        manager.getRepository(CustomerPaymentEntity);
-      const allocationRepository =
-        manager.getRepository(CustomerPaymentAllocationEntity);
-      const invoiceRepository =
-        manager.getRepository(SalesInvoiceEntity);
-      const customerRepository =
-        manager.getRepository(CustomerEntity);
+      const paymentRepository = manager.getRepository(CustomerPaymentEntity);
+      const allocationRepository = manager.getRepository(
+        CustomerPaymentAllocationEntity,
+      );
+      const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
+      const customerRepository = manager.getRepository(CustomerEntity);
 
       const payment = await paymentRepository.findOne({
         where: { id, companyId },
@@ -424,9 +378,7 @@ export class CustomerPaymentsService {
       });
 
       if (!payment) {
-        throw new NotFoundException(
-          'Customer payment not found.',
-        );
+        throw new NotFoundException('Customer payment not found.');
       }
 
       if (payment.status === CustomerPaymentStatus.POSTED) {
@@ -460,20 +412,15 @@ export class CustomerPaymentsService {
 
         if (
           invoice.status !== SalesInvoiceStatus.POSTED &&
-          invoice.status !==
-            SalesInvoiceStatus.PARTIALLY_PAID
+          invoice.status !== SalesInvoiceStatus.PARTIALLY_PAID
         ) {
           throw new ConflictException(
             `Invoice ${invoice.invoiceNumber} is not open for payment.`,
           );
         }
 
-        const balanceBefore = this.round(
-          Number(invoice.balanceDue),
-        );
-        const allocated = this.round(
-          Number(allocation.allocatedAmount),
-        );
+        const balanceBefore = this.round(Number(invoice.balanceDue));
+        const allocated = this.round(Number(allocation.allocatedAmount));
 
         if (allocated > balanceBefore) {
           throw new BadRequestException(
@@ -481,13 +428,9 @@ export class CustomerPaymentsService {
           );
         }
 
-        const balanceAfter = this.round(
-          balanceBefore - allocated,
-        );
+        const balanceAfter = this.round(balanceBefore - allocated);
 
-        invoice.paidAmount = this.round(
-          Number(invoice.paidAmount) + allocated,
-        );
+        invoice.paidAmount = this.round(Number(invoice.paidAmount) + allocated);
         invoice.balanceDue = balanceAfter;
         invoice.status =
           balanceAfter === 0
@@ -497,9 +440,7 @@ export class CustomerPaymentsService {
         allocation.invoiceBalanceBefore = balanceBefore;
         allocation.invoiceBalanceAfter = balanceAfter;
 
-        totalAllocated = this.round(
-          totalAllocated + allocated,
-        );
+        totalAllocated = this.round(totalAllocated + allocated);
 
         await invoiceRepository.save(invoice);
         await allocationRepository.save(allocation);
@@ -535,9 +476,7 @@ export class CustomerPaymentsService {
           customer as CustomerEntity & {
             currentBalance: number;
           }
-        ).currentBalance = this.round(
-          currentBalance - totalAllocated,
-        );
+        ).currentBalance = this.round(currentBalance - totalAllocated);
 
         await customerRepository.save(customer);
       }
@@ -551,9 +490,7 @@ export class CustomerPaymentsService {
       payment.postedAt = new Date();
       payment.updatedBy = userId;
 
-      return this.toResponse(
-        await paymentRepository.save(payment),
-      );
+      return this.toResponse(await paymentRepository.save(payment));
     });
 
     await this.accountingEngineService.autoPostCustomerPayment(
@@ -571,12 +508,9 @@ export class CustomerPaymentsService {
     userId: string,
   ): Promise<CustomerPaymentResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const paymentRepository =
-        manager.getRepository(CustomerPaymentEntity);
-      const invoiceRepository =
-        manager.getRepository(SalesInvoiceEntity);
-      const customerRepository =
-        manager.getRepository(CustomerEntity);
+      const paymentRepository = manager.getRepository(CustomerPaymentEntity);
+      const invoiceRepository = manager.getRepository(SalesInvoiceEntity);
+      const customerRepository = manager.getRepository(CustomerEntity);
 
       const payment = await paymentRepository.findOne({
         where: { id, companyId },
@@ -584,9 +518,7 @@ export class CustomerPaymentsService {
       });
 
       if (!payment) {
-        throw new NotFoundException(
-          'Customer payment not found.',
-        );
+        throw new NotFoundException('Customer payment not found.');
       }
 
       if (payment.status !== CustomerPaymentStatus.POSTED) {
@@ -610,19 +542,12 @@ export class CustomerPaymentsService {
           );
         }
 
-        const allocated = this.round(
-          Number(allocation.allocatedAmount),
-        );
+        const allocated = this.round(Number(allocation.allocatedAmount));
 
         invoice.paidAmount = this.round(
-          Math.max(
-            0,
-            Number(invoice.paidAmount) - allocated,
-          ),
+          Math.max(0, Number(invoice.paidAmount) - allocated),
         );
-        invoice.balanceDue = this.round(
-          Number(invoice.balanceDue) + allocated,
-        );
+        invoice.balanceDue = this.round(Number(invoice.balanceDue) + allocated);
         invoice.status =
           invoice.paidAmount === 0
             ? SalesInvoiceStatus.POSTED
@@ -668,9 +593,7 @@ export class CustomerPaymentsService {
       payment.reversalReason = dto.reversalReason.trim();
       payment.updatedBy = userId;
 
-      return this.toResponse(
-        await paymentRepository.save(payment),
-      );
+      return this.toResponse(await paymentRepository.save(payment));
     });
   }
 
@@ -694,15 +617,10 @@ export class CustomerPaymentsService {
     payment.status = CustomerPaymentStatus.CANCELLED;
     payment.updatedBy = userId;
 
-    return this.toResponse(
-      await this.paymentRepository.save(payment),
-    );
+    return this.toResponse(await this.paymentRepository.save(payment));
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const payment = await this.getEntity(id, companyId);
     this.ensureDraft(payment);
 
@@ -752,10 +670,7 @@ export class CustomerPaymentsService {
         );
       }
 
-      if (
-        Number(allocation.allocatedAmount) >
-        Number(invoice.balanceDue)
-      ) {
+      if (Number(allocation.allocatedAmount) > Number(invoice.balanceDue)) {
         throw new BadRequestException(
           `Allocation exceeds the outstanding balance of invoice ${invoice.invoiceNumber}.`,
         );
@@ -791,17 +706,13 @@ export class CustomerPaymentsService {
     });
 
     if (!payment) {
-      throw new NotFoundException(
-        'Customer payment not found.',
-      );
+      throw new NotFoundException('Customer payment not found.');
     }
 
     return payment;
   }
 
-  private ensureDraft(
-    payment: CustomerPaymentEntity,
-  ): void {
+  private ensureDraft(payment: CustomerPaymentEntity): void {
     if (payment.status !== CustomerPaymentStatus.DRAFT) {
       throw new ConflictException(
         'Only draft customer payments can be modified.',
@@ -852,12 +763,8 @@ export class CustomerPaymentsService {
       id: allocation.id,
       salesInvoiceId: allocation.salesInvoiceId,
       allocatedAmount: Number(allocation.allocatedAmount),
-      invoiceBalanceBefore: Number(
-        allocation.invoiceBalanceBefore,
-      ),
-      invoiceBalanceAfter: Number(
-        allocation.invoiceBalanceAfter,
-      ),
+      invoiceBalanceBefore: Number(allocation.invoiceBalanceBefore),
+      invoiceBalanceAfter: Number(allocation.invoiceBalanceAfter),
     };
   }
 
@@ -881,9 +788,8 @@ export class CustomerPaymentsService {
       chequeNumber: payment.chequeNumber,
       chequeDate: payment.chequeDate,
       notes: payment.notes,
-      allocations: (payment.allocations ?? []).map(
-        (allocation) =>
-          this.toAllocationResponse(allocation),
+      allocations: (payment.allocations ?? []).map((allocation) =>
+        this.toAllocationResponse(allocation),
       ),
       createdBy: payment.createdBy,
       updatedBy: payment.updatedBy,

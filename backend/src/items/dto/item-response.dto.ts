@@ -4,7 +4,8 @@ import { ItemSyncStatus } from '../enums/item-sync-status.enum';
 export class ItemResponseDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty({ format: 'uuid' }) companyId!: string;
-  @ApiPropertyOptional({ format: 'uuid', nullable: true }) categoryId!: string | null;
+  @ApiPropertyOptional({ format: 'uuid', nullable: true }) categoryId!:
+    string | null;
   @ApiProperty({ example: 'ITEM-0001' }) sku!: string;
   @ApiPropertyOptional({ nullable: true }) barcode!: string | null;
   @ApiProperty({ example: 'Wireless Keyboard' }) name!: string;

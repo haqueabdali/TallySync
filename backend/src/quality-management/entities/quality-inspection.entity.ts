@@ -23,10 +23,14 @@ const quantityTransformer = {
 };
 
 @Entity('quality_inspections')
-@Index('UQ_quality_inspections_company_number', ['companyId', 'inspectionNumber'], {
-  unique: true,
-  where: '"deleted_at" IS NULL',
-})
+@Index(
+  'UQ_quality_inspections_company_number',
+  ['companyId', 'inspectionNumber'],
+  {
+    unique: true,
+    where: '"deleted_at" IS NULL',
+  },
+)
 @Index('IDX_quality_inspections_company_status', ['companyId', 'status'])
 @Index('IDX_quality_inspections_source', [
   'companyId',
@@ -154,13 +158,9 @@ export class QualityInspectionEntity {
   })
   updatedBy!: string | null;
 
-  @OneToMany(
-    () => QualityInspectionCheckEntity,
-    (check) => check.inspection,
-    {
-      cascade: false,
-    },
-  )
+  @OneToMany(() => QualityInspectionCheckEntity, (check) => check.inspection, {
+    cascade: false,
+  })
   checks!: QualityInspectionCheckEntity[];
 
   @CreateDateColumn({

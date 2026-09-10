@@ -8,9 +8,11 @@ export class GeneralLedgerLineResponseDto {
   @ApiProperty() journalEntryLineId!: string;
   @ApiProperty() entryNumber!: string;
   @ApiProperty() entryDate!: string;
-  @ApiProperty({ enum: JournalEntrySourceType }) sourceType!: JournalEntrySourceType;
+  @ApiProperty({ enum: JournalEntrySourceType })
+  sourceType!: JournalEntrySourceType;
   @ApiProperty({ required: false, nullable: true }) sourceId!: string | null;
-  @ApiProperty({ required: false, nullable: true }) referenceNumber!: string | null;
+  @ApiProperty({ required: false, nullable: true }) referenceNumber!:
+    string | null;
   @ApiProperty() accountId!: string;
   @ApiProperty() accountCode!: string;
   @ApiProperty() accountName!: string;
@@ -29,7 +31,8 @@ export class GeneralLedgerAccountResponseDto {
   @ApiProperty() accountCode!: string;
   @ApiProperty() accountName!: string;
   @ApiProperty({ enum: AccountType }) accountType!: AccountType;
-  @ApiProperty({ enum: AccountNormalBalance }) normalBalance!: AccountNormalBalance;
+  @ApiProperty({ enum: AccountNormalBalance })
+  normalBalance!: AccountNormalBalance;
   @ApiProperty() currency!: string;
   @ApiProperty() openingBalance!: number;
   @ApiProperty() totalDebit!: number;

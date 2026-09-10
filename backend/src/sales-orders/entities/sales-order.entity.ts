@@ -16,7 +16,6 @@ import { WarehouseEntity } from '../../warehouses/entities/warehouse.entity';
 import { SalesOrderStatus } from '../enums/sales-order-status.enum';
 import { SalesOrderItemEntity } from './sales-order-item.entity';
 
-
 export { SalesOrderStatus } from '../enums/sales-order-status.enum';
 
 export enum SalesOrderSyncStatus {
@@ -274,14 +273,10 @@ export class SalesOrderEntity {
   })
   rejectionReason!: string | null;
 
-  @OneToMany(
-    () => SalesOrderItemEntity,
-    (item) => item.salesOrder,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => SalesOrderItemEntity, (item) => item.salesOrder, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: SalesOrderItemEntity[];
 
   @CreateDateColumn({

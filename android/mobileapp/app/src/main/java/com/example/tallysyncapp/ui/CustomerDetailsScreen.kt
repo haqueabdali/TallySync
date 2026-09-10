@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
@@ -44,7 +45,10 @@ fun CustomerDetailsScreen(
     state: AppUiState,
     onBack: () -> Unit,
     onCreateOrder: () -> Unit,
-    onOpenOrder: (String) -> Unit
+    onOpenOrder: (String) -> Unit,
+    onEdit: () -> Unit,
+    onStatusChange: (Boolean) -> Unit,
+    onSyncWithTally: () -> Unit
 ) {
     val customer = state.viewedCustomer
     val context = LocalContext.current
@@ -129,6 +133,106 @@ fun CustomerDetailsScreen(
                         Button(onClick = onCreateOrder, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Default.AddShoppingCart, contentDescription = null)
                             Text("Create order", modifier = Modifier.padding(start = 8.dp))
+                        }
+
+                        Button(
+                            onClick = onEdit,
+                            enabled = !state.isSavingCustomer,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                            Text("Edit customer", modifier = Modifier.padding(start = 8.dp))
+                        }
+
+                        state.customerRecord?.let { record ->
+
+                                                    Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        "Tally synchronization",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Text(
+                                        "Ledger name: ${
+                                            record.tallyLedgerName
+                                                ?.takeIf(String::isNotBlank)
+                                                ?: record.name
+                                        }"
+                                    )
+
+                                    Text(
+                                        "Tally ledger ID: ${
+                                            record.tallyLedgerId
+                                                ?.takeIf(String::isNotBlank)
+                                                ?: "Not linked"
+                                        }"
+                                    )
+
+                                    record.tallyAlterId
+                                        ?.takeIf(String::isNotBlank)
+                                        ?.let {
+                                            Text("Tally Alter ID: $it")
+                                        }
+
+                                    if (record.tallyLedgerId.isNullOrBlank()) {
+                                        Button(
+                                            onClick = onSyncWithTally,
+                                            enabled =
+                                                record.isActive &&
+                                                !state.isSyncingTallyMaster,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            if (state.isSyncingTallyMaster) {
+                                                CircularProgressIndicator()
+                                            } else {
+                                                Text("Synchronize with Tally")
+                                            }
+                                        }
+
+                                        if (!record.isActive) {
+                                            Text(
+                                                "Activate the customer before synchronizing with Tally.",
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            "✓ Linked with Tally",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+                            }
+                            Text(
+                                text = if (record.isActive) {
+                                    "Status: Active"
+                                } else {
+                                    "Status: Inactive"
+                                },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            OutlinedButton(
+                                onClick = {
+                                    onStatusChange(!record.isActive)
+                                },
+                                enabled = !state.isSavingCustomer,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    if (record.isActive) {
+                                        "Deactivate customer"
+                                    } else {
+                                        "Activate customer"
+                                    }
+                                )
+                            }
                         }
                     }
                 }

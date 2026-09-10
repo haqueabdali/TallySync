@@ -184,67 +184,67 @@ export class AccountingSettingsEntity {
   updatedBy!: string | null;
 
   @Column({
-  name: 'raw_materials_inventory_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-rawMaterialsInventoryAccountId!: string | null;
+    name: 'raw_materials_inventory_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  rawMaterialsInventoryAccountId!: string | null;
 
-@Column({
-  name: 'work_in_progress_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-workInProgressAccountId!: string | null;
+  @Column({
+    name: 'work_in_progress_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  workInProgressAccountId!: string | null;
 
-@Column({
-  name: 'finished_goods_inventory_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-finishedGoodsInventoryAccountId!: string | null;
+  @Column({
+    name: 'finished_goods_inventory_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  finishedGoodsInventoryAccountId!: string | null;
 
-@Column({
-  name: 'manufacturing_variance_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-manufacturingVarianceAccountId!: string | null;
+  @Column({
+    name: 'manufacturing_variance_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  manufacturingVarianceAccountId!: string | null;
 
-@Column({
-  name: 'direct_labor_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-directLaborAccountId!: string | null;
+  @Column({
+    name: 'direct_labor_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  directLaborAccountId!: string | null;
 
-@Column({
-  name: 'manufacturing_overhead_account_id',
-  type: 'uuid',
-  nullable: true,
-})
-manufacturingOverheadAccountId!: string | null;
+  @Column({
+    name: 'manufacturing_overhead_account_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  manufacturingOverheadAccountId!: string | null;
 
-@Column({
-  name: 'auto_post_material_consumption',
-  type: 'boolean',
-  default: true,
-})
-autoPostMaterialConsumption!: boolean;
+  @Column({
+    name: 'auto_post_material_consumption',
+    type: 'boolean',
+    default: true,
+  })
+  autoPostMaterialConsumption!: boolean;
 
-@Column({
-  name: 'auto_post_production_completion',
-  type: 'boolean',
-  default: true,
-})
-autoPostProductionCompletion!: boolean;
+  @Column({
+    name: 'auto_post_production_completion',
+    type: 'boolean',
+    default: true,
+  })
+  autoPostProductionCompletion!: boolean;
 
-@Column({
-  name: 'auto_post_production_variance',
-  type: 'boolean',
-  default: true,
-})
-autoPostProductionVariance!: boolean;
+  @Column({
+    name: 'auto_post_production_variance',
+    type: 'boolean',
+    default: true,
+  })
+  autoPostProductionVariance!: boolean;
 
   @CreateDateColumn({
     name: 'created_at',

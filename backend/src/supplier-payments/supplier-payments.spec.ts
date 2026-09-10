@@ -32,66 +32,47 @@ describe('SupplierPaymentsService', () => {
   };
 
   const accountingEngineMock = {
-    postSupplierPayment: jest
-      .fn()
-      .mockResolvedValue(undefined),
+    postSupplierPayment: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          SupplierPaymentsService,
-          {
-            provide: DataSource,
-            useValue: {
-              transaction: jest.fn(),
-            },
-          },
-          {
-            provide: getRepositoryToken(
-              SupplierPayment,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              SupplierPaymentAllocation,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              SupplierEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              PurchaseInvoiceEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              AccountingSettingsEntity,
-            ),
-            useValue:
-              settingsRepositoryMock,
-          },
-          {
-            provide:
-              AccountingEngineService,
-            useValue:
-              accountingEngineMock,
-          },
-        ],
-      }).compile();
-
-    service =
-      module.get<SupplierPaymentsService>(
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
         SupplierPaymentsService,
-      );
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(SupplierPayment),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(SupplierPaymentAllocation),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(SupplierEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(AccountingSettingsEntity),
+          useValue: settingsRepositoryMock,
+        },
+        {
+          provide: AccountingEngineService,
+          useValue: accountingEngineMock,
+        },
+      ],
+    }).compile();
+
+    service = module.get<SupplierPaymentsService>(SupplierPaymentsService);
   });
 
   afterEach(() => {

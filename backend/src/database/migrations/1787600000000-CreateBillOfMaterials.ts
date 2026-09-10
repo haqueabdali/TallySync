@@ -4,7 +4,9 @@ export class CreateBillOfMaterials1787600000000 implements MigrationInterface {
   name = 'CreateBillOfMaterials1787600000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "bill_of_material_status_enum" AS ENUM ('draft', 'active', 'inactive')`);
+    await queryRunner.query(
+      `CREATE TYPE "bill_of_material_status_enum" AS ENUM ('draft', 'active', 'inactive')`,
+    );
     await queryRunner.query(`
       CREATE TABLE "bills_of_material" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -29,10 +31,18 @@ export class CreateBillOfMaterials1787600000000 implements MigrationInterface {
         CONSTRAINT "FK_bom_finished_item" FOREIGN KEY ("finished_item_id") REFERENCES "items"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_bom_company_id" ON "bills_of_material" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_bom_finished_item_id" ON "bills_of_material" ("finished_item_id")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "uq_bom_company_code" ON "bills_of_material" ("company_id", "code") WHERE "deleted_at" IS NULL`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "uq_bom_active_finished_item" ON "bills_of_material" ("company_id", "finished_item_id") WHERE "status" = 'active' AND "deleted_at" IS NULL`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_bom_company_id" ON "bills_of_material" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_bom_finished_item_id" ON "bills_of_material" ("finished_item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "uq_bom_company_code" ON "bills_of_material" ("company_id", "code") WHERE "deleted_at" IS NULL`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "uq_bom_active_finished_item" ON "bills_of_material" ("company_id", "finished_item_id") WHERE "status" = 'active' AND "deleted_at" IS NULL`,
+    );
 
     await queryRunner.query(`
       CREATE TABLE "bill_of_material_components" (
@@ -52,8 +62,12 @@ export class CreateBillOfMaterials1787600000000 implements MigrationInterface {
         CONSTRAINT "FK_bom_component_item" FOREIGN KEY ("component_item_id") REFERENCES "items"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_bom_component_bom_id" ON "bill_of_material_components" ("bill_of_material_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_bom_component_item_id" ON "bill_of_material_components" ("component_item_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_bom_component_bom_id" ON "bill_of_material_components" ("bill_of_material_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_bom_component_item_id" ON "bill_of_material_components" ("component_item_id")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

@@ -8,6 +8,7 @@ import { SalesOrderEntity } from '../sales-orders/entities/sales-order.entity';
 import { TallySyncModule } from '../tally-sync/tally-sync.module';
 import { MobileController } from './mobile.controller';
 import { MobileService } from './mobile.service';
+import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MobileService } from './mobile.service';
       SalesOrderItemEntity,
       CustomerEntity,
       ItemEntity,
+      WarehouseEntity,
     ]),
     TallySyncModule,
   ],

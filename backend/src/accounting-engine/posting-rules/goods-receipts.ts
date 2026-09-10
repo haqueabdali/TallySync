@@ -14,38 +14,28 @@ import { PostingDocument } from '../interfaces/posting-document.interface';
 import { PostingRule } from '../interfaces/posting-rule.interface';
 
 @Injectable()
-export class GoodsReceiptPostingRule
-  implements PostingRule<GoodsReceipt>
-{
+export class GoodsReceiptPostingRule implements PostingRule<GoodsReceipt> {
   constructor(
     @InjectRepository(GoodsReceipt)
-    private readonly goodsReceiptRepository:
-      Repository<GoodsReceipt>,
+    private readonly goodsReceiptRepository: Repository<GoodsReceipt>,
 
     @InjectRepository(AccountingSettingsEntity)
-    private readonly settingsRepository:
-      Repository<AccountingSettingsEntity>,
+    private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
-  async load(
-    sourceId: string,
-    companyId: string,
-  ): Promise<GoodsReceipt> {
-    const goodsReceipt =
-      await this.goodsReceiptRepository.findOne({
-        where: {
-          id: sourceId,
-          companyId,
-        },
-        relations: {
-          items: true,
-        },
-      });
+  async load(sourceId: string, companyId: string): Promise<GoodsReceipt> {
+    const goodsReceipt = await this.goodsReceiptRepository.findOne({
+      where: {
+        id: sourceId,
+        companyId,
+      },
+      relations: {
+        items: true,
+      },
+    });
 
     if (!goodsReceipt) {
-      throw new NotFoundException(
-        'Goods receipt not found.',
-      );
+      throw new NotFoundException('Goods receipt not found.');
     }
 
     return goodsReceipt;
@@ -56,14 +46,10 @@ export class GoodsReceiptPostingRule
     companyId: string,
   ): Promise<PostingDocument> {
     if (goodsReceipt.companyId !== companyId) {
-      throw new NotFoundException(
-        'Goods receipt not found.',
-      );
+      throw new NotFoundException('Goods receipt not found.');
     }
 
-    if (
-      goodsReceipt.status !== GoodsReceiptStatus.Posted
-    ) {
+    if (goodsReceipt.status !== GoodsReceiptStatus.Posted) {
       throw new ConflictException(
         'Only posted goods receipts can create accounting entries.',
       );
@@ -77,24 +63,19 @@ export class GoodsReceiptPostingRule
 
     const settings = await this.getSettings(companyId);
 
-    const inventoryAccountId =
-      this.requireAccount(
-        settings.inventoryAccountId,
-        'Inventory',
-      );
+    const inventoryAccountId = this.requireAccount(
+      settings.inventoryAccountId,
+      'Inventory',
+    );
 
-    const grniAccountId =
-      this.requireAccount(
-        settings.goodsReceivedNotInvoicedAccountId,
-        'Goods Received Not Invoiced',
-      );
+    const grniAccountId = this.requireAccount(
+      settings.goodsReceivedNotInvoicedAccountId,
+      'Goods Received Not Invoiced',
+    );
 
     const inventoryValue = this.round(
       goodsReceipt.items.reduce(
-        (sum, item) =>
-          sum +
-          Number(item.acceptedQty) *
-            Number(item.unitCost),
+        (sum, item) => sum + Number(item.acceptedQty) * Number(item.unitCost),
         0,
       ),
     );
@@ -107,23 +88,18 @@ export class GoodsReceiptPostingRule
 
     return {
       companyId,
-      sourceType:
-        JournalEntrySourceType.GOODS_RECEIPT,
+      sourceType: JournalEntrySourceType.GOODS_RECEIPT,
       sourceId: goodsReceipt.id,
-      entryDate: this.toDateString(
-        goodsReceipt.grnDate,
-      ),
+      entryDate: this.toDateString(goodsReceipt.grnDate),
       referenceNumber: goodsReceipt.grnNumber,
       currency: settings.defaultCurrency,
-      narration:
-        `Automatic posting for goods receipt ${goodsReceipt.grnNumber}`,
+      narration: `Automatic posting for goods receipt ${goodsReceipt.grnNumber}`,
       lines: [
         {
           accountId: inventoryAccountId,
           debit: inventoryValue,
           credit: 0,
-          description:
-            `Inventory received under ${goodsReceipt.grnNumber}`,
+          description: `Inventory received under ${goodsReceipt.grnNumber}`,
           partyType: null,
           partyId: null,
           costCenter: null,
@@ -132,8 +108,7 @@ export class GoodsReceiptPostingRule
           accountId: grniAccountId,
           debit: 0,
           credit: inventoryValue,
-          description:
-            `GRNI liability for ${goodsReceipt.grnNumber}`,
+          description: `GRNI liability for ${goodsReceipt.grnNumber}`,
           partyType: null,
           partyId: null,
           costCenter: null,
@@ -145,10 +120,9 @@ export class GoodsReceiptPostingRule
   private async getSettings(
     companyId: string,
   ): Promise<AccountingSettingsEntity> {
-    const settings =
-      await this.settingsRepository.findOne({
-        where: { companyId },
-      });
+    const settings = await this.settingsRepository.findOne({
+      where: { companyId },
+    });
 
     if (!settings) {
       throw new NotFoundException(
@@ -165,22 +139,15 @@ export class GoodsReceiptPostingRule
     return settings;
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;
   }
 
-  private toDateString(
-    value: Date | string,
-  ): string {
+  private toDateString(value: Date | string): string {
     if (typeof value === 'string') {
       return value.slice(0, 10);
     }
@@ -189,8 +156,6 @@ export class GoodsReceiptPostingRule
   }
 
   private round(value: number): number {
-    return Math.round(
-      (value + Number.EPSILON) * 100,
-    ) / 100;
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

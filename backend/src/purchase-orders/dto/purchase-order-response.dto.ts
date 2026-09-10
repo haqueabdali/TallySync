@@ -23,7 +23,8 @@ export class PurchaseOrderResponseDto {
   @ApiProperty() warehouseId!: string;
   @ApiProperty() poNumber!: string;
   @ApiProperty() poDate!: string;
-  @ApiProperty({ required: false, nullable: true }) expectedDate!: string | null;
+  @ApiProperty({ required: false, nullable: true }) expectedDate!:
+    string | null;
   @ApiProperty({ enum: PurchaseOrderStatus }) status!: PurchaseOrderStatus;
   @ApiProperty() currency!: string;
   @ApiProperty() subtotal!: number;
@@ -32,7 +33,8 @@ export class PurchaseOrderResponseDto {
   @ApiProperty() shippingTotal!: number;
   @ApiProperty() grandTotal!: number;
   @ApiProperty({ required: false, nullable: true }) notes!: string | null;
-  @ApiProperty({ type: PurchaseOrderItemResponseDto, isArray: true }) items!: PurchaseOrderItemResponseDto[];
+  @ApiProperty({ type: PurchaseOrderItemResponseDto, isArray: true })
+  items!: PurchaseOrderItemResponseDto[];
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
   @ApiProperty({ required: false, nullable: true }) deletedAt!: Date | null;
@@ -48,6 +50,8 @@ export class PurchaseOrderPaginationMetaDto {
 }
 
 export class PaginatedPurchaseOrdersResponseDto {
-  @ApiProperty({ type: PurchaseOrderResponseDto, isArray: true }) data!: PurchaseOrderResponseDto[];
-  @ApiProperty({ type: PurchaseOrderPaginationMetaDto }) meta!: PurchaseOrderPaginationMetaDto;
+  @ApiProperty({ type: PurchaseOrderResponseDto, isArray: true })
+  data!: PurchaseOrderResponseDto[];
+  @ApiProperty({ type: PurchaseOrderPaginationMetaDto })
+  meta!: PurchaseOrderPaginationMetaDto;
 }

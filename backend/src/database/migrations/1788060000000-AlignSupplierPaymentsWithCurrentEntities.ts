@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignSupplierPaymentsWithCurrentEntities1788060000000
-  implements MigrationInterface
-{
-  name =
-    'AlignSupplierPaymentsWithCurrentEntities1788060000000';
+export class AlignSupplierPaymentsWithCurrentEntities1788060000000 implements MigrationInterface {
+  name = 'AlignSupplierPaymentsWithCurrentEntities1788060000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * 178580 created supplier_payments first.
      * 178740 contains the richer current schema but uses
@@ -137,9 +129,7 @@ export class AlignSupplierPaymentsWithCurrentEntities1788060000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE
         "supplier_payment_allocations"

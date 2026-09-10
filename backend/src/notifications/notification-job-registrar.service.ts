@@ -18,7 +18,10 @@ export class NotificationJobRegistrar implements OnModuleInit, OnModuleDestroy {
           if (typeof notificationId !== 'string') {
             throw new Error('notificationId must be a string');
           }
-          return this.notificationsService.deliver(notificationId, context.companyId);
+          return this.notificationsService.deliver(
+            notificationId,
+            context.companyId,
+          );
         },
       },
     );

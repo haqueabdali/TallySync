@@ -13,17 +13,16 @@ describe('Health E2E', () => {
   beforeEach(async () => {
     dataSource = { query: jest.fn() };
 
-    const moduleFixture: TestingModule =
-      await Test.createTestingModule({
-        controllers: [HealthController],
-        providers: [
-          HealthService,
-          {
-            provide: DataSource,
-            useValue: dataSource,
-          },
-        ],
-      }).compile();
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      controllers: [HealthController],
+      providers: [
+        HealthService,
+        {
+          provide: DataSource,
+          useValue: dataSource,
+        },
+      ],
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -63,9 +62,7 @@ describe('Health E2E', () => {
   });
 
   it('GET /health/ready returns 503 when DB is down', async () => {
-    dataSource.query.mockRejectedValue(
-      new Error('database unavailable'),
-    );
+    dataSource.query.mockRejectedValue(new Error('database unavailable'));
 
     const response = await request(app.getHttpServer())
       .get('/health/ready')

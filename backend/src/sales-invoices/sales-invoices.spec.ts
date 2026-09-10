@@ -68,9 +68,7 @@ describe('SalesInvoicesService', () => {
       ],
     }).compile();
 
-    service = module.get<SalesInvoicesService>(
-      SalesInvoicesService,
-    );
+    service = module.get<SalesInvoicesService>(SalesInvoicesService);
   });
 
   it('should be defined', () => {

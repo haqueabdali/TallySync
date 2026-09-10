@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsDateString, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class InventoryValuationQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
@@ -16,7 +24,8 @@ export class InventoryValuationQueryDto {
   @ApiPropertyOptional({
     type: String,
     format: 'date',
-    description: 'Returns valuation at the end of this date. Omit for current balances.',
+    description:
+      'Returns valuation at the end of this date. Omit for current balances.',
   })
   @IsOptional()
   @IsDateString()

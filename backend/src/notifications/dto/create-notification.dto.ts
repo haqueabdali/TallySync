@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 import { NotificationChannel } from '../enums/notification-channel.enum';
 
 export class CreateNotificationDto {
@@ -12,7 +20,10 @@ export class CreateNotificationDto {
   @IsUUID()
   recipientUserId?: string;
 
-  @ApiProperty({ description: 'Email, phone number, webhook URL, or user ID for in-app delivery' })
+  @ApiProperty({
+    description:
+      'Email, phone number, webhook URL, or user ID for in-app delivery',
+  })
   @IsString()
   @MaxLength(500)
   recipient!: string;
@@ -42,5 +53,4 @@ export class CreateNotificationDto {
   @IsOptional()
   @IsDateString()
   availableAt?: string;
-
 }

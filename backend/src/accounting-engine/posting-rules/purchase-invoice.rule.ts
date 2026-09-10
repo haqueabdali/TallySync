@@ -22,17 +22,13 @@ type PurchaseAccountingSettings = AccountingSettingsEntity & {
 };
 
 @Injectable()
-export class PurchaseInvoicePostingRule
-  implements PostingRule<PurchaseInvoiceEntity>
-{
+export class PurchaseInvoicePostingRule implements PostingRule<PurchaseInvoiceEntity> {
   constructor(
     @InjectRepository(PurchaseInvoiceEntity)
-    private readonly purchaseInvoiceRepository:
-      Repository<PurchaseInvoiceEntity>,
+    private readonly purchaseInvoiceRepository: Repository<PurchaseInvoiceEntity>,
 
     @InjectRepository(AccountingSettingsEntity)
-    private readonly settingsRepository:
-      Repository<AccountingSettingsEntity>,
+    private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
   async load(
@@ -106,13 +102,9 @@ export class PurchaseInvoicePostingRule
     }
 
     if (
-      Math.abs(
-        this.round(purchaseDebitAmount + taxTotal) - grandTotal,
-      ) > 0.009
+      Math.abs(this.round(purchaseDebitAmount + taxTotal) - grandTotal) > 0.009
     ) {
-      throw new ConflictException(
-        'Purchase invoice totals are not balanced.',
-      );
+      throw new ConflictException('Purchase invoice totals are not balanced.');
     }
 
     const lines: PostingDocument['lines'] = [
@@ -129,10 +121,7 @@ export class PurchaseInvoicePostingRule
 
     if (taxTotal > 0) {
       lines.push({
-        accountId: this.requireAccount(
-          settings.inputTaxAccountId,
-          'Input Tax',
-        ),
+        accountId: this.requireAccount(settings.inputTaxAccountId, 'Input Tax'),
         debit: taxTotal,
         credit: 0,
         description: `Input tax for purchase invoice ${invoice.invoiceNumber}`,
@@ -157,11 +146,9 @@ export class PurchaseInvoicePostingRule
       sourceType: JournalEntrySourceType.PURCHASE_INVOICE,
       sourceId: invoice.id,
       entryDate: invoice.invoiceDate,
-      referenceNumber:
-        invoice.supplierInvoiceNumber ?? invoice.invoiceNumber,
+      referenceNumber: invoice.supplierInvoiceNumber ?? invoice.invoiceNumber,
       currency: invoice.currency,
-      narration:
-        `Automatic posting for purchase invoice ${invoice.invoiceNumber}`,
+      narration: `Automatic posting for purchase invoice ${invoice.invoiceNumber}`,
       lines,
     };
   }

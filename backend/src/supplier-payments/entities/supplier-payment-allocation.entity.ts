@@ -34,11 +34,10 @@ export class SupplierPaymentAllocation {
   @Column({ name: 'supplier_payment_id', type: 'uuid' })
   supplierPaymentId!: string;
 
-  @ManyToOne(
-    () => SupplierPayment,
-    (payment) => payment.allocations,
-    { nullable: false, onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => SupplierPayment, (payment) => payment.allocations, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'supplier_payment_id' })
   supplierPayment!: SupplierPayment;
 

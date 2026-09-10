@@ -4,7 +4,9 @@ export class CreateProductionOrders1787601000000 implements MigrationInterface {
   name = 'CreateProductionOrders1787601000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "production_order_status_enum" AS ENUM ('draft', 'released', 'in_progress', 'completed', 'cancelled')`);
+    await queryRunner.query(
+      `CREATE TYPE "production_order_status_enum" AS ENUM ('draft', 'released', 'in_progress', 'completed', 'cancelled')`,
+    );
     await queryRunner.query(`
       CREATE TABLE "production_orders" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -34,12 +36,24 @@ export class CreateProductionOrders1787601000000 implements MigrationInterface {
         CONSTRAINT "FK_production_orders_warehouse" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_production_orders_company_id" ON "production_orders" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_production_orders_bom_id" ON "production_orders" ("bill_of_material_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_production_orders_finished_item_id" ON "production_orders" ("finished_item_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_production_orders_warehouse_id" ON "production_orders" ("warehouse_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_production_orders_status" ON "production_orders" ("status")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "uq_production_orders_company_number" ON "production_orders" ("company_id", "order_number") WHERE "deleted_at" IS NULL`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_orders_company_id" ON "production_orders" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_orders_bom_id" ON "production_orders" ("bill_of_material_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_orders_finished_item_id" ON "production_orders" ("finished_item_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_orders_warehouse_id" ON "production_orders" ("warehouse_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_orders_status" ON "production_orders" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "uq_production_orders_company_number" ON "production_orders" ("company_id", "order_number") WHERE "deleted_at" IS NULL`,
+    );
 
     await queryRunner.query(`
       CREATE TABLE "production_order_components" (
@@ -61,8 +75,12 @@ export class CreateProductionOrders1787601000000 implements MigrationInterface {
         CONSTRAINT "FK_production_order_components_item" FOREIGN KEY ("component_item_id") REFERENCES "items"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_production_order_components_order_id" ON "production_order_components" ("production_order_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_production_order_components_item_id" ON "production_order_components" ("component_item_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_order_components_order_id" ON "production_order_components" ("production_order_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_production_order_components_item_id" ON "production_order_components" ("component_item_id")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

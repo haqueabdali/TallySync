@@ -69,7 +69,10 @@ export class InventoryValuationService {
     query: InventoryValuationQueryDto,
   ): Promise<InventoryValuationPageResponseDto> {
     const base = this.createCurrentBaseQuery(companyId, query);
-    const countRow = await base.clone().select('COUNT(*)', 'count').getRawOne<CountRow>();
+    const countRow = await base
+      .clone()
+      .select('COUNT(*)', 'count')
+      .getRawOne<CountRow>();
     const total = Number(countRow?.count ?? 0);
 
     const rows = await base
@@ -93,7 +96,12 @@ export class InventoryValuationService {
       .getRawMany<CurrentValuationRow>();
 
     const summary = await this.getCurrentSummary(base);
-    return this.toPage(rows.map((row) => this.mapCurrentRow(row)), summary, total, query);
+    return this.toPage(
+      rows.map((row) => this.mapCurrentRow(row)),
+      summary,
+      total,
+      query,
+    );
   }
 
   private createCurrentBaseQuery(
@@ -102,12 +110,24 @@ export class InventoryValuationService {
   ): SelectQueryBuilder<InventoryCostBalanceEntity> {
     const builder = this.balanceRepository
       .createQueryBuilder('balance')
-      .innerJoin('items', 'item', 'item.id = balance.itemId AND item.company_id = :companyId AND item.deleted_at IS NULL')
-      .innerJoin('warehouses', 'warehouse', 'warehouse.id = balance.warehouseId AND warehouse.company_id = :companyId AND warehouse.deleted_at IS NULL')
+      .innerJoin(
+        'items',
+        'item',
+        'item.id = balance.itemId AND item.company_id = :companyId AND item.deleted_at IS NULL',
+      )
+      .innerJoin(
+        'warehouses',
+        'warehouse',
+        'warehouse.id = balance.warehouseId AND warehouse.company_id = :companyId AND warehouse.deleted_at IS NULL',
+      )
       .where('balance.companyId = :companyId', { companyId });
 
-    if (query.itemId) builder.andWhere('balance.itemId = :itemId', { itemId: query.itemId });
-    if (query.warehouseId) builder.andWhere('balance.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+    if (query.itemId)
+      builder.andWhere('balance.itemId = :itemId', { itemId: query.itemId });
+    if (query.warehouseId)
+      builder.andWhere('balance.warehouseId = :warehouseId', {
+        warehouseId: query.warehouseId,
+      });
     if (!query.includeZeroQuantity) builder.andWhere('balance.quantity <> 0');
 
     return builder;
@@ -154,7 +174,12 @@ export class InventoryValuationService {
 
     const rows = await pageQuery.getRawMany<HistoricalValuationRow>();
     const summary = await this.getHistoricalSummary(grouped);
-    return this.toPage(rows.map((row) => this.mapHistoricalRow(row)), summary, total, query);
+    return this.toPage(
+      rows.map((row) => this.mapHistoricalRow(row)),
+      summary,
+      total,
+      query,
+    );
   }
 
   private createHistoricalGroupedQuery(
@@ -174,8 +199,16 @@ export class InventoryValuationService {
 
     const builder = this.transactionRepository
       .createQueryBuilder('transaction')
-      .innerJoin('items', 'item', 'item.id = transaction.itemId AND item.company_id = :companyId AND item.deleted_at IS NULL')
-      .innerJoin('warehouses', 'warehouse', 'warehouse.id = transaction.warehouseId AND warehouse.company_id = :companyId AND warehouse.deleted_at IS NULL')
+      .innerJoin(
+        'items',
+        'item',
+        'item.id = transaction.itemId AND item.company_id = :companyId AND item.deleted_at IS NULL',
+      )
+      .innerJoin(
+        'warehouses',
+        'warehouse',
+        'warehouse.id = transaction.warehouseId AND warehouse.company_id = :companyId AND warehouse.deleted_at IS NULL',
+      )
       .select([
         'transaction.itemId AS "itemId"',
         'item.name AS "itemName"',
@@ -188,7 +221,9 @@ export class InventoryValuationService {
         `SUM(${signedValue}) AS "inventoryValue"`,
       ])
       .where('transaction.companyId = :companyId', { companyId })
-      .andWhere('transaction.transactionDate <= :asOfDate', { asOfDate: query.asOfDate })
+      .andWhere('transaction.transactionDate <= :asOfDate', {
+        asOfDate: query.asOfDate,
+      })
       .andWhere('transaction.transactionType IN (:...supportedTypes)')
       .setParameters({
         inboundTypes: this.inboundTypes,
@@ -203,9 +238,16 @@ export class InventoryValuationService {
       .addGroupBy('warehouse.warehouseCode')
       .addGroupBy('warehouse.name');
 
-    if (query.itemId) builder.andWhere('transaction.itemId = :itemId', { itemId: query.itemId });
-    if (query.warehouseId) builder.andWhere('transaction.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
-    if (!query.includeZeroQuantity) builder.having(`SUM(${signedQuantity}) <> 0`);
+    if (query.itemId)
+      builder.andWhere('transaction.itemId = :itemId', {
+        itemId: query.itemId,
+      });
+    if (query.warehouseId)
+      builder.andWhere('transaction.warehouseId = :warehouseId', {
+        warehouseId: query.warehouseId,
+      });
+    if (!query.includeZeroQuantity)
+      builder.having(`SUM(${signedQuantity}) <> 0`);
 
     return builder;
   }
@@ -228,7 +270,9 @@ export class InventoryValuationService {
     return this.mapSummary(row);
   }
 
-  private mapCurrentRow(row: CurrentValuationRow): InventoryValuationLineResponseDto {
+  private mapCurrentRow(
+    row: CurrentValuationRow,
+  ): InventoryValuationLineResponseDto {
     return {
       itemId: row.itemId,
       itemName: row.itemName,
@@ -243,8 +287,13 @@ export class InventoryValuationService {
     };
   }
 
-  private mapHistoricalRow(row: HistoricalValuationRow): InventoryValuationLineResponseDto {
-    const valuation = calculateInventoryValuation(Number(row.quantity), Number(row.inventoryValue));
+  private mapHistoricalRow(
+    row: HistoricalValuationRow,
+  ): InventoryValuationLineResponseDto {
+    const valuation = calculateInventoryValuation(
+      Number(row.quantity),
+      Number(row.inventoryValue),
+    );
     return {
       itemId: row.itemId,
       itemName: row.itemName,
@@ -257,7 +306,9 @@ export class InventoryValuationService {
     };
   }
 
-  private mapSummary(row: SummaryRow | undefined): InventoryValuationSummaryResponseDto {
+  private mapSummary(
+    row: SummaryRow | undefined,
+  ): InventoryValuationSummaryResponseDto {
     return {
       distinctItems: Number(row?.distinctItems ?? 0),
       warehouseBalances: Number(row?.warehouseBalances ?? 0),

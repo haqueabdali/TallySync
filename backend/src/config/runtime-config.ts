@@ -31,7 +31,12 @@ function parsePort(value: string | undefined): number {
 }
 
 function parseOrigins(value: string | undefined): string[] {
-  return value?.split(',').map((v) => v.trim()).filter(Boolean) ?? [];
+  return (
+    value
+      ?.split(',')
+      .map((v) => v.trim())
+      .filter(Boolean) ?? []
+  );
 }
 
 function parseBodyLimit(value: string | undefined): string {
@@ -69,10 +74,7 @@ export function loadRuntimeConfig(
     nodeEnv,
     port: parsePort(env.PORT),
     corsOrigins,
-    enableSwagger: parseBoolean(
-      env.ENABLE_SWAGGER,
-      nodeEnv !== 'production',
-    ),
+    enableSwagger: parseBoolean(env.ENABLE_SWAGGER, nodeEnv !== 'production'),
     bodyLimit: parseBodyLimit(env.BODY_LIMIT),
   };
 }

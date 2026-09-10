@@ -5,7 +5,12 @@ import { ManualCostAdjustmentEntity } from './entities/manual-cost-adjustment.en
 import { ManualCostAdjustmentsController } from './manual-cost-adjustments.controller';
 import { ManualCostAdjustmentsService } from './manual-cost-adjustments.service';
 @Module({
-  imports: [TypeOrmModule.forFeature([ManualCostAdjustmentEntity, ManualCostAdjustmentLineEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      ManualCostAdjustmentEntity,
+      ManualCostAdjustmentLineEntity,
+    ]),
+  ],
   controllers: [ManualCostAdjustmentsController],
   providers: [ManualCostAdjustmentsService],
   exports: [ManualCostAdjustmentsService],

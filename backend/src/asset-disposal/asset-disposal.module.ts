@@ -7,5 +7,18 @@ import { JournalEntriesModule } from '../journal-entries/journal-entries.module'
 import { AssetDisposalController } from './asset-disposal.controller';
 import { AssetDisposalService } from './asset-disposal.service';
 import { AssetDisposalEntity } from './entities/asset-disposal.entity';
-@Module({ imports: [TypeOrmModule.forFeature([AssetDisposalEntity, FixedAssetEntity, DepreciationEntryEntity, AccountEntity]), JournalEntriesModule], controllers: [AssetDisposalController], providers: [AssetDisposalService], exports: [AssetDisposalService] })
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      AssetDisposalEntity,
+      FixedAssetEntity,
+      DepreciationEntryEntity,
+      AccountEntity,
+    ]),
+    JournalEntriesModule,
+  ],
+  controllers: [AssetDisposalController],
+  providers: [AssetDisposalService],
+  exports: [AssetDisposalService],
+})
 export class AssetDisposalModule {}

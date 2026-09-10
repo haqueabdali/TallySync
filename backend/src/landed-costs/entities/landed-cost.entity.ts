@@ -28,14 +28,10 @@ const decimalTransformer = {
 @Index('IDX_landed_costs_goods_receipt', ['goodsReceiptId'])
 @Index('IDX_landed_costs_purchase_invoice', ['purchaseInvoiceId'])
 @Index('IDX_landed_costs_status', ['companyId', 'status'])
-@Index(
-  'UQ_landed_costs_company_number',
-  ['companyId', 'landedCostNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_landed_costs_company_number', ['companyId', 'landedCostNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class LandedCostEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -102,24 +98,16 @@ export class LandedCostEntity {
   @Column({ type: 'text', nullable: true })
   notes!: string | null;
 
-  @OneToMany(
-    'LandedCostChargeEntity',
-    'landedCost',
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany('LandedCostChargeEntity', 'landedCost', {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   charges!: LandedCostChargeEntity[];
 
-  @OneToMany(
-    'LandedCostItemAllocationEntity',
-    'landedCost',
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany('LandedCostItemAllocationEntity', 'landedCost', {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   itemAllocations!: LandedCostItemAllocationEntity[];
 
   @Column({

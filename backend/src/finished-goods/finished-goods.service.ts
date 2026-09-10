@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { MovingAverageCostingService } from '../inventory-cost-engine/moving-average/moving-average-costing.service';
@@ -32,7 +37,10 @@ export class FinishedGoodsService {
     );
   }
 
-  async findAll(companyId: string, filter: FinishedGoodsReceiptFilterDto): Promise<{
+  async findAll(
+    companyId: string,
+    filter: FinishedGoodsReceiptFilterDto,
+  ): Promise<{
     data: FinishedGoodsReceiptEntity[];
     total: number;
     page: number;
@@ -50,13 +58,23 @@ export class FinishedGoodsService {
         productionOrderId: filter.productionOrderId,
       });
     }
-    if (filter.itemId) query.andWhere('receipt.itemId = :itemId', { itemId: filter.itemId });
+    if (filter.itemId)
+      query.andWhere('receipt.itemId = :itemId', { itemId: filter.itemId });
     if (filter.warehouseId) {
-      query.andWhere('receipt.warehouseId = :warehouseId', { warehouseId: filter.warehouseId });
+      query.andWhere('receipt.warehouseId = :warehouseId', {
+        warehouseId: filter.warehouseId,
+      });
     }
-    if (filter.status) query.andWhere('receipt.status = :status', { status: filter.status });
-    if (filter.dateFrom) query.andWhere('receipt.receiptDate >= :dateFrom', { dateFrom: filter.dateFrom });
-    if (filter.dateTo) query.andWhere('receipt.receiptDate <= :dateTo', { dateTo: filter.dateTo });
+    if (filter.status)
+      query.andWhere('receipt.status = :status', { status: filter.status });
+    if (filter.dateFrom)
+      query.andWhere('receipt.receiptDate >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
+    if (filter.dateTo)
+      query.andWhere('receipt.receiptDate <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
 
     const [data, total] = await query
       .orderBy('receipt.receiptDate', 'DESC')
@@ -68,12 +86,16 @@ export class FinishedGoodsService {
     return { data, total, page: filter.page, limit: filter.limit };
   }
 
-  async findOne(companyId: string, id: string): Promise<FinishedGoodsReceiptEntity> {
+  async findOne(
+    companyId: string,
+    id: string,
+  ): Promise<FinishedGoodsReceiptEntity> {
     const receipt = await this.receiptRepository.findOne({
       where: { id, companyId },
       relations: { productionOrder: true, item: true, warehouse: true },
     });
-    if (!receipt) throw new NotFoundException('Finished goods receipt not found.');
+    if (!receipt)
+      throw new NotFoundException('Finished goods receipt not found.');
     return receipt;
   }
 
@@ -87,7 +109,10 @@ export class FinishedGoodsService {
     const duplicate = await receiptRepository.findOne({
       where: { companyId, receiptNumber: dto.receiptNumber },
     });
-    if (duplicate) throw new ConflictException('Finished goods receipt number already exists.');
+    if (duplicate)
+      throw new ConflictException(
+        'Finished goods receipt number already exists.',
+      );
 
     const productionOrder = await manager
       .getRepository(ProductionOrderEntity)
@@ -98,16 +123,21 @@ export class FinishedGoodsService {
       .andWhere('productionOrder.deletedAt IS NULL')
       .getOne();
 
-    if (!productionOrder) throw new NotFoundException('Production order not found.');
+    if (!productionOrder)
+      throw new NotFoundException('Production order not found.');
     if (productionOrder.status !== ProductionOrderStatus.IN_PROGRESS) {
-      throw new BadRequestException('Finished goods can only be received for an in-progress production order.');
+      throw new BadRequestException(
+        'Finished goods can only be received for an in-progress production order.',
+      );
     }
 
     const remainingQuantity = this.round6(
       productionOrder.plannedQuantity - productionOrder.completedQuantity,
     );
     if (dto.quantity > remainingQuantity) {
-      throw new BadRequestException('Receipt quantity exceeds the remaining production-order quantity.');
+      throw new BadRequestException(
+        'Receipt quantity exceeds the remaining production-order quantity.',
+      );
     }
 
     const consumedMaterialCost = await this.getConsumedMaterialCost(
@@ -120,12 +150,18 @@ export class FinishedGoodsService {
       companyId,
       productionOrder.id,
     );
-    const costAvailable = this.round6(consumedMaterialCost - previouslyCapitalizedCost);
+    const costAvailable = this.round6(
+      consumedMaterialCost - previouslyCapitalizedCost,
+    );
     if (costAvailable < 0) {
-      throw new ConflictException('Previously capitalized finished-goods cost exceeds consumed material cost.');
+      throw new ConflictException(
+        'Previously capitalized finished-goods cost exceeds consumed material cost.',
+      );
     }
     if (costAvailable === 0) {
-      throw new BadRequestException('No unallocated material cost is available for finished-goods receipt.');
+      throw new BadRequestException(
+        'No unallocated material cost is available for finished-goods receipt.',
+      );
     }
 
     const unitCost = this.round6(costAvailable / dto.quantity);
@@ -186,11 +222,19 @@ export class FinishedGoodsService {
     const result: { total: string | null } | undefined = await manager
       .getRepository(MaterialConsumptionLineEntity)
       .createQueryBuilder('line')
-      .innerJoin(MaterialConsumptionEntity, 'consumption', 'consumption.id = line.consumptionId')
+      .innerJoin(
+        MaterialConsumptionEntity,
+        'consumption',
+        'consumption.id = line.consumptionId',
+      )
       .select('COALESCE(SUM(line.totalCost), 0)', 'total')
       .where('consumption.companyId = :companyId', { companyId })
-      .andWhere('consumption.productionOrderId = :productionOrderId', { productionOrderId })
-      .andWhere('consumption.status = :status', { status: MaterialConsumptionStatus.POSTED })
+      .andWhere('consumption.productionOrderId = :productionOrderId', {
+        productionOrderId,
+      })
+      .andWhere('consumption.status = :status', {
+        status: MaterialConsumptionStatus.POSTED,
+      })
       .getRawOne<{ total: string | null }>();
 
     return Number(result?.total ?? 0);
@@ -206,8 +250,12 @@ export class FinishedGoodsService {
       .createQueryBuilder('receipt')
       .select('COALESCE(SUM(receipt.totalCost), 0)', 'total')
       .where('receipt.companyId = :companyId', { companyId })
-      .andWhere('receipt.productionOrderId = :productionOrderId', { productionOrderId })
-      .andWhere('receipt.status = :status', { status: FinishedGoodsReceiptStatus.POSTED })
+      .andWhere('receipt.productionOrderId = :productionOrderId', {
+        productionOrderId,
+      })
+      .andWhere('receipt.status = :status', {
+        status: FinishedGoodsReceiptStatus.POSTED,
+      })
       .getRawOne<{ total: string | null }>();
 
     return Number(result?.total ?? 0);

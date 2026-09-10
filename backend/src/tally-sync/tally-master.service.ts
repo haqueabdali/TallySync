@@ -2,6 +2,7 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TallyHttpService } from './tally-http.service';
@@ -37,6 +38,8 @@ export type TallyStockItemDefinition = {
 
 @Injectable()
 export class TallyMasterService {
+  private readonly logger = new Logger(TallyMasterService.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly tallyHttpService: TallyHttpService,
@@ -46,16 +49,20 @@ export class TallyMasterService {
 
   async ensureLedgerMasters(
     ledgers: TallyLedgerDefinition[],
+    options?: {
+      forceVerify?: boolean;
+    },
   ): Promise<TallyMasterResult[]> {
     const uniqueLedgers = this.uniqueByName(ledgers);
     const results: TallyMasterResult[] = [];
+    const forceVerify = options?.forceVerify === true;
 
     for (const ledger of uniqueLedgers) {
       this.validateLedgerDefinition(ledger);
 
       const cacheKey = this.normalizeName(ledger.name);
 
-      if (this.tallyCacheService.hasLedger(cacheKey)) {
+      if (!forceVerify && this.tallyCacheService.hasLedger(cacheKey)) {
         results.push(this.existingMasterResult('Ledger', ledger.name));
         continue;
       }
@@ -70,9 +77,20 @@ export class TallyMasterService {
 
       const result = await this.createTallyLedger(ledger);
 
-      if (!result.success) {
+      const masterWasCreatedOrAltered =
+        result.created > 0 || result.altered > 0;
+
+      if (!result.success || !masterWasCreatedOrAltered) {
+        const reason = result.lineError?.trim();
+
+        const message = reason
+          ? `Unable to create Tally ledger "${ledger.name}": ${reason}`
+          : result.ignored > 0
+            ? `Tally ignored ledger "${ledger.name}" without creating or altering it`
+            : `Unable to create Tally ledger "${ledger.name}"`;
+
         throw new BadGatewayException({
-          message: `Unable to create Tally ledger "${ledger.name}"`,
+          message,
           master: result,
         });
       }
@@ -86,16 +104,20 @@ export class TallyMasterService {
 
   async ensureStockItemMasters(
     stockItems: TallyStockItemDefinition[],
+    options?: {
+      forceVerify?: boolean;
+    },
   ): Promise<TallyMasterResult[]> {
     const uniqueStockItems = this.uniqueByName(stockItems);
     const results: TallyMasterResult[] = [];
+    const forceVerify = options?.forceVerify === true;
 
     for (const stockItem of uniqueStockItems) {
       this.validateStockItemDefinition(stockItem);
 
       const cacheKey = this.normalizeName(stockItem.name);
 
-      if (this.tallyCacheService.hasStockItem(cacheKey)) {
+      if (!forceVerify && this.tallyCacheService.hasStockItem(cacheKey)) {
         results.push(this.existingMasterResult('Stock Item', stockItem.name));
         continue;
       }
@@ -110,9 +132,20 @@ export class TallyMasterService {
 
       const result = await this.createTallyStockItem(stockItem);
 
-      if (!result.success) {
+      const masterWasCreatedOrAltered =
+        result.created > 0 || result.altered > 0;
+
+      if (!result.success || !masterWasCreatedOrAltered) {
+        const reason = result.lineError?.trim();
+
+        const message = reason
+          ? `Unable to create Tally stock item "${stockItem.name}": ${reason}`
+          : result.ignored > 0
+            ? `Tally ignored stock item "${stockItem.name}" without creating or altering it`
+            : `Unable to create Tally stock item "${stockItem.name}"`;
+
         throw new BadGatewayException({
-          message: `Unable to create Tally stock item "${stockItem.name}"`,
+          message,
           master: result,
         });
       }
@@ -126,6 +159,148 @@ export class TallyMasterService {
 
   clearCache(): void {
     this.tallyCacheService.clear();
+  }
+
+  async findLedgerMaster(ledgerName: string): Promise<{
+    name: string;
+    guid: string | null;
+    alterId: string | null;
+    parent: string | null;
+  } | null> {
+    const name = ledgerName?.trim();
+
+    if (!name) {
+      throw new BadRequestException('Tally ledger name is required');
+    }
+
+    const tallyCompanyName = this.getTallyCompanyName();
+
+    const requestXml = `
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>TSLedgerIdentityCollection</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVCURRENTCOMPANY>${this.escapeXml(tallyCompanyName)}</SVCURRENTCOMPANY>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="TSLedgerIdentityCollection">
+            <TYPE>Ledger</TYPE>
+            <FETCH>Name,GUID,AlterID,Parent</FETCH>
+            <FILTER>TSLedgerIdentityFilter</FILTER>
+          </COLLECTION>
+
+          <SYSTEM TYPE="Formulae" NAME="TSLedgerIdentityFilter">
+            $Name = "${this.escapeTdlString(name)}"
+          </SYSTEM>
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>
+  `.trim();
+
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      10_000,
+    );
+
+    const ledger = this.tallyParserService
+      .parseLedgerCollection(responseText)
+      .find(
+        (candidate) =>
+          this.normalizeName(candidate.name) === this.normalizeName(name),
+      );
+
+    if (!ledger) {
+      return null;
+    }
+
+    return {
+      name: ledger.name,
+      guid: ledger.guid,
+      alterId: ledger.alterId,
+      parent: ledger.parent,
+    };
+  }
+
+  async findStockItemMaster(stockItemName: string): Promise<{
+    name: string;
+    guid: string | null;
+    alterId: string | null;
+    parent: string | null;
+    baseUnit: string | null;
+  } | null> {
+    const name = stockItemName?.trim();
+
+    if (!name) {
+      throw new BadRequestException('Tally stock item name is required');
+    }
+
+    const tallyCompanyName = this.getTallyCompanyName();
+
+    const requestXml = `
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>TSStockItemIdentityCollection</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVCURRENTCOMPANY>${this.escapeXml(tallyCompanyName)}</SVCURRENTCOMPANY>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="TSStockItemIdentityCollection">
+            <TYPE>Stock Item</TYPE>
+            <FETCH>Name,GUID,AlterID,Parent,BaseUnits</FETCH>
+            <FILTER>TSStockItemIdentityFilter</FILTER>
+          </COLLECTION>
+
+          <SYSTEM TYPE="Formulae" NAME="TSStockItemIdentityFilter">
+            $Name = "${this.escapeTdlString(name)}"
+          </SYSTEM>
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>
+  `.trim();
+
+    const responseText = await this.tallyHttpService.postXml(
+      requestXml,
+      10_000,
+    );
+
+    const stockItem = this.tallyParserService
+      .parseStockItemCollection(responseText)
+      .find(
+        (candidate) =>
+          this.normalizeName(candidate.name) === this.normalizeName(name),
+      );
+
+    if (!stockItem) {
+      return null;
+    }
+
+    return {
+      name: stockItem.name,
+      guid: stockItem.guid,
+      alterId: stockItem.alterId,
+      parent: stockItem.parent,
+      baseUnit: stockItem.baseUnit,
+    };
   }
 
   private async tallyLedgerExists(ledgerName: string): Promise<boolean> {
@@ -261,6 +436,7 @@ export class TallyMasterService {
       requestXml,
       15_000,
     );
+
     const parsed =
       this.tallyParserService.parseMasterImportResponse(responseText);
 
@@ -295,7 +471,9 @@ export class TallyMasterService {
       <TALLYMESSAGE xmlns:UDF="TallyUDF">
         <STOCKITEM NAME="${this.escapeXml(stockItem.name)}" ACTION="Create">
           <NAME>${this.escapeXml(stockItem.name)}</NAME>
-          <PARENT>${this.escapeXml(stockItem.parent)}</PARENT>
+          <PARENT>${this.escapeXml(
+            this.toTallyStockGroupParent(stockItem.parent),
+          )}</PARENT>
           <BASEUNITS>${this.escapeXml(stockItem.baseUnit)}</BASEUNITS>
           <ADDITIONALUNITS></ADDITIONALUNITS>
           <ISBATCHWISEON>No</ISBATCHWISEON>
@@ -311,6 +489,10 @@ export class TallyMasterService {
     const responseText = await this.tallyHttpService.postXml(
       requestXml,
       15_000,
+    );
+
+    this.logger.log(
+      `Tally Stock Item import result for "${stockItem.name}": ${responseText}`,
     );
     const parsed =
       this.tallyParserService.parseMasterImportResponse(responseText);
@@ -333,18 +515,24 @@ export class TallyMasterService {
       );
     }
   }
+  private toTallyStockGroupParent(parent: string | null | undefined): string {
+    const normalized = String(parent ?? '').trim();
 
+    if (!normalized) {
+      return '';
+    }
+
+    if (this.normalizeName(normalized) === 'primary') {
+      return '';
+    }
+
+    return normalized;
+  }
   private validateStockItemDefinition(
     stockItem: TallyStockItemDefinition,
   ): void {
     if (!stockItem.name?.trim()) {
       throw new BadRequestException('Tally stock item name is required');
-    }
-
-    if (!stockItem.parent?.trim()) {
-      throw new BadRequestException(
-        `Parent group is required for Tally stock item "${stockItem.name}"`,
-      );
     }
 
     if (!stockItem.baseUnit?.trim()) {

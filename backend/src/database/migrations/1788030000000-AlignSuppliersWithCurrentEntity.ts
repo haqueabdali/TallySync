@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignSuppliersWithCurrentEntity1788030000000
-  implements MigrationInterface
-{
-  name =
-    'AlignSuppliersWithCurrentEntity1788030000000';
+export class AlignSuppliersWithCurrentEntity1788030000000 implements MigrationInterface {
+  name = 'AlignSuppliersWithCurrentEntity1788030000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * Original suppliers schema:
      *
@@ -312,9 +304,7 @@ export class AlignSuppliersWithCurrentEntity1788030000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "suppliers"
       DROP CONSTRAINT IF EXISTS

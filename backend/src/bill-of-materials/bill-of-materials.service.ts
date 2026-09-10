@@ -127,7 +127,10 @@ export class BillOfMaterialsService {
     };
   }
 
-  async findOne(id: string, companyId: string): Promise<BillOfMaterialResponseDto> {
+  async findOne(
+    id: string,
+    companyId: string,
+  ): Promise<BillOfMaterialResponseDto> {
     const bom = await this.bomRepository.findOne({
       where: { id, companyId },
       relations: {
@@ -154,14 +157,18 @@ export class BillOfMaterialsService {
     }
 
     const finishedItemId = dto.finishedItemId ?? current.finishedItemId;
-    const effectiveFrom = dto.effectiveFrom ?? current.effectiveFrom ?? undefined;
+    const effectiveFrom =
+      dto.effectiveFrom ?? current.effectiveFrom ?? undefined;
     const effectiveTo = dto.effectiveTo ?? current.effectiveTo ?? undefined;
     this.validateDates(effectiveFrom, effectiveTo);
 
     if (dto.components) {
       this.validateComponents(finishedItemId, dto.components);
       await this.validateItems(companyId, finishedItemId, dto.components);
-    } else if (dto.finishedItemId && dto.finishedItemId !== current.finishedItemId) {
+    } else if (
+      dto.finishedItemId &&
+      dto.finishedItemId !== current.finishedItemId
+    ) {
       const existingComponents = await this.dataSource
         .getRepository(BillOfMaterialComponentEntity)
         .find({ where: { billOfMaterialId: current.id } });
@@ -195,7 +202,8 @@ export class BillOfMaterialsService {
         outputQuantity: dto.outputQuantity ?? current.outputQuantity,
         effectiveFrom: dto.effectiveFrom ?? current.effectiveFrom,
         effectiveTo: dto.effectiveTo ?? current.effectiveTo,
-        notes: dto.notes === undefined ? current.notes : dto.notes.trim() || null,
+        notes:
+          dto.notes === undefined ? current.notes : dto.notes.trim() || null,
         updatedBy: userId,
       });
       await manager.save(current);
@@ -221,13 +229,19 @@ export class BillOfMaterialsService {
     return this.findOne(id, companyId);
   }
 
-  async activate(id: string, companyId: string, userId: string): Promise<BillOfMaterialResponseDto> {
+  async activate(
+    id: string,
+    companyId: string,
+    userId: string,
+  ): Promise<BillOfMaterialResponseDto> {
     const bom = await this.getEntity(id, companyId);
     const componentCount = await this.dataSource
       .getRepository(BillOfMaterialComponentEntity)
       .count({ where: { billOfMaterialId: id } });
     if (componentCount === 0) {
-      throw new BadRequestException('A BOM must contain at least one component');
+      throw new BadRequestException(
+        'A BOM must contain at least one component',
+      );
     }
 
     await this.dataSource.transaction(async (manager) => {
@@ -249,7 +263,11 @@ export class BillOfMaterialsService {
     return this.findOne(id, companyId);
   }
 
-  async deactivate(id: string, companyId: string, userId: string): Promise<BillOfMaterialResponseDto> {
+  async deactivate(
+    id: string,
+    companyId: string,
+    userId: string,
+  ): Promise<BillOfMaterialResponseDto> {
     await this.getEntity(id, companyId);
     await this.bomRepository.update(
       { id, companyId },
@@ -267,7 +285,10 @@ export class BillOfMaterialsService {
     return { message: 'Bill of material deleted successfully' };
   }
 
-  private async getEntity(id: string, companyId: string): Promise<BillOfMaterialEntity> {
+  private async getEntity(
+    id: string,
+    companyId: string,
+  ): Promise<BillOfMaterialEntity> {
     const bom = await this.bomRepository.findOne({ where: { id, companyId } });
     if (!bom) {
       throw new NotFoundException('Bill of material not found');
@@ -281,10 +302,14 @@ export class BillOfMaterialsService {
   ): void {
     const ids = components.map((component) => component.componentItemId);
     if (ids.includes(finishedItemId)) {
-      throw new BadRequestException('Finished item cannot be its own component');
+      throw new BadRequestException(
+        'Finished item cannot be its own component',
+      );
     }
     if (new Set(ids).size !== ids.length) {
-      throw new BadRequestException('Duplicate component items are not allowed');
+      throw new BadRequestException(
+        'Duplicate component items are not allowed',
+      );
     }
   }
 
@@ -293,18 +318,27 @@ export class BillOfMaterialsService {
     finishedItemId: string,
     components: CreateBillOfMaterialComponentDto[],
   ): Promise<void> {
-    const ids = [...new Set([finishedItemId, ...components.map((item) => item.componentItemId)])];
+    const ids = [
+      ...new Set([
+        finishedItemId,
+        ...components.map((item) => item.componentItemId),
+      ]),
+    ];
     const count = await this.itemRepository.count({
       where: { id: In(ids), companyId },
     });
     if (count !== ids.length) {
-      throw new BadRequestException('One or more BOM items do not belong to the company or do not exist');
+      throw new BadRequestException(
+        'One or more BOM items do not belong to the company or do not exist',
+      );
     }
   }
 
   private validateDates(effectiveFrom?: string, effectiveTo?: string): void {
     if (effectiveFrom && effectiveTo && effectiveTo < effectiveFrom) {
-      throw new BadRequestException('effectiveTo must be on or after effectiveFrom');
+      throw new BadRequestException(
+        'effectiveTo must be on or after effectiveFrom',
+      );
     }
   }
 
@@ -330,7 +364,8 @@ export class BillOfMaterialsService {
         componentItemSku: component.componentItem.sku,
         quantity: component.quantity,
         scrapPercentage: component.scrapPercentage,
-        effectiveQuantity: component.quantity * (1 + component.scrapPercentage / 100),
+        effectiveQuantity:
+          component.quantity * (1 + component.scrapPercentage / 100),
         notes: component.notes,
       })),
       createdAt: entity.createdAt,

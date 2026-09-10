@@ -31,14 +31,10 @@ const decimalTransformer = {
 @Index('IDX_customer_payments_customer', ['customerId'])
 @Index('IDX_customer_payments_status', ['companyId', 'status'])
 @Index('IDX_customer_payments_payment_date', ['companyId', 'paymentDate'])
-@Index(
-  'UQ_customer_payments_company_number',
-  ['companyId', 'paymentNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_customer_payments_company_number', ['companyId', 'paymentNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class CustomerPaymentEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

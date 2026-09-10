@@ -93,7 +93,11 @@ export class LicenseEntity {
   })
   certificateKeyId: string | null;
 
-  @Column({ name: 'certificate_issued_at', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'certificate_issued_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   certificateIssuedAt: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })

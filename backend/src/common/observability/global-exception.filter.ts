@@ -6,19 +6,14 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import type {
-  Request,
-  Response,
-} from 'express';
+import type { Request, Response } from 'express';
 
 import type { RequestContextRequest } from './request-context.interface';
 
 interface ErrorResponseBody {
   statusCode: number;
   error: string;
-  message:
-    | string
-    | string[];
+  message: string | string[];
   path: string;
   timestamp: string;
   requestId: string;
@@ -31,31 +26,19 @@ interface HttpExceptionObject {
 }
 
 @Catch()
-export class GlobalExceptionFilter
-  implements ExceptionFilter
-{
-  private readonly logger =
-    new Logger(GlobalExceptionFilter.name);
+export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   constructor(
-    private readonly nodeEnv:
-      | 'development'
-      | 'test'
-      | 'production',
+    private readonly nodeEnv: 'development' | 'test' | 'production',
   ) {}
 
-  catch(
-    exception: unknown,
-    host: ArgumentsHost,
-  ): void {
-    const context =
-      host.switchToHttp();
+  catch(exception: unknown, host: ArgumentsHost): void {
+    const context = host.switchToHttp();
 
-    const request =
-      context.getRequest<RequestContextRequest>();
+    const request = context.getRequest<RequestContextRequest>();
 
-    const response =
-      context.getResponse<Response>();
+    const response = context.getResponse<Response>();
 
     const statusCode =
       exception instanceof HttpException
@@ -64,19 +47,14 @@ export class GlobalExceptionFilter
 
     const requestId =
       request.requestId ??
-      String(
-        response.getHeader(
-          'x-request-id',
-        ) ?? 'unknown',
-      );
+      String(response.getHeader('x-request-id') ?? 'unknown');
 
-    const errorBody =
-      this.buildErrorBody(
-        exception,
-        statusCode,
-        request,
-        requestId,
-      );
+    const errorBody = this.buildErrorBody(
+      exception,
+      statusCode,
+      request,
+      requestId,
+    );
 
     if (
       statusCode >= HttpStatus.INTERNAL_SERVER_ERROR &&
@@ -86,35 +64,23 @@ export class GlobalExceptionFilter
         event: 'unhandled_exception',
         requestId,
         method: request.method,
-        path:
-          request.originalUrl ??
-          request.url,
+        path: request.originalUrl ?? request.url,
         statusCode,
-        error:
-          exception instanceof Error
-            ? exception.name
-            : 'UnknownError',
+        error: exception instanceof Error ? exception.name : 'UnknownError',
         message:
-          exception instanceof Error
-            ? exception.message
-            : 'Unknown error',
+          exception instanceof Error ? exception.message : 'Unknown error',
         stack:
-          this.nodeEnv ===
-          'production'
+          this.nodeEnv === 'production'
             ? undefined
             : exception instanceof Error
               ? exception.stack
               : undefined,
       };
 
-      this.logger.error(
-        JSON.stringify(logEntry),
-      );
+      this.logger.error(JSON.stringify(logEntry));
     }
 
-    response
-      .status(statusCode)
-      .json(errorBody);
+    response.status(statusCode).json(errorBody);
   }
 
   private buildErrorBody(
@@ -123,76 +89,49 @@ export class GlobalExceptionFilter
     request: Request,
     requestId: string,
   ): ErrorResponseBody {
-    if (
-      exception instanceof
-      HttpException
-    ) {
-      const exceptionResponse =
-        exception.getResponse();
+    if (exception instanceof HttpException) {
+      const exceptionResponse = exception.getResponse();
 
-      if (
-        typeof exceptionResponse ===
-        'string'
-      ) {
+      if (typeof exceptionResponse === 'string') {
         return {
           statusCode,
-          error:
-            HttpStatus[
-              statusCode
-            ] ?? 'Error',
-          message:
-            exceptionResponse,
-          path:
-            request.originalUrl ??
-            request.url,
-          timestamp:
-            new Date().toISOString(),
+          error: HttpStatus[statusCode] ?? 'Error',
+          message: exceptionResponse,
+          path: request.originalUrl ?? request.url,
+          timestamp: new Date().toISOString(),
           requestId,
         };
       }
 
-      const typedResponse =
-        exceptionResponse as HttpExceptionObject;
+      const typedResponse = exceptionResponse as HttpExceptionObject;
 
       return {
         statusCode,
         error:
-          typeof typedResponse.error ===
-          'string'
+          typeof typedResponse.error === 'string'
             ? typedResponse.error
-            : HttpStatus[
-                statusCode
-              ] ?? 'Error',
-        message:
-          this.normalizeMessage(
-            typedResponse.message,
-            exception.message,
-          ),
-        path:
-          request.originalUrl ??
-          request.url,
-        timestamp:
-          new Date().toISOString(),
+            : (HttpStatus[statusCode] ?? 'Error'),
+        message: this.normalizeMessage(
+          typedResponse.message,
+          exception.message,
+        ),
+        path: request.originalUrl ?? request.url,
+        timestamp: new Date().toISOString(),
         requestId,
       };
     }
 
     return {
       statusCode,
-      error:
-        'Internal Server Error',
+      error: 'Internal Server Error',
       message:
-        this.nodeEnv ===
-        'production'
+        this.nodeEnv === 'production'
           ? 'An unexpected error occurred'
           : exception instanceof Error
             ? exception.message
             : 'Unknown error',
-      path:
-        request.originalUrl ??
-        request.url,
-      timestamp:
-        new Date().toISOString(),
+      path: request.originalUrl ?? request.url,
+      timestamp: new Date().toISOString(),
       requestId,
     };
   }
@@ -207,10 +146,7 @@ export class GlobalExceptionFilter
 
     if (
       Array.isArray(value) &&
-      value.every(
-        (item) =>
-          typeof item === 'string',
-      )
+      value.every((item) => typeof item === 'string')
     ) {
       return value;
     }

@@ -96,11 +96,7 @@ export class ProfitAndLossService {
   ): Promise<ProfitAndLossRawRow[]> {
     const query = this.accountRepository
       .createQueryBuilder('account')
-      .leftJoin(
-        JournalEntryLineEntity,
-        'line',
-        'line.accountId = account.id',
-      )
+      .leftJoin(JournalEntryLineEntity, 'line', 'line.accountId = account.id')
       .leftJoin(
         JournalEntryEntity,
         'entry',
@@ -164,7 +160,9 @@ export class ProfitAndLossService {
 
   private validateDateRange(dateFrom: string, dateTo: string): void {
     if (dateFrom > dateTo) {
-      throw new BadRequestException('dateFrom must be before or equal to dateTo.');
+      throw new BadRequestException(
+        'dateFrom must be before or equal to dateTo.',
+      );
     }
   }
 

@@ -31,7 +31,9 @@ export class SupplierStatementTransactionDto {
   @ApiProperty()
   credit!: number;
 
-  @ApiProperty({ description: 'Positive amount represents payable to supplier' })
+  @ApiProperty({
+    description: 'Positive amount represents payable to supplier',
+  })
   runningBalance!: number;
 }
 
@@ -74,7 +76,9 @@ export class SupplierStatementResponseDto {
   @ApiProperty({ example: '2026-12-31' })
   dateTo!: string;
 
-  @ApiProperty({ description: 'Positive amount represents payable to supplier' })
+  @ApiProperty({
+    description: 'Positive amount represents payable to supplier',
+  })
   openingBalance!: number;
 
   @ApiProperty()
@@ -83,7 +87,9 @@ export class SupplierStatementResponseDto {
   @ApiProperty()
   periodCredits!: number;
 
-  @ApiProperty({ description: 'Positive amount represents payable to supplier' })
+  @ApiProperty({
+    description: 'Positive amount represents payable to supplier',
+  })
   closingBalance!: number;
 
   @ApiProperty({ type: [SupplierStatementTransactionDto] })

@@ -21,14 +21,8 @@ import { AdvancedReportingService } from './advanced-reporting.service';
     ]),
     CapacityPlanningModule,
   ],
-  controllers: [
-    AdvancedReportingController,
-  ],
-  providers: [
-    AdvancedReportingService,
-  ],
-  exports: [
-    AdvancedReportingService,
-  ],
+  controllers: [AdvancedReportingController],
+  providers: [AdvancedReportingService],
+  exports: [AdvancedReportingService],
 })
 export class AdvancedReportingModule {}

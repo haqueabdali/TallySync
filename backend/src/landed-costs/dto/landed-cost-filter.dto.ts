@@ -23,8 +23,7 @@ export const LANDED_COST_SORT_FIELDS = [
   'updatedAt',
 ] as const;
 
-export type LandedCostSortField =
-  (typeof LANDED_COST_SORT_FIELDS)[number];
+export type LandedCostSortField = (typeof LANDED_COST_SORT_FIELDS)[number];
 
 export class LandedCostFilterDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })

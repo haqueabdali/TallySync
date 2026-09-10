@@ -8,8 +8,7 @@ describe('createDatabaseOptions', () => {
       NODE_ENV: 'development',
     });
 
-    const options =
-      createDatabaseOptions(config);
+    const options = createDatabaseOptions(config);
 
     expect(options.synchronize).toBe(false);
     expect(options.migrationsRun).toBe(false);
@@ -24,9 +23,7 @@ describe('createDatabaseOptions', () => {
       DATABASE_USER: 'app',
     });
 
-    expect(() =>
-      createDatabaseOptions(config),
-    ).toThrow(
+    expect(() => createDatabaseOptions(config)).toThrow(
       'DATABASE_PASSWORD is required in production',
     );
   });
@@ -37,13 +34,11 @@ describe('createDatabaseOptions', () => {
       DATABASE_HOST: 'db',
       DATABASE_NAME: 'tallysync',
       DATABASE_USER: 'app',
-      DATABASE_PASSWORD:
-        'secure-database-password',
+      DATABASE_PASSWORD: 'secure-database-password',
       DATABASE_SSL: 'true',
     });
 
-    const options =
-      createDatabaseOptions(config);
+    const options = createDatabaseOptions(config);
 
     expect(options.ssl).toEqual({
       rejectUnauthorized: true,
@@ -56,15 +51,12 @@ describe('createDatabaseOptions', () => {
       DATABASE_HOST: 'db',
       DATABASE_NAME: 'tallysync',
       DATABASE_USER: 'app',
-      DATABASE_PASSWORD:
-        'secure-database-password',
+      DATABASE_PASSWORD: 'secure-database-password',
       DATABASE_SSL: 'true',
-      DATABASE_SSL_REJECT_UNAUTHORIZED:
-        'false',
+      DATABASE_SSL_REJECT_UNAUTHORIZED: 'false',
     });
 
-    const options =
-      createDatabaseOptions(config);
+    const options = createDatabaseOptions(config);
 
     expect(options.ssl).toEqual({
       rejectUnauthorized: false,
@@ -96,5 +88,4 @@ describe('createDatabaseOptions', () => {
     const options = createDatabaseOptions(config);
     expect((options.extra as { max: number }).max).toBe(15);
   });
-
 });

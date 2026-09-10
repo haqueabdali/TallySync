@@ -20,22 +20,16 @@ import { ProductionOrderStatus } from '../enums/production-order-status.enum';
 import { ProductionOrderComponentEntity } from './production-order-component.entity';
 
 const decimalTransformer = {
-  to: (
-    value: number | null | undefined,
-  ): number =>
-    value ?? 0,
+  to: (value: number | null | undefined): number => value ?? 0,
 
-  from: (
-    value: string | number | null,
-  ): number =>
-    value === null
-      ? 0
-      : Number(value),
+  from: (value: string | number | null): number =>
+    value === null ? 0 : Number(value),
 };
 
 const numericTransformer: ValueTransformer = {
   to: (value: number | null | undefined) => value,
-  from: (value: string | number | null) => value === null ? null : Number(value),
+  from: (value: string | number | null) =>
+    value === null ? null : Number(value),
 };
 
 @Entity('production_orders')
@@ -48,8 +42,14 @@ const numericTransformer: ValueTransformer = {
   unique: true,
   where: '"deleted_at" IS NULL',
 })
-@Check('chk_production_orders_planned_quantity_positive', '"planned_quantity" > 0')
-@Check('chk_production_orders_completed_quantity_non_negative', '"completed_quantity" >= 0')
+@Check(
+  'chk_production_orders_planned_quantity_positive',
+  '"planned_quantity" > 0',
+)
+@Check(
+  'chk_production_orders_completed_quantity_non_negative',
+  '"completed_quantity" >= 0',
+)
 export class ProductionOrderEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -69,13 +69,31 @@ export class ProductionOrderEntity {
   @Column({ name: 'warehouse_id', type: 'uuid' })
   warehouseId!: string;
 
-  @Column({ type: 'enum', enum: ProductionOrderStatus, enumName: 'production_order_status_enum', default: ProductionOrderStatus.DRAFT })
+  @Column({
+    type: 'enum',
+    enum: ProductionOrderStatus,
+    enumName: 'production_order_status_enum',
+    default: ProductionOrderStatus.DRAFT,
+  })
   status!: ProductionOrderStatus;
 
-  @Column({ name: 'planned_quantity', type: 'numeric', precision: 18, scale: 6, transformer: numericTransformer })
+  @Column({
+    name: 'planned_quantity',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    transformer: numericTransformer,
+  })
   plannedQuantity!: number;
 
-  @Column({ name: 'completed_quantity', type: 'numeric', precision: 18, scale: 6, default: 0, transformer: numericTransformer })
+  @Column({
+    name: 'completed_quantity',
+    type: 'numeric',
+    precision: 18,
+    scale: 6,
+    default: 0,
+    transformer: numericTransformer,
+  })
   completedQuantity!: number;
 
   @Column({ name: 'planned_start_date', type: 'date', nullable: true })
@@ -100,46 +118,44 @@ export class ProductionOrderEntity {
   updatedBy!: string | null;
 
   @Column({
-  name: 'actual_material_cost',
-  type: 'decimal',
-  precision: 18,
-  scale: 2,
-  default: 0,
-  transformer: decimalTransformer,
-})
-actualMaterialCost!: number;
+    name: 'actual_material_cost',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: decimalTransformer,
+  })
+  actualMaterialCost!: number;
 
-@Column({
-  name: 'actual_labor_cost',
-  type: 'decimal',
-  precision: 18,
-  scale: 2,
-  default: 0,
-  transformer: decimalTransformer,
-})
-actualLaborCost!: number;
+  @Column({
+    name: 'actual_labor_cost',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: decimalTransformer,
+  })
+  actualLaborCost!: number;
 
-@Column({
-  name: 'actual_overhead_cost',
-  type: 'decimal',
-  precision: 18,
-  scale: 2,
-  default: 0,
-  transformer: decimalTransformer,
-})
-actualOverheadCost!: number;
+  @Column({
+    name: 'actual_overhead_cost',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: decimalTransformer,
+  })
+  actualOverheadCost!: number;
 
-@Column({
-  name: 'actual_total_cost',
-  type: 'decimal',
-  precision: 18,
-  scale: 2,
-  default: 0,
-  transformer: decimalTransformer,
-})
-actualTotalCost!: number;
-
-
+  @Column({
+    name: 'actual_total_cost',
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: decimalTransformer,
+  })
+  actualTotalCost!: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
@@ -150,7 +166,10 @@ actualTotalCost!: number;
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt!: Date | null;
 
-  @ManyToOne(() => BillOfMaterialEntity, { nullable: false, onDelete: 'RESTRICT' })
+  @ManyToOne(() => BillOfMaterialEntity, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'bill_of_material_id' })
   billOfMaterial!: BillOfMaterialEntity;
 
@@ -162,6 +181,10 @@ actualTotalCost!: number;
   @JoinColumn({ name: 'warehouse_id' })
   warehouse!: WarehouseEntity;
 
-  @OneToMany(() => ProductionOrderComponentEntity, (component) => component.productionOrder, { cascade: ['insert'] })
+  @OneToMany(
+    () => ProductionOrderComponentEntity,
+    (component) => component.productionOrder,
+    { cascade: ['insert'] },
+  )
   components!: ProductionOrderComponentEntity[];
 }

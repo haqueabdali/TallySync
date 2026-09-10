@@ -4,7 +4,9 @@ export class CreateManufacturingWipAccounting1787612000000 implements MigrationI
   name = 'CreateManufacturingWipAccounting1787612000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "manufacturing_wip_posting_type_enum" AS ENUM ('material_consumption', 'finished_goods_receipt')`);
+    await queryRunner.query(
+      `CREATE TYPE "manufacturing_wip_posting_type_enum" AS ENUM ('material_consumption', 'finished_goods_receipt')`,
+    );
     await queryRunner.query(`CREATE TABLE "manufacturing_wip_accounting_settings" (
       "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
       "company_id" uuid NOT NULL,
@@ -34,13 +36,19 @@ export class CreateManufacturingWipAccounting1787612000000 implements MigrationI
       CONSTRAINT "FK_manufacturing_wip_postings_journal" FOREIGN KEY ("journal_entry_id") REFERENCES "journal_entries"("id") ON DELETE RESTRICT,
       CONSTRAINT "CHK_manufacturing_wip_postings_amount" CHECK ("amount" > 0)
     )`);
-    await queryRunner.query(`CREATE INDEX "IDX_manufacturing_wip_postings_company" ON "manufacturing_wip_postings" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_manufacturing_wip_postings_order" ON "manufacturing_wip_postings" ("production_order_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_manufacturing_wip_postings_company" ON "manufacturing_wip_postings" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_manufacturing_wip_postings_order" ON "manufacturing_wip_postings" ("production_order_id")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE "manufacturing_wip_postings"`);
-    await queryRunner.query(`DROP TABLE "manufacturing_wip_accounting_settings"`);
+    await queryRunner.query(
+      `DROP TABLE "manufacturing_wip_accounting_settings"`,
+    );
     await queryRunner.query(`DROP TYPE "manufacturing_wip_posting_type_enum"`);
   }
 }

@@ -68,13 +68,46 @@ fun AppBottomBar(
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
+                    if (item.route == AppRoute.Dashboard.route) {
+                        /*
+                         * Home is intentionally different from the other
+                         * bottom-navigation tabs.
+                         *
+                         * It must always return to the real Dashboard root
+                         * instead of restoring an older saved Dashboard
+                         * navigation state.
+                         */
+                        navController.navigate(
+                            AppRoute.Dashboard.route
+                        ) {
+                            popUpTo(
+                                navController.graph
+                                    .findStartDestination()
+                                    .id
+                            ) {
+                                inclusive = false
+                                saveState = false
+                            }
 
-                        launchSingleTop = true
-                        restoreState = true
+                            launchSingleTop = true
+                            restoreState = false
+                        }
+                    } else {
+                        /*
+                         * Other top-level tabs retain their normal state.
+                         */
+                        navController.navigate(item.route) {
+                            popUpTo(
+                                navController.graph
+                                    .findStartDestination()
+                                    .id
+                            ) {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = {

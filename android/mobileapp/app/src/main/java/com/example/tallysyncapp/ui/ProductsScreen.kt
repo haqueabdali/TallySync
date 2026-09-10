@@ -1,5 +1,6 @@
 package com.example.tallysyncapp.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,6 +39,7 @@ fun ProductsScreen(
     onSearchChange: (String) -> Unit,
     onSearch: () -> Unit,
     onAddProduct: (ProductListItem) -> Unit,
+    onProductClick: (ProductListItem) -> Unit,
     onOpenCart: () -> Unit,
     onOpenScanner: () -> Unit
 ) {
@@ -148,6 +150,9 @@ fun ProductsScreen(
                                 ?: 0,
                             onAdd = {
                                 onAddProduct(product)
+                            },
+                            onOpen = {
+                                onProductClick(product)
                             }
                         )
                     }
@@ -161,7 +166,8 @@ fun ProductsScreen(
 private fun ProductCard(
     product: ProductListItem,
     quantityInCart: Int,
-    onAdd: () -> Unit
+    onAdd: () -> Unit,
+    onOpen: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -179,7 +185,9 @@ private fun ProductCard(
             )
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onOpen),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(

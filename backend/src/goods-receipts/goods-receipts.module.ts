@@ -14,13 +14,12 @@ import { ItemEntity } from '../items/entities/item.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-    GoodsReceipt,
-    GoodsReceiptItem,
-    PurchaseOrderEntity,
-    WarehouseEntity,
-    ItemEntity,
-    
-]),
+      GoodsReceipt,
+      GoodsReceiptItem,
+      PurchaseOrderEntity,
+      WarehouseEntity,
+      ItemEntity,
+    ]),
   ],
   controllers: [GoodsReceiptsController],
   providers: [GoodsReceiptsService],

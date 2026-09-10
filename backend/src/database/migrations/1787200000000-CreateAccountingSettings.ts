@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAccountingSettings1787200000000
-  implements MigrationInterface
-{
+export class CreateAccountingSettings1787200000000 implements MigrationInterface {
   name = 'CreateAccountingSettings1787200000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -51,8 +49,14 @@ export class CreateAccountingSettings1787200000000
     `);
 
     const foreignKeys = [
-      ['FK_accounting_settings_accounts_receivable', 'accounts_receivable_account_id'],
-      ['FK_accounting_settings_accounts_payable', 'accounts_payable_account_id'],
+      [
+        'FK_accounting_settings_accounts_receivable',
+        'accounts_receivable_account_id',
+      ],
+      [
+        'FK_accounting_settings_accounts_payable',
+        'accounts_payable_account_id',
+      ],
       ['FK_accounting_settings_sales_revenue', 'sales_revenue_account_id'],
       ['FK_accounting_settings_sales_returns', 'sales_returns_account_id'],
       ['FK_accounting_settings_output_tax', 'output_tax_account_id'],
@@ -63,8 +67,14 @@ export class CreateAccountingSettings1787200000000
       ['FK_accounting_settings_bank', 'bank_account_id'],
       ['FK_accounting_settings_card_clearing', 'card_clearing_account_id'],
       ['FK_accounting_settings_grni', 'goods_received_not_invoiced_account_id'],
-      ['FK_accounting_settings_purchase_expense', 'purchase_expense_account_id'],
-      ['FK_accounting_settings_rounding_difference', 'rounding_difference_account_id'],
+      [
+        'FK_accounting_settings_purchase_expense',
+        'purchase_expense_account_id',
+      ],
+      [
+        'FK_accounting_settings_rounding_difference',
+        'rounding_difference_account_id',
+      ],
     ] as const;
 
     for (const [constraintName, columnName] of foreignKeys) {

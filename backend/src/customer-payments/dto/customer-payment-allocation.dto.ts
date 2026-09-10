@@ -1,10 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsNumber,
-  IsUUID,
-  Min,
-} from 'class-validator';
+import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class CustomerPaymentAllocationDto {
   @ApiProperty()

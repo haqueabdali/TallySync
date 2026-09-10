@@ -13,10 +13,10 @@ import {
   ['companyId', 'workCenterId', 'capacityDate'],
   { unique: true },
 )
-@Index(
-  'IDX_work_center_capacity_overrides_company_date',
-  ['companyId', 'capacityDate'],
-)
+@Index('IDX_work_center_capacity_overrides_company_date', [
+  'companyId',
+  'capacityDate',
+])
 export class WorkCenterCapacityOverrideEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

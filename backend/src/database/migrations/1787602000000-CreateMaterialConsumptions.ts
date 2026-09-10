@@ -4,7 +4,9 @@ export class CreateMaterialConsumptions1787602000000 implements MigrationInterfa
   name = 'CreateMaterialConsumptions1787602000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "material_consumption_status_enum" AS ENUM ('posted', 'reversed')`);
+    await queryRunner.query(
+      `CREATE TYPE "material_consumption_status_enum" AS ENUM ('posted', 'reversed')`,
+    );
     await queryRunner.query(`
       CREATE TABLE "material_consumptions" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -26,9 +28,15 @@ export class CreateMaterialConsumptions1787602000000 implements MigrationInterfa
         CONSTRAINT "FK_material_consumptions_warehouse" FOREIGN KEY ("warehouse_id") REFERENCES "warehouses"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumptions_company_id" ON "material_consumptions" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumptions_production_order_id" ON "material_consumptions" ("production_order_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumptions_warehouse_id" ON "material_consumptions" ("warehouse_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumptions_company_id" ON "material_consumptions" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumptions_production_order_id" ON "material_consumptions" ("production_order_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumptions_warehouse_id" ON "material_consumptions" ("warehouse_id")`,
+    );
 
     await queryRunner.query(`
       CREATE TABLE "material_consumption_lines" (
@@ -50,9 +58,15 @@ export class CreateMaterialConsumptions1787602000000 implements MigrationInterfa
         CONSTRAINT "FK_material_consumption_lines_item" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumption_lines_consumption_id" ON "material_consumption_lines" ("consumption_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumption_lines_component_id" ON "material_consumption_lines" ("production_order_component_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_material_consumption_lines_item_id" ON "material_consumption_lines" ("item_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumption_lines_consumption_id" ON "material_consumption_lines" ("consumption_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumption_lines_component_id" ON "material_consumption_lines" ("production_order_component_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_material_consumption_lines_item_id" ON "material_consumption_lines" ("item_id")`,
+    );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {

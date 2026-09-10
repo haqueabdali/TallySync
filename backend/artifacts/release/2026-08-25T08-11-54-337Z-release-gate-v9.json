@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-08-25T08:11:54.338Z",
+  "startedAt": "2026-08-25T08:09:37.070Z",
+  "branch": "feature/mobile-order-production",
+  "commit": "079ff3bd1ef69dcb24ed28fc384bbe18d0e50cd7",
+  "dirty": true,
+  "npmExecPath": "C:\\Users\\PC\\AppData\\Local\\nvm\\v24.7.0\\node_modules\\npm\\bin\\npm-cli.js",
+  "nodeExecutable": "C:\\nvm4w\\nodejs\\node.exe",
+  "results": [
+    {
+      "name": "build",
+      "passed": true,
+      "durationMs": 14793,
+      "exitCode": 0
+    },
+    {
+      "name": "unit-tests",
+      "passed": true,
+      "durationMs": 40914,
+      "exitCode": 0
+    },
+    {
+      "name": "e2e-tests",
+      "passed": true,
+      "durationMs": 17876,
+      "exitCode": 0
+    },
+    {
+      "name": "production-config",
+      "passed": true,
+      "durationMs": 1805,
+      "exitCode": 0
+    },
+    {
+      "name": "tracked-secret-scan",
+      "passed": true,
+      "durationMs": 46333,
+      "exitCode": 0
+    },
+    {
+      "name": "production-dependency-audit",
+      "passed": true,
+      "durationMs": 13250,
+      "exitCode": 0
+    },
+    {
+      "name": "observability",
+      "passed": false,
+      "durationMs": 2292,
+      "exitCode": 1
+    }
+  ],
+  "passed": false
+}

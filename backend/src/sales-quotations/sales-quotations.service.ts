@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { CustomerEntity } from '../customers/entities/customer.entity';
 import { ItemEntity } from '../items/entities/item.entity';
@@ -102,15 +98,11 @@ export class SalesQuotationsService {
         });
       });
 
-      savedQuotation.items = await itemRepository.save(
-        savedQuotation.items,
-      );
+      savedQuotation.items = await itemRepository.save(savedQuotation.items);
 
       this.calculateQuotationTotals(savedQuotation);
 
-      return this.toResponse(
-        await quotationRepository.save(savedQuotation),
-      );
+      return this.toResponse(await quotationRepository.save(savedQuotation));
     });
   }
 
@@ -191,9 +183,7 @@ export class SalesQuotationsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
-      data: quotations.map((quotation) =>
-        this.toResponse(quotation),
-      ),
+      data: quotations.map((quotation) => this.toResponse(quotation)),
       meta: {
         page,
         limit,
@@ -235,17 +225,12 @@ export class SalesQuotationsService {
 
       const mergedDto: CreateSalesQuotationDto = {
         customerId: dto.customerId ?? quotation.customerId,
-        quotationDate:
-          dto.quotationDate ?? quotation.quotationDate,
-        validUntil:
-          dto.validUntil ?? quotation.validUntil ?? undefined,
+        quotationDate: dto.quotationDate ?? quotation.quotationDate,
+        validUntil: dto.validUntil ?? quotation.validUntil ?? undefined,
         currency: dto.currency ?? quotation.currency,
-        shippingTotal:
-          dto.shippingTotal ?? Number(quotation.shippingTotal),
+        shippingTotal: dto.shippingTotal ?? Number(quotation.shippingTotal),
         customerReference:
-          dto.customerReference ??
-          quotation.customerReference ??
-          undefined,
+          dto.customerReference ?? quotation.customerReference ?? undefined,
         terms: dto.terms ?? quotation.terms ?? undefined,
         notes: dto.notes ?? quotation.notes ?? undefined,
         items:
@@ -289,9 +274,7 @@ export class SalesQuotationsService {
           });
         });
 
-        quotation.items = await itemRepository.save(
-          quotation.items,
-        );
+        quotation.items = await itemRepository.save(quotation.items);
       }
 
       if (dto.customerId !== undefined) {
@@ -311,15 +294,11 @@ export class SalesQuotationsService {
       }
 
       if (dto.shippingTotal !== undefined) {
-        quotation.shippingTotal = this.round(
-          dto.shippingTotal,
-        );
+        quotation.shippingTotal = this.round(dto.shippingTotal);
       }
 
       if (dto.customerReference !== undefined) {
-        quotation.customerReference = this.optional(
-          dto.customerReference,
-        );
+        quotation.customerReference = this.optional(dto.customerReference);
       }
 
       if (dto.terms !== undefined) {
@@ -333,9 +312,7 @@ export class SalesQuotationsService {
       quotation.updatedBy = userId;
       this.calculateQuotationTotals(quotation);
 
-      return this.toResponse(
-        await quotationRepository.save(quotation),
-      );
+      return this.toResponse(await quotationRepository.save(quotation));
     });
   }
 
@@ -347,9 +324,7 @@ export class SalesQuotationsService {
     const quotation = await this.getEntity(id, companyId);
 
     if (quotation.status !== SalesQuotationStatus.Draft) {
-      throw new ConflictException(
-        'Only draft quotations can be sent.',
-      );
+      throw new ConflictException('Only draft quotations can be sent.');
     }
 
     if (!quotation.items.length) {
@@ -361,9 +336,7 @@ export class SalesQuotationsService {
     quotation.status = SalesQuotationStatus.Sent;
     quotation.updatedBy = userId;
 
-    return this.toResponse(
-      await this.quotationRepository.save(quotation),
-    );
+    return this.toResponse(await this.quotationRepository.save(quotation));
   }
 
   async accept(
@@ -374,9 +347,7 @@ export class SalesQuotationsService {
     const quotation = await this.getEntity(id, companyId);
 
     if (quotation.status !== SalesQuotationStatus.Sent) {
-      throw new ConflictException(
-        'Only sent quotations can be accepted.',
-      );
+      throw new ConflictException('Only sent quotations can be accepted.');
     }
 
     if (
@@ -388,17 +359,13 @@ export class SalesQuotationsService {
       quotation.updatedBy = userId;
       await this.quotationRepository.save(quotation);
 
-      throw new ConflictException(
-        'The quotation has expired.',
-      );
+      throw new ConflictException('The quotation has expired.');
     }
 
     quotation.status = SalesQuotationStatus.Accepted;
     quotation.updatedBy = userId;
 
-    return this.toResponse(
-      await this.quotationRepository.save(quotation),
-    );
+    return this.toResponse(await this.quotationRepository.save(quotation));
   }
 
   async reject(
@@ -409,17 +376,13 @@ export class SalesQuotationsService {
     const quotation = await this.getEntity(id, companyId);
 
     if (quotation.status !== SalesQuotationStatus.Sent) {
-      throw new ConflictException(
-        'Only sent quotations can be rejected.',
-      );
+      throw new ConflictException('Only sent quotations can be rejected.');
     }
 
     quotation.status = SalesQuotationStatus.Rejected;
     quotation.updatedBy = userId;
 
-    return this.toResponse(
-      await this.quotationRepository.save(quotation),
-    );
+    return this.toResponse(await this.quotationRepository.save(quotation));
   }
 
   async cancel(
@@ -429,31 +392,21 @@ export class SalesQuotationsService {
   ): Promise<SalesQuotationResponseDto> {
     const quotation = await this.getEntity(id, companyId);
 
-    if (
-      quotation.status === SalesQuotationStatus.Accepted
-    ) {
-      throw new ConflictException(
-        'An accepted quotation cannot be cancelled.',
-      );
+    if (quotation.status === SalesQuotationStatus.Accepted) {
+      throw new ConflictException('An accepted quotation cannot be cancelled.');
     }
 
-    if (
-      quotation.status === SalesQuotationStatus.Cancelled
-    ) {
+    if (quotation.status === SalesQuotationStatus.Cancelled) {
       return this.toResponse(quotation);
     }
 
     quotation.status = SalesQuotationStatus.Cancelled;
     quotation.updatedBy = userId;
 
-    return this.toResponse(
-      await this.quotationRepository.save(quotation),
-    );
+    return this.toResponse(await this.quotationRepository.save(quotation));
   }
 
-  async expireOverdue(
-    companyId: string,
-  ): Promise<{ affected: number }> {
+  async expireOverdue(companyId: string): Promise<{ affected: number }> {
     const result = await this.quotationRepository
       .createQueryBuilder()
       .update(SalesQuotation)
@@ -471,16 +424,11 @@ export class SalesQuotationsService {
     };
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const quotation = await this.getEntity(id, companyId);
 
     if (quotation.status !== SalesQuotationStatus.Draft) {
-      throw new ConflictException(
-        'Only draft quotations can be deleted.',
-      );
+      throw new ConflictException('Only draft quotations can be deleted.');
     }
 
     await this.quotationRepository.softRemove(quotation);
@@ -507,8 +455,7 @@ export class SalesQuotationsService {
 
     if (
       dto.validUntil &&
-      new Date(dto.validUntil).getTime() <
-        new Date(dto.quotationDate).getTime()
+      new Date(dto.validUntil).getTime() < new Date(dto.quotationDate).getTime()
     ) {
       throw new BadRequestException(
         'Valid-until date cannot be earlier than quotation date.',
@@ -524,9 +471,7 @@ export class SalesQuotationsService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Item ${line.itemId} not found.`);
       }
     }
   }
@@ -548,20 +493,14 @@ export class SalesQuotationsService {
   }
 
   private ensureEditable(quotation: SalesQuotation): void {
-    if (
-      quotation.status !== SalesQuotationStatus.Draft
-    ) {
-      throw new ConflictException(
-        'Only draft quotations can be modified.',
-      );
+    if (quotation.status !== SalesQuotationStatus.Draft) {
+      throw new ConflictException('Only draft quotations can be modified.');
     }
   }
 
   private ensureUniqueItems(itemIds: string[]): void {
     if (new Set(itemIds).size !== itemIds.length) {
-      throw new BadRequestException(
-        'Duplicate items are not allowed.',
-      );
+      throw new BadRequestException('Duplicate items are not allowed.');
     }
   }
 
@@ -575,18 +514,10 @@ export class SalesQuotationsService {
     'lineSubtotal' | 'discountAmount' | 'taxAmount' | 'lineTotal'
   > {
     const lineSubtotal = this.round(quantity * unitPrice);
-    const discountAmount = this.round(
-      lineSubtotal * (discountPercent / 100),
-    );
-    const taxableAmount = this.round(
-      lineSubtotal - discountAmount,
-    );
-    const taxAmount = this.round(
-      taxableAmount * (taxPercent / 100),
-    );
-    const lineTotal = this.round(
-      taxableAmount + taxAmount,
-    );
+    const discountAmount = this.round(lineSubtotal * (discountPercent / 100));
+    const taxableAmount = this.round(lineSubtotal - discountAmount);
+    const taxAmount = this.round(taxableAmount * (taxPercent / 100));
+    const lineTotal = this.round(taxableAmount + taxAmount);
 
     return {
       lineSubtotal,
@@ -596,14 +527,9 @@ export class SalesQuotationsService {
     };
   }
 
-  private calculateQuotationTotals(
-    quotation: SalesQuotation,
-  ): void {
+  private calculateQuotationTotals(quotation: SalesQuotation): void {
     quotation.subtotal = this.round(
-      quotation.items.reduce(
-        (sum, item) => sum + Number(item.lineSubtotal),
-        0,
-      ),
+      quotation.items.reduce((sum, item) => sum + Number(item.lineSubtotal), 0),
     );
 
     quotation.discountTotal = this.round(
@@ -614,15 +540,10 @@ export class SalesQuotationsService {
     );
 
     quotation.taxTotal = this.round(
-      quotation.items.reduce(
-        (sum, item) => sum + Number(item.taxAmount),
-        0,
-      ),
+      quotation.items.reduce((sum, item) => sum + Number(item.taxAmount), 0),
     );
 
-    quotation.shippingTotal = this.round(
-      Number(quotation.shippingTotal ?? 0),
-    );
+    quotation.shippingTotal = this.round(Number(quotation.shippingTotal ?? 0));
 
     quotation.grandTotal = this.round(
       quotation.subtotal -
@@ -642,17 +563,13 @@ export class SalesQuotationsService {
     const latest = await this.quotationRepository
       .createQueryBuilder('quotation')
       .withDeleted()
-      .select(
-        'quotation.quotation_number',
-        'quotationNumber',
-      )
+      .select('quotation.quotation_number', 'quotationNumber')
       .where('quotation.company_id = :companyId', {
         companyId,
       })
-      .andWhere(
-        'quotation.quotation_number LIKE :prefix',
-        { prefix: `${prefix}%` },
-      )
+      .andWhere('quotation.quotation_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
       .orderBy('quotation.quotation_number', 'DESC')
       .getRawOne<{ quotationNumber?: string }>();
 
@@ -675,11 +592,7 @@ export class SalesQuotationsService {
   private startOfTodayUtc(): Date {
     const now = new Date();
     return new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-      ),
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
     );
   }
 
@@ -701,9 +614,7 @@ export class SalesQuotationsService {
     };
   }
 
-  private toResponse(
-    quotation: SalesQuotation,
-  ): SalesQuotationResponseDto {
+  private toResponse(quotation: SalesQuotation): SalesQuotationResponseDto {
     return {
       id: quotation.id,
       companyId: quotation.companyId,
@@ -721,9 +632,7 @@ export class SalesQuotationsService {
       customerReference: quotation.customerReference,
       terms: quotation.terms,
       notes: quotation.notes,
-      items: (quotation.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (quotation.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: quotation.createdBy,
       updatedBy: quotation.updatedBy,
       createdAt: quotation.createdAt,

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddSalesOrderApprovalFields1786500000000
-  implements MigrationInterface
-{
+export class AddSalesOrderApprovalFields1786500000000 implements MigrationInterface {
   name = 'AddSalesOrderApprovalFields1786500000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

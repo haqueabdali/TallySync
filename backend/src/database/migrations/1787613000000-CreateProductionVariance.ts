@@ -4,7 +4,9 @@ export class CreateProductionVariance1787613000000 implements MigrationInterface
   name = 'CreateProductionVariance1787613000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "production_variance_status_enum" AS ENUM ('calculated', 'posted')`);
+    await queryRunner.query(
+      `CREATE TYPE "production_variance_status_enum" AS ENUM ('calculated', 'posted')`,
+    );
     await queryRunner.query(`
       CREATE TABLE "production_variance_settings" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -59,8 +61,12 @@ export class CreateProductionVariance1787613000000 implements MigrationInterface
         CONSTRAINT "FK_production_variance_lines_item" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE RESTRICT
       )
     `);
-    await queryRunner.query(`CREATE INDEX "IDX_production_variances_company" ON "production_variances" ("company_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_production_variances_status" ON "production_variances" ("status")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_production_variances_company" ON "production_variances" ("company_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_production_variances_status" ON "production_variances" ("status")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

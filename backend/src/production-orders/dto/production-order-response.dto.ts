@@ -32,13 +32,15 @@ export class ProductionOrderResponseDto {
   @ApiPropertyOptional({ nullable: true }) actualStartDate!: Date | null;
   @ApiPropertyOptional({ nullable: true }) actualEndDate!: Date | null;
   @ApiPropertyOptional({ nullable: true }) notes!: string | null;
-  @ApiProperty({ type: [ProductionOrderComponentResponseDto] }) components!: ProductionOrderComponentResponseDto[];
+  @ApiProperty({ type: [ProductionOrderComponentResponseDto] })
+  components!: ProductionOrderComponentResponseDto[];
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }
 
 export class PaginatedProductionOrdersResponseDto {
-  @ApiProperty({ type: [ProductionOrderResponseDto] }) data!: ProductionOrderResponseDto[];
+  @ApiProperty({ type: [ProductionOrderResponseDto] })
+  data!: ProductionOrderResponseDto[];
   @ApiProperty() total!: number;
   @ApiProperty() page!: number;
   @ApiProperty() limit!: number;

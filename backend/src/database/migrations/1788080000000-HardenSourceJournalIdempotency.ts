@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class HardenSourceJournalIdempotency1788080000000
-  implements MigrationInterface
-{
-  name =
-    'HardenSourceJournalIdempotency1788080000000';
+export class HardenSourceJournalIdempotency1788080000000 implements MigrationInterface {
+  name = 'HardenSourceJournalIdempotency1788080000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * AccountingEngineService already checks for an existing journal using:
      *
@@ -69,9 +61,7 @@ export class HardenSourceJournalIdempotency1788080000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       DROP INDEX IF EXISTS
         "UQ_journal_entries_live_source"

@@ -34,14 +34,10 @@ export class JournalEntryLineEntity {
   })
   journalEntryId!: string;
 
-  @ManyToOne(
-    () => JournalEntryEntity,
-    (entry) => entry.lines,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => JournalEntryEntity, (entry) => entry.lines, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'journal_entry_id' })
   journalEntry!: JournalEntryEntity;
 

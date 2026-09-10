@@ -15,9 +15,7 @@ import { PostingDocument } from '../interfaces/posting-document.interface';
 import { PostingRule } from '../interfaces/posting-rule.interface';
 
 @Injectable()
-export class CustomerPaymentPostingRule
-  implements PostingRule<CustomerPaymentEntity>
-{
+export class CustomerPaymentPostingRule implements PostingRule<CustomerPaymentEntity> {
   constructor(
     @InjectRepository(CustomerPaymentEntity)
     private readonly paymentRepository: Repository<CustomerPaymentEntity>,
@@ -41,9 +39,7 @@ export class CustomerPaymentPostingRule
     });
 
     if (!payment) {
-      throw new NotFoundException(
-        'Customer payment not found.',
-      );
+      throw new NotFoundException('Customer payment not found.');
     }
 
     return payment;
@@ -54,9 +50,7 @@ export class CustomerPaymentPostingRule
     companyId: string,
   ): Promise<PostingDocument> {
     if (payment.companyId !== companyId) {
-      throw new NotFoundException(
-        'Customer payment not found.',
-      );
+      throw new NotFoundException('Customer payment not found.');
     }
 
     if (payment.status !== CustomerPaymentStatus.POSTED) {
@@ -67,18 +61,14 @@ export class CustomerPaymentPostingRule
 
     const settings = await this.getSettings(companyId);
 
-    const receivingAccountId =
-      this.resolveReceivingAccount(payment, settings);
+    const receivingAccountId = this.resolveReceivingAccount(payment, settings);
 
-    const accountsReceivableAccountId =
-      this.requireAccount(
-        settings.accountsReceivableAccountId,
-        'Accounts Receivable',
-      );
-
-    const allocatedAmount = this.round(
-      Number(payment.allocatedAmount),
+    const accountsReceivableAccountId = this.requireAccount(
+      settings.accountsReceivableAccountId,
+      'Accounts Receivable',
     );
+
+    const allocatedAmount = this.round(Number(payment.allocatedAmount));
 
     if (allocatedAmount <= 0) {
       throw new ConflictException(
@@ -91,8 +81,7 @@ export class CustomerPaymentPostingRule
       sourceType: JournalEntrySourceType.CUSTOMER_PAYMENT,
       sourceId: payment.id,
       entryDate: payment.paymentDate,
-      referenceNumber:
-        payment.referenceNumber ?? payment.paymentNumber,
+      referenceNumber: payment.referenceNumber ?? payment.paymentNumber,
       currency: payment.currency,
       narration: `Automatic posting for customer payment ${payment.paymentNumber}`,
       lines: [
@@ -124,15 +113,11 @@ export class CustomerPaymentPostingRule
   ): string {
     switch (payment.paymentMethod) {
       case CustomerPaymentMethod.CASH:
-        return this.requireAccount(
-          settings.cashAccountId,
-          'Cash',
-        );
+        return this.requireAccount(settings.cashAccountId, 'Cash');
 
       case CustomerPaymentMethod.CARD:
         return this.requireAccount(
-          settings.cardClearingAccountId ??
-            settings.bankAccountId,
+          settings.cardClearingAccountId ?? settings.bankAccountId,
           'Card Clearing or Bank',
         );
 
@@ -140,10 +125,7 @@ export class CustomerPaymentPostingRule
       case CustomerPaymentMethod.CHEQUE:
       case CustomerPaymentMethod.OTHER:
       default:
-        return this.requireAccount(
-          settings.bankAccountId,
-          'Bank',
-        );
+        return this.requireAccount(settings.bankAccountId, 'Bank');
     }
   }
 
@@ -163,14 +145,9 @@ export class CustomerPaymentPostingRule
     return settings;
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;

@@ -1,6 +1,14 @@
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 import { FinishedGoodsReceiptStatus } from '../enums/finished-goods-receipt-status.enum';
 
 export class FinishedGoodsReceiptFilterDto {

@@ -21,14 +21,8 @@ const numberTransformer = {
 };
 
 @Entity('production_cost_material_lines')
-@Index(
-  'IDX_production_cost_material_lines_analysis',
-  ['analysisId'],
-)
-@Index(
-  'IDX_production_cost_material_lines_item',
-  ['itemId'],
-)
+@Index('IDX_production_cost_material_lines_analysis', ['analysisId'])
+@Index('IDX_production_cost_material_lines_item', ['itemId'])
 export class ProductionCostMaterialLineEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

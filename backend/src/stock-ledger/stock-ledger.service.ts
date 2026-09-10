@@ -27,7 +27,10 @@ export class StockLedgerService {
     private readonly transactionRepository: Repository<InventoryCostTransactionEntity>,
   ) {}
 
-  async findAll(companyId: string, query: StockLedgerQueryDto): Promise<StockLedgerPageResponseDto> {
+  async findAll(
+    companyId: string,
+    query: StockLedgerQueryDto,
+  ): Promise<StockLedgerPageResponseDto> {
     this.validateDateRange(query);
     const builder = this.createFilteredQuery(companyId, query);
     const total = await builder.getCount();
@@ -49,7 +52,10 @@ export class StockLedgerService {
     };
   }
 
-  async getSummary(companyId: string, query: StockLedgerQueryDto): Promise<StockLedgerSummaryResponseDto> {
+  async getSummary(
+    companyId: string,
+    query: StockLedgerQueryDto,
+  ): Promise<StockLedgerSummaryResponseDto> {
     this.validateDateRange(query);
     const opening = await this.getOpening(companyId, query);
     const aggregate = await this.createFilteredQuery(companyId, query)
@@ -69,7 +75,9 @@ export class StockLedgerService {
     const valueIn = Number(aggregate?.valueIn ?? 0);
     const quantityOut = Number(aggregate?.quantityOut ?? 0);
     const valueOut = Number(aggregate?.valueOut ?? 0);
-    const closingQuantity = this.round4(opening.quantity + quantityIn - quantityOut);
+    const closingQuantity = this.round4(
+      opening.quantity + quantityIn - quantityOut,
+    );
     const closingValue = this.round4(opening.value + valueIn - valueOut);
 
     return {
@@ -81,7 +89,8 @@ export class StockLedgerService {
       valueOut,
       closingQuantity,
       closingValue,
-      closingAverageUnitCost: closingQuantity === 0 ? 0 : this.round6(closingValue / closingQuantity),
+      closingAverageUnitCost:
+        closingQuantity === 0 ? 0 : this.round6(closingValue / closingQuantity),
     };
   }
 
@@ -93,12 +102,30 @@ export class StockLedgerService {
       .createQueryBuilder('transaction')
       .where('transaction.companyId = :companyId', { companyId });
 
-    if (query.itemId) builder.andWhere('transaction.itemId = :itemId', { itemId: query.itemId });
-    if (query.warehouseId) builder.andWhere('transaction.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
-    if (query.fromDate) builder.andWhere('transaction.transactionDate >= :fromDate', { fromDate: query.fromDate });
-    if (query.toDate) builder.andWhere('transaction.transactionDate <= :toDate', { toDate: query.toDate });
-    if (query.sourceType) builder.andWhere('transaction.sourceType = :sourceType', { sourceType: query.sourceType });
-    if (query.transactionType) builder.andWhere('transaction.transactionType = :transactionType', { transactionType: query.transactionType });
+    if (query.itemId)
+      builder.andWhere('transaction.itemId = :itemId', {
+        itemId: query.itemId,
+      });
+    if (query.warehouseId)
+      builder.andWhere('transaction.warehouseId = :warehouseId', {
+        warehouseId: query.warehouseId,
+      });
+    if (query.fromDate)
+      builder.andWhere('transaction.transactionDate >= :fromDate', {
+        fromDate: query.fromDate,
+      });
+    if (query.toDate)
+      builder.andWhere('transaction.transactionDate <= :toDate', {
+        toDate: query.toDate,
+      });
+    if (query.sourceType)
+      builder.andWhere('transaction.sourceType = :sourceType', {
+        sourceType: query.sourceType,
+      });
+    if (query.transactionType)
+      builder.andWhere('transaction.transactionType = :transactionType', {
+        transactionType: query.transactionType,
+      });
 
     return builder;
   }
@@ -116,21 +143,40 @@ export class StockLedgerService {
         `COALESCE(SUM(CASE WHEN transaction.transactionType IN (:...inboundTypes) THEN transaction.totalCost ELSE -transaction.totalCost END), 0) AS "value"`,
       ])
       .where('transaction.companyId = :companyId', { companyId })
-      .andWhere('transaction.transactionDate < :fromDate', { fromDate: query.fromDate })
-      .andWhere(new Brackets((where) => {
-        where.where('transaction.transactionType IN (:...inboundTypes)')
-          .orWhere('transaction.transactionType IN (:...outboundTypes)');
-      }))
-      .setParameters({ inboundTypes: this.inboundTypes, outboundTypes: this.outboundTypes });
+      .andWhere('transaction.transactionDate < :fromDate', {
+        fromDate: query.fromDate,
+      })
+      .andWhere(
+        new Brackets((where) => {
+          where
+            .where('transaction.transactionType IN (:...inboundTypes)')
+            .orWhere('transaction.transactionType IN (:...outboundTypes)');
+        }),
+      )
+      .setParameters({
+        inboundTypes: this.inboundTypes,
+        outboundTypes: this.outboundTypes,
+      });
 
-    if (query.itemId) builder.andWhere('transaction.itemId = :itemId', { itemId: query.itemId });
-    if (query.warehouseId) builder.andWhere('transaction.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+    if (query.itemId)
+      builder.andWhere('transaction.itemId = :itemId', {
+        itemId: query.itemId,
+      });
+    if (query.warehouseId)
+      builder.andWhere('transaction.warehouseId = :warehouseId', {
+        warehouseId: query.warehouseId,
+      });
 
     const row = await builder.getRawOne<StockLedgerOpeningRow>();
-    return { quantity: Number(row?.quantity ?? 0), value: Number(row?.value ?? 0) };
+    return {
+      quantity: Number(row?.quantity ?? 0),
+      value: Number(row?.value ?? 0),
+    };
   }
 
-  private toResponse(row: InventoryCostTransactionEntity): StockLedgerEntryResponseDto {
+  private toResponse(
+    row: InventoryCostTransactionEntity,
+  ): StockLedgerEntryResponseDto {
     const inbound = this.inboundTypes.includes(row.transactionType);
     return {
       id: row.id,

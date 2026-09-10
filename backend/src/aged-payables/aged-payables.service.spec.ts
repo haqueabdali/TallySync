@@ -21,7 +21,9 @@ type QueryBuilderMock = jest.Mocked<
 
 describe('AgedPayablesService', () => {
   let queryBuilder: QueryBuilderMock;
-  let repository: jest.Mocked<Pick<Repository<PurchaseInvoiceEntity>, 'createQueryBuilder'>>;
+  let repository: jest.Mocked<
+    Pick<Repository<PurchaseInvoiceEntity>, 'createQueryBuilder'>
+  >;
   let service: AgedPayablesService;
 
   beforeEach(() => {

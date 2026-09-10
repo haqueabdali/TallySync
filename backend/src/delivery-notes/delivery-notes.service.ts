@@ -5,11 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  DataSource,
-  Repository,
-} from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 
 import { ItemEntity } from '../inventory/entities/item.entity';
 import { SalesOrderItemEntity } from '../sales-orders/entities/sales-order-item.entity';
@@ -54,18 +50,14 @@ export class DeliveryNotesService {
     companyId: string,
     userId: string,
   ): Promise<DeliveryNoteResponseDto> {
-    const salesOrder = await this.getSalesOrder(
-      dto.salesOrderId,
-      companyId,
-    );
+    const salesOrder = await this.getSalesOrder(dto.salesOrderId, companyId);
 
     this.ensureOrderDeliverable(salesOrder);
     await this.validateLines(dto, salesOrder, companyId);
 
     return this.dataSource.transaction(async (manager) => {
       const noteRepository = manager.getRepository(DeliveryNoteEntity);
-      const noteItemRepository =
-        manager.getRepository(DeliveryNoteItemEntity);
+      const noteItemRepository = manager.getRepository(DeliveryNoteItemEntity);
 
       const note = noteRepository.create({
         companyId,
@@ -112,27 +104,18 @@ export class DeliveryNotesService {
           deliveryNoteId: savedNote.id,
           salesOrderItemId: orderItem.id,
           itemId: orderItem.itemId,
-          itemName:
-            this.optional(line.itemName) ??
-            orderItem.itemName ??
-            null,
+          itemName: this.optional(line.itemName) ?? orderItem.itemName ?? null,
           sku: this.optional(line.sku) ?? orderItem.sku ?? null,
           unit: this.optional(line.unit) ?? orderItem.unit ?? null,
           orderedQuantity: Number(orderItem.quantity),
-          previouslyDeliveredQuantity: Number(
-            orderItem.deliveredQuantity ?? 0,
-          ),
+          previouslyDeliveredQuantity: Number(orderItem.deliveredQuantity ?? 0),
           deliveredQuantity: Number(line.deliveredQuantity),
-          unitPrice: Number(
-            line.unitPrice ?? orderItem.unitPrice ?? 0,
-          ),
+          unitPrice: Number(line.unitPrice ?? orderItem.unitPrice ?? 0),
           notes: this.optional(line.notes),
         });
       });
 
-      savedNote.items = await noteItemRepository.save(
-        savedNote.items,
-      );
+      savedNote.items = await noteItemRepository.save(savedNote.items);
 
       return this.toResponse(savedNote);
     });
@@ -157,18 +140,11 @@ export class DeliveryNotesService {
 
       query.andWhere(
         new Brackets((qb) => {
-          qb.where(
-            'deliveryNote.delivery_note_number ILIKE :search',
-            { search },
-          )
-            .orWhere(
-              'deliveryNote.tracking_number ILIKE :search',
-              { search },
-            )
-            .orWhere(
-              'deliveryNote.carrier_name ILIKE :search',
-              { search },
-            )
+          qb.where('deliveryNote.delivery_note_number ILIKE :search', {
+            search,
+          })
+            .orWhere('deliveryNote.tracking_number ILIKE :search', { search })
+            .orWhere('deliveryNote.carrier_name ILIKE :search', { search })
             .orWhere('deliveryNote.notes ILIKE :search', {
               search,
             });
@@ -177,24 +153,21 @@ export class DeliveryNotesService {
     }
 
     if (filter.customerId) {
-      query.andWhere(
-        'deliveryNote.customer_id = :customerId',
-        { customerId: filter.customerId },
-      );
+      query.andWhere('deliveryNote.customer_id = :customerId', {
+        customerId: filter.customerId,
+      });
     }
 
     if (filter.warehouseId) {
-      query.andWhere(
-        'deliveryNote.warehouse_id = :warehouseId',
-        { warehouseId: filter.warehouseId },
-      );
+      query.andWhere('deliveryNote.warehouse_id = :warehouseId', {
+        warehouseId: filter.warehouseId,
+      });
     }
 
     if (filter.salesOrderId) {
-      query.andWhere(
-        'deliveryNote.sales_order_id = :salesOrderId',
-        { salesOrderId: filter.salesOrderId },
-      );
+      query.andWhere('deliveryNote.sales_order_id = :salesOrderId', {
+        salesOrderId: filter.salesOrderId,
+      });
     }
 
     if (filter.status) {
@@ -204,22 +177,19 @@ export class DeliveryNotesService {
     }
 
     if (filter.dateFrom) {
-      query.andWhere(
-        'deliveryNote.delivery_date >= :dateFrom',
-        { dateFrom: filter.dateFrom },
-      );
+      query.andWhere('deliveryNote.delivery_date >= :dateFrom', {
+        dateFrom: filter.dateFrom,
+      });
     }
 
     if (filter.dateTo) {
-      query.andWhere(
-        'deliveryNote.delivery_date <= :dateTo',
-        { dateTo: filter.dateTo },
-      );
+      query.andWhere('deliveryNote.delivery_date <= :dateTo', {
+        dateTo: filter.dateTo,
+      });
     }
 
     const sortColumns: Record<string, string> = {
-      deliveryNoteNumber:
-        'deliveryNote.delivery_note_number',
+      deliveryNoteNumber: 'deliveryNote.delivery_note_number',
       deliveryDate: 'deliveryNote.delivery_date',
       createdAt: 'deliveryNote.created_at',
       updatedAt: 'deliveryNote.updated_at',
@@ -227,8 +197,7 @@ export class DeliveryNotesService {
 
     query
       .orderBy(
-        sortColumns[filter.sortBy] ??
-          'deliveryNote.created_at',
+        sortColumns[filter.sortBy] ?? 'deliveryNote.created_at',
         filter.sortOrder,
       )
       .addOrderBy('deliveryNote.id', 'DESC')
@@ -267,8 +236,7 @@ export class DeliveryNotesService {
   ): Promise<DeliveryNoteResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const noteRepository = manager.getRepository(DeliveryNoteEntity);
-      const noteItemRepository =
-        manager.getRepository(DeliveryNoteItemEntity);
+      const noteItemRepository = manager.getRepository(DeliveryNoteItemEntity);
 
       const note = await noteRepository.findOne({
         where: { id, companyId },
@@ -290,21 +258,10 @@ export class DeliveryNotesService {
         salesOrderId: salesOrder.id,
         deliveryDate: dto.deliveryDate ?? note.deliveryDate,
         shippingAddress:
-          dto.shippingAddress ??
-          note.shippingAddress ??
-          undefined,
-        trackingNumber:
-          dto.trackingNumber ??
-          note.trackingNumber ??
-          undefined,
-        carrierName:
-          dto.carrierName ??
-          note.carrierName ??
-          undefined,
-        vehicleNumber:
-          dto.vehicleNumber ??
-          note.vehicleNumber ??
-          undefined,
+          dto.shippingAddress ?? note.shippingAddress ?? undefined,
+        trackingNumber: dto.trackingNumber ?? note.trackingNumber ?? undefined,
+        carrierName: dto.carrierName ?? note.carrierName ?? undefined,
+        vehicleNumber: dto.vehicleNumber ?? note.vehicleNumber ?? undefined,
         notes: dto.notes ?? note.notes ?? undefined,
         items:
           dto.items ??
@@ -314,20 +271,14 @@ export class DeliveryNotesService {
             itemName: item.itemName ?? undefined,
             sku: item.sku ?? undefined,
             unit: item.unit ?? undefined,
-            deliveredQuantity: Number(
-              item.deliveredQuantity,
-            ),
+            deliveredQuantity: Number(item.deliveredQuantity),
             unitPrice: Number(item.unitPrice),
             notes: item.notes ?? undefined,
           })),
       };
 
       this.ensureOrderDeliverable(salesOrder);
-      await this.validateLines(
-        mergedDto,
-        salesOrder,
-        companyId,
-      );
+      await this.validateLines(mergedDto, salesOrder, companyId);
 
       if (dto.salesOrderId !== undefined) {
         note.salesOrderId = salesOrder.id;
@@ -340,15 +291,11 @@ export class DeliveryNotesService {
       }
 
       if (dto.shippingAddress !== undefined) {
-        note.shippingAddress = this.optional(
-          dto.shippingAddress,
-        );
+        note.shippingAddress = this.optional(dto.shippingAddress);
       }
 
       if (dto.trackingNumber !== undefined) {
-        note.trackingNumber = this.optional(
-          dto.trackingNumber,
-        );
+        note.trackingNumber = this.optional(dto.trackingNumber);
       }
 
       if (dto.carrierName !== undefined) {
@@ -356,9 +303,7 @@ export class DeliveryNotesService {
       }
 
       if (dto.vehicleNumber !== undefined) {
-        note.vehicleNumber = this.optional(
-          dto.vehicleNumber,
-        );
+        note.vehicleNumber = this.optional(dto.vehicleNumber);
       }
 
       if (dto.notes !== undefined) {
@@ -386,27 +331,15 @@ export class DeliveryNotesService {
             salesOrderItemId: orderItem.id,
             itemId: orderItem.itemId,
             itemName:
-              this.optional(line.itemName) ??
-              orderItem.itemName ??
-              null,
-            sku:
-              this.optional(line.sku) ??
-              orderItem.sku ??
-              null,
-            unit:
-              this.optional(line.unit) ??
-              orderItem.unit ??
-              null,
+              this.optional(line.itemName) ?? orderItem.itemName ?? null,
+            sku: this.optional(line.sku) ?? orderItem.sku ?? null,
+            unit: this.optional(line.unit) ?? orderItem.unit ?? null,
             orderedQuantity: Number(orderItem.quantity),
             previouslyDeliveredQuantity: Number(
               orderItem.deliveredQuantity ?? 0,
             ),
-            deliveredQuantity: Number(
-              line.deliveredQuantity,
-            ),
-            unitPrice: Number(
-              line.unitPrice ?? orderItem.unitPrice ?? 0,
-            ),
+            deliveredQuantity: Number(line.deliveredQuantity),
+            unitPrice: Number(line.unitPrice ?? orderItem.unitPrice ?? 0),
             notes: this.optional(line.notes),
           });
         });
@@ -416,9 +349,7 @@ export class DeliveryNotesService {
 
       note.updatedBy = userId;
 
-      return this.toResponse(
-        await noteRepository.save(note),
-      );
+      return this.toResponse(await noteRepository.save(note));
     });
   }
 
@@ -429,8 +360,7 @@ export class DeliveryNotesService {
   ): Promise<DeliveryNoteResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const noteRepository = manager.getRepository(DeliveryNoteEntity);
-      const salesOrderRepository =
-        manager.getRepository(SalesOrderEntity);
+      const salesOrderRepository = manager.getRepository(SalesOrderEntity);
       const salesOrderItemRepository =
         manager.getRepository(SalesOrderItemEntity);
       const itemRepository = manager.getRepository(ItemEntity);
@@ -473,9 +403,7 @@ export class DeliveryNotesService {
 
         const quantity = Number(line.deliveredQuantity);
         const ordered = Number(orderItem.quantity);
-        const alreadyDelivered = Number(
-          orderItem.deliveredQuantity ?? 0,
-        );
+        const alreadyDelivered = Number(orderItem.deliveredQuantity ?? 0);
         const remaining = ordered - alreadyDelivered;
 
         if (quantity > remaining) {
@@ -497,9 +425,7 @@ export class DeliveryNotesService {
           );
         }
 
-        const currentStock = Number(
-          inventoryItem.stockQty ?? 0,
-        );
+        const currentStock = Number(inventoryItem.stockQty ?? 0);
 
         if (currentStock < quantity) {
           throw new ConflictException(
@@ -507,13 +433,11 @@ export class DeliveryNotesService {
           );
         }
 
-        inventoryItem.stockQty =
-          this.roundQuantity(currentStock - quantity);
+        inventoryItem.stockQty = this.roundQuantity(currentStock - quantity);
 
-        orderItem.deliveredQuantity =
-          this.roundQuantity(
-            alreadyDelivered + quantity,
-          );
+        orderItem.deliveredQuantity = this.roundQuantity(
+          alreadyDelivered + quantity,
+        );
 
         await itemRepository.save(inventoryItem);
         await salesOrderItemRepository.save(orderItem);
@@ -527,9 +451,7 @@ export class DeliveryNotesService {
       note.postedAt = new Date();
       note.updatedBy = userId;
 
-      return this.toResponse(
-        await noteRepository.save(note),
-      );
+      return this.toResponse(await noteRepository.save(note));
     });
   }
 
@@ -540,8 +462,7 @@ export class DeliveryNotesService {
   ): Promise<DeliveryNoteResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const noteRepository = manager.getRepository(DeliveryNoteEntity);
-      const salesOrderRepository =
-        manager.getRepository(SalesOrderEntity);
+      const salesOrderRepository = manager.getRepository(SalesOrderEntity);
       const salesOrderItemRepository =
         manager.getRepository(SalesOrderItemEntity);
       const itemRepository = manager.getRepository(ItemEntity);
@@ -584,9 +505,7 @@ export class DeliveryNotesService {
           }
 
           const quantity = Number(line.deliveredQuantity);
-          const delivered = Number(
-            orderItem.deliveredQuantity ?? 0,
-          );
+          const delivered = Number(orderItem.deliveredQuantity ?? 0);
 
           if (delivered < quantity) {
             throw new ConflictException(
@@ -607,14 +526,13 @@ export class DeliveryNotesService {
             );
           }
 
-          inventoryItem.stockQty =
-            this.roundQuantity(
-              Number(inventoryItem.stockQty ?? 0) +
-                quantity,
-            );
+          inventoryItem.stockQty = this.roundQuantity(
+            Number(inventoryItem.stockQty ?? 0) + quantity,
+          );
 
-          orderItem.deliveredQuantity =
-            this.roundQuantity(delivered - quantity);
+          orderItem.deliveredQuantity = this.roundQuantity(
+            delivered - quantity,
+          );
 
           await itemRepository.save(inventoryItem);
           await salesOrderItemRepository.save(orderItem);
@@ -629,16 +547,11 @@ export class DeliveryNotesService {
       note.cancelledAt = new Date();
       note.updatedBy = userId;
 
-      return this.toResponse(
-        await noteRepository.save(note),
-      );
+      return this.toResponse(await noteRepository.save(note));
     });
   }
 
-  async remove(
-    id: string,
-    companyId: string,
-  ): Promise<{ message: string }> {
+  async remove(id: string, companyId: string): Promise<{ message: string }> {
     const note = await this.getEntity(id, companyId);
     this.ensureDraft(note);
 
@@ -654,9 +567,7 @@ export class DeliveryNotesService {
     salesOrder: SalesOrderEntity,
     companyId: string,
   ): Promise<void> {
-    const lineIds = dto.items.map(
-      (line) => line.salesOrderItemId,
-    );
+    const lineIds = dto.items.map((line) => line.salesOrderItemId);
 
     if (new Set(lineIds).size !== lineIds.length) {
       throw new BadRequestException(
@@ -682,9 +593,7 @@ export class DeliveryNotesService {
       }
 
       const ordered = Number(orderItem.quantity);
-      const delivered = Number(
-        orderItem.deliveredQuantity ?? 0,
-      );
+      const delivered = Number(orderItem.deliveredQuantity ?? 0);
       const remaining = ordered - delivered;
       const requested = Number(line.deliveredQuantity);
 
@@ -702,9 +611,7 @@ export class DeliveryNotesService {
       });
 
       if (!item) {
-        throw new NotFoundException(
-          `Inventory item ${line.itemId} not found.`,
-        );
+        throw new NotFoundException(`Inventory item ${line.itemId} not found.`);
       }
     }
   }
@@ -746,15 +653,11 @@ export class DeliveryNotesService {
 
   private ensureDraft(note: DeliveryNoteEntity): void {
     if (note.status !== DeliveryNoteStatus.DRAFT) {
-      throw new ConflictException(
-        'Only draft delivery notes can be modified.',
-      );
+      throw new ConflictException('Only draft delivery notes can be modified.');
     }
   }
 
-  private ensureOrderDeliverable(
-    order: SalesOrderEntity,
-  ): void {
+  private ensureOrderDeliverable(order: SalesOrderEntity): void {
     const deliverableStatuses = new Set<string>([
       SalesOrderStatus.CONFIRMED,
       SalesOrderStatus.APPROVED,
@@ -766,24 +669,19 @@ export class DeliveryNotesService {
 
     if (!deliverableStatuses.has(String(order.status))) {
       throw new ConflictException(
-        `Sales order status ${String(
-          order.status,
-        )} does not allow delivery.`,
+        `Sales order status ${String(order.status)} does not allow delivery.`,
       );
     }
   }
 
-  private applyOrderDeliveryStatus(
-    order: SalesOrderEntity,
-  ): void {
+  private applyOrderDeliveryStatus(order: SalesOrderEntity): void {
     const totalOrdered = order.items.reduce(
       (sum, item) => sum + Number(item.quantity),
       0,
     );
 
     const totalDelivered = order.items.reduce(
-      (sum, item) =>
-        sum + Number(item.deliveredQuantity ?? 0),
+      (sum, item) => sum + Number(item.deliveredQuantity ?? 0),
       0,
     );
 
@@ -810,33 +708,21 @@ export class DeliveryNotesService {
     const latest = await this.deliveryNoteRepository
       .createQueryBuilder('deliveryNote')
       .withDeleted()
-      .select(
-        'deliveryNote.delivery_note_number',
-        'deliveryNoteNumber',
-      )
+      .select('deliveryNote.delivery_note_number', 'deliveryNoteNumber')
       .where('deliveryNote.company_id = :companyId', {
         companyId,
       })
-      .andWhere(
-        'deliveryNote.delivery_note_number LIKE :prefix',
-        { prefix: `${prefix}%` },
-      )
-      .orderBy(
-        'deliveryNote.delivery_note_number',
-        'DESC',
-      )
+      .andWhere('deliveryNote.delivery_note_number LIKE :prefix', {
+        prefix: `${prefix}%`,
+      })
+      .orderBy('deliveryNote.delivery_note_number', 'DESC')
       .getRawOne<{ deliveryNoteNumber?: string }>();
 
     const current = latest?.deliveryNoteNumber
-      ? Number(
-          latest.deliveryNoteNumber.replace(prefix, ''),
-        )
+      ? Number(latest.deliveryNoteNumber.replace(prefix, ''))
       : 0;
 
-    return `${prefix}${String(current + 1).padStart(
-      6,
-      '0',
-    )}`;
+    return `${prefix}${String(current + 1).padStart(6, '0')}`;
   }
 
   private optional(value?: string): string | null {
@@ -845,10 +731,7 @@ export class DeliveryNotesService {
   }
 
   private roundQuantity(value: number): number {
-    return (
-      Math.round((value + Number.EPSILON) * 10000) /
-      10000
-    );
+    return Math.round((value + Number.EPSILON) * 10000) / 10000;
   }
 
   private toItemResponse(
@@ -862,20 +745,14 @@ export class DeliveryNotesService {
       sku: item.sku,
       unit: item.unit,
       orderedQuantity: Number(item.orderedQuantity),
-      previouslyDeliveredQuantity: Number(
-        item.previouslyDeliveredQuantity,
-      ),
-      deliveredQuantity: Number(
-        item.deliveredQuantity,
-      ),
+      previouslyDeliveredQuantity: Number(item.previouslyDeliveredQuantity),
+      deliveredQuantity: Number(item.deliveredQuantity),
       unitPrice: Number(item.unitPrice),
       notes: item.notes,
     };
   }
 
-  private toResponse(
-    note: DeliveryNoteEntity,
-  ): DeliveryNoteResponseDto {
+  private toResponse(note: DeliveryNoteEntity): DeliveryNoteResponseDto {
     return {
       id: note.id,
       companyId: note.companyId,
@@ -890,9 +767,7 @@ export class DeliveryNotesService {
       carrierName: note.carrierName,
       vehicleNumber: note.vehicleNumber,
       notes: note.notes,
-      items: (note.items ?? []).map((item) =>
-        this.toItemResponse(item),
-      ),
+      items: (note.items ?? []).map((item) => this.toItemResponse(item)),
       createdBy: note.createdBy,
       updatedBy: note.updatedBy,
       postedBy: note.postedBy,

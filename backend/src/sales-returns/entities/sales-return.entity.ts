@@ -33,14 +33,10 @@ const decimalTransformer = {
 @Index('IDX_sales_returns_warehouse', ['warehouseId'])
 @Index('IDX_sales_returns_invoice', ['salesInvoiceId'])
 @Index('IDX_sales_returns_status', ['companyId', 'status'])
-@Index(
-  'UQ_sales_returns_company_number',
-  ['companyId', 'returnNumber'],
-  {
-    unique: true,
-    where: '"deleted_at" IS NULL',
-  },
-)
+@Index('UQ_sales_returns_company_number', ['companyId', 'returnNumber'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class SalesReturnEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -202,14 +198,10 @@ export class SalesReturnEntity {
   })
   reversalReason!: string | null;
 
-  @OneToMany(
-    () => SalesReturnItemEntity,
-    (item) => item.salesReturn,
-    {
-      cascade: ['insert', 'update'],
-      eager: true,
-    },
-  )
+  @OneToMany(() => SalesReturnItemEntity, (item) => item.salesReturn, {
+    cascade: ['insert', 'update'],
+    eager: true,
+  })
   items!: SalesReturnItemEntity[];
 
   @CreateDateColumn({

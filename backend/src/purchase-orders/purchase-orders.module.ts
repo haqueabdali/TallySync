@@ -6,9 +6,11 @@ import { PurchaseOrdersController } from './purchase-orders.controller';
 import { PurchaseOrdersService } from './purchase-orders.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseOrderEntity,PurchaseOrderItemEntity])],
+  imports: [
+    TypeOrmModule.forFeature([PurchaseOrderEntity, PurchaseOrderItemEntity]),
+  ],
   controllers: [PurchaseOrdersController],
   providers: [PurchaseOrdersService],
-  exports: [PurchaseOrdersService,TypeOrmModule],
+  exports: [PurchaseOrdersService, TypeOrmModule],
 })
 export class PurchaseOrdersModule {}

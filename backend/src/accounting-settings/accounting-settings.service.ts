@@ -61,9 +61,7 @@ export class AccountingSettingsService {
     private readonly accountRepository: Repository<AccountEntity>,
   ) {}
 
-  async get(
-    companyId: string,
-  ): Promise<AccountingSettingsResponseDto> {
+  async get(companyId: string): Promise<AccountingSettingsResponseDto> {
     const settings = await this.settingsRepository.findOne({
       where: { companyId },
     });
@@ -108,35 +106,28 @@ export class AccountingSettingsService {
     }
 
     if (dto.defaultCurrency !== undefined) {
-      settings.defaultCurrency =
-        dto.defaultCurrency.toUpperCase();
+      settings.defaultCurrency = dto.defaultCurrency.toUpperCase();
     }
 
     if (dto.autoPostSalesInvoices !== undefined) {
-      settings.autoPostSalesInvoices =
-        dto.autoPostSalesInvoices;
+      settings.autoPostSalesInvoices = dto.autoPostSalesInvoices;
     }
 
     if (dto.autoPostCustomerPayments !== undefined) {
-      settings.autoPostCustomerPayments =
-        dto.autoPostCustomerPayments;
+      settings.autoPostCustomerPayments = dto.autoPostCustomerPayments;
     }
 
     if (dto.autoPostSalesReturns !== undefined) {
-      settings.autoPostSalesReturns =
-        dto.autoPostSalesReturns;
+      settings.autoPostSalesReturns = dto.autoPostSalesReturns;
     }
 
     if (dto.autoPostGoodsReceipts !== undefined) {
-      settings.autoPostGoodsReceipts =
-        dto.autoPostGoodsReceipts;
+      settings.autoPostGoodsReceipts = dto.autoPostGoodsReceipts;
     }
 
     settings.updatedBy = userId;
 
-    return this.toResponse(
-      await this.settingsRepository.save(settings),
-    );
+    return this.toResponse(await this.settingsRepository.save(settings));
   }
 
   async seedDefaults(
@@ -171,43 +162,27 @@ export class AccountingSettingsService {
       },
     });
 
-    const byCode = new Map(
-      accounts.map((account) => [account.code, account]),
-    );
+    const byCode = new Map(accounts.map((account) => [account.code, account]));
 
     const enabled = dto.enableAutoPosting ?? true;
 
     const settings = this.settingsRepository.create({
       companyId,
-      accountsReceivableAccountId:
-        byCode.get('1300')?.id ?? null,
-      accountsPayableAccountId:
-        byCode.get('2100')?.id ?? null,
-      salesRevenueAccountId:
-        byCode.get('4100')?.id ?? null,
-      salesReturnsAccountId:
-        byCode.get('4200')?.id ?? null,
-      outputTaxAccountId:
-        byCode.get('2200')?.id ?? null,
-      inputTaxAccountId:
-        byCode.get('2200')?.id ?? null,
-      inventoryAccountId:
-        byCode.get('1400')?.id ?? null,
-      costOfGoodsSoldAccountId:
-        byCode.get('5100')?.id ?? null,
-      cashAccountId:
-        byCode.get('1100')?.id ?? null,
-      bankAccountId:
-        byCode.get('1200')?.id ?? null,
-      cardClearingAccountId:
-        byCode.get('1200')?.id ?? null,
-      goodsReceivedNotInvoicedAccountId:
-        byCode.get('2100')?.id ?? null,
-      purchaseExpenseAccountId:
-        byCode.get('5100')?.id ?? null,
+      accountsReceivableAccountId: byCode.get('1300')?.id ?? null,
+      accountsPayableAccountId: byCode.get('2100')?.id ?? null,
+      salesRevenueAccountId: byCode.get('4100')?.id ?? null,
+      salesReturnsAccountId: byCode.get('4200')?.id ?? null,
+      outputTaxAccountId: byCode.get('2200')?.id ?? null,
+      inputTaxAccountId: byCode.get('2200')?.id ?? null,
+      inventoryAccountId: byCode.get('1400')?.id ?? null,
+      costOfGoodsSoldAccountId: byCode.get('5100')?.id ?? null,
+      cashAccountId: byCode.get('1100')?.id ?? null,
+      bankAccountId: byCode.get('1200')?.id ?? null,
+      cardClearingAccountId: byCode.get('1200')?.id ?? null,
+      goodsReceivedNotInvoicedAccountId: byCode.get('2100')?.id ?? null,
+      purchaseExpenseAccountId: byCode.get('5100')?.id ?? null,
       roundingDifferenceAccountId: null,
-      defaultCurrency:
-        (dto.defaultCurrency ?? 'EUR').toUpperCase(),
+      defaultCurrency: (dto.defaultCurrency ?? 'EUR').toUpperCase(),
       autoPostSalesInvoices: enabled,
       autoPostCustomerPayments: enabled,
       autoPostSalesReturns: enabled,
@@ -216,9 +191,7 @@ export class AccountingSettingsService {
       updatedBy: userId,
     });
 
-    return this.toResponse(
-      await this.settingsRepository.save(settings),
-    );
+    return this.toResponse(await this.settingsRepository.save(settings));
   }
 
   async validate(
@@ -258,8 +231,8 @@ export class AccountingSettingsService {
       accounts.map((account) => [account.id, account]),
     );
 
-    const items: AccountingSettingValidationItemDto[] =
-      this.accountFields.map((field) => {
+    const items: AccountingSettingValidationItemDto[] = this.accountFields.map(
+      (field) => {
         const accountId = settings[field];
 
         if (!accountId) {
@@ -280,8 +253,7 @@ export class AccountingSettingsService {
             accountId,
             isConfigured: true,
             isValid: false,
-            message:
-              'Mapped account does not exist for this company.',
+            message: 'Mapped account does not exist for this company.',
           };
         }
 
@@ -313,7 +285,8 @@ export class AccountingSettingsService {
           isValid: true,
           message: null,
         };
-      });
+      },
+    );
 
     return {
       isComplete: items.every((item) => item.isValid),
@@ -354,9 +327,7 @@ export class AccountingSettingsService {
       }
 
       if (account.status !== AccountStatus.ACTIVE) {
-        throw new ConflictException(
-          `Account ${account.code} is inactive.`,
-        );
+        throw new ConflictException(`Account ${account.code} is inactive.`);
       }
 
       if (account.isGroup) {
@@ -373,41 +344,26 @@ export class AccountingSettingsService {
     return {
       id: settings.id,
       companyId: settings.companyId,
-      accountsReceivableAccountId:
-        settings.accountsReceivableAccountId,
-      accountsPayableAccountId:
-        settings.accountsPayableAccountId,
-      salesRevenueAccountId:
-        settings.salesRevenueAccountId,
-      salesReturnsAccountId:
-        settings.salesReturnsAccountId,
-      outputTaxAccountId:
-        settings.outputTaxAccountId,
-      inputTaxAccountId:
-        settings.inputTaxAccountId,
-      inventoryAccountId:
-        settings.inventoryAccountId,
-      costOfGoodsSoldAccountId:
-        settings.costOfGoodsSoldAccountId,
+      accountsReceivableAccountId: settings.accountsReceivableAccountId,
+      accountsPayableAccountId: settings.accountsPayableAccountId,
+      salesRevenueAccountId: settings.salesRevenueAccountId,
+      salesReturnsAccountId: settings.salesReturnsAccountId,
+      outputTaxAccountId: settings.outputTaxAccountId,
+      inputTaxAccountId: settings.inputTaxAccountId,
+      inventoryAccountId: settings.inventoryAccountId,
+      costOfGoodsSoldAccountId: settings.costOfGoodsSoldAccountId,
       cashAccountId: settings.cashAccountId,
       bankAccountId: settings.bankAccountId,
-      cardClearingAccountId:
-        settings.cardClearingAccountId,
+      cardClearingAccountId: settings.cardClearingAccountId,
       goodsReceivedNotInvoicedAccountId:
         settings.goodsReceivedNotInvoicedAccountId,
-      purchaseExpenseAccountId:
-        settings.purchaseExpenseAccountId,
-      roundingDifferenceAccountId:
-        settings.roundingDifferenceAccountId,
+      purchaseExpenseAccountId: settings.purchaseExpenseAccountId,
+      roundingDifferenceAccountId: settings.roundingDifferenceAccountId,
       defaultCurrency: settings.defaultCurrency,
-      autoPostSalesInvoices:
-        settings.autoPostSalesInvoices,
-      autoPostCustomerPayments:
-        settings.autoPostCustomerPayments,
-      autoPostSalesReturns:
-        settings.autoPostSalesReturns,
-      autoPostGoodsReceipts:
-        settings.autoPostGoodsReceipts,
+      autoPostSalesInvoices: settings.autoPostSalesInvoices,
+      autoPostCustomerPayments: settings.autoPostCustomerPayments,
+      autoPostSalesReturns: settings.autoPostSalesReturns,
+      autoPostGoodsReceipts: settings.autoPostGoodsReceipts,
       createdBy: settings.createdBy,
       updatedBy: settings.updatedBy,
       createdAt: settings.createdAt,

@@ -40,49 +40,76 @@ export class BillOfMaterialsController {
   @Post()
   @ApiOperation({ summary: 'Create a draft bill of materials' })
   @ApiCreatedResponse({ type: BillOfMaterialResponseDto })
-  create(@Body() dto: CreateBillOfMaterialDto, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<BillOfMaterialResponseDto> {
+  create(
+    @Body() dto: CreateBillOfMaterialDto,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<BillOfMaterialResponseDto> {
     return this.service.create(dto, request.user.companyId, request.user.id);
   }
 
   @Get()
   @ApiOperation({ summary: 'List bills of material' })
   @ApiOkResponse({ type: PaginatedBillsOfMaterialResponseDto })
-  findAll(@Query() filter: BillOfMaterialFilterDto, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<PaginatedBillsOfMaterialResponseDto> {
+  findAll(
+    @Query() filter: BillOfMaterialFilterDto,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<PaginatedBillsOfMaterialResponseDto> {
     return this.service.findAll(filter, request.user.companyId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a bill of materials' })
   @ApiOkResponse({ type: BillOfMaterialResponseDto })
-  findOne(@Param('id', ParseUUIDPipe) id: string, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<BillOfMaterialResponseDto> {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<BillOfMaterialResponseDto> {
     return this.service.findOne(id, request.user.companyId);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a draft bill of materials' })
   @ApiOkResponse({ type: BillOfMaterialResponseDto })
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateBillOfMaterialDto, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<BillOfMaterialResponseDto> {
-    return this.service.update(id, dto, request.user.companyId, request.user.id);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateBillOfMaterialDto,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<BillOfMaterialResponseDto> {
+    return this.service.update(
+      id,
+      dto,
+      request.user.companyId,
+      request.user.id,
+    );
   }
 
   @Post(':id/activate')
   @ApiOperation({ summary: 'Activate a bill of materials' })
   @ApiOkResponse({ type: BillOfMaterialResponseDto })
-  activate(@Param('id', ParseUUIDPipe) id: string, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<BillOfMaterialResponseDto> {
+  activate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<BillOfMaterialResponseDto> {
     return this.service.activate(id, request.user.companyId, request.user.id);
   }
 
   @Post(':id/deactivate')
   @ApiOperation({ summary: 'Deactivate a bill of materials' })
   @ApiOkResponse({ type: BillOfMaterialResponseDto })
-  deactivate(@Param('id', ParseUUIDPipe) id: string, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<BillOfMaterialResponseDto> {
+  deactivate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<BillOfMaterialResponseDto> {
     return this.service.deactivate(id, request.user.companyId, request.user.id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Soft-delete a non-active bill of materials' })
   @ApiOkResponse()
-  remove(@Param('id', ParseUUIDPipe) id: string, @Req() request: AuthenticatedBillOfMaterialRequest): Promise<{ message: string }> {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedBillOfMaterialRequest,
+  ): Promise<{ message: string }> {
     return this.service.remove(id, request.user.companyId);
   }
 }

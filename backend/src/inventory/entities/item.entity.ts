@@ -21,12 +21,8 @@ export enum InventorySyncStatus {
 }
 
 const numericTransformer: ValueTransformer = {
-  to: (
-    value: number | null | undefined,
-  ): number | null | undefined => value,
-  from: (
-    value: string | number | null,
-  ): number | null =>
+  to: (value: number | null | undefined): number | null | undefined => value,
+  from: (value: string | number | null): number | null =>
     value === null ? null : Number(value),
 };
 
@@ -42,28 +38,15 @@ const numericTransformer: ValueTransformer = {
  * the canonical `items` table without maintaining a second physical schema.
  */
 @Entity('items')
-@Index('idx_inventory_items_company_id', [
-  'companyId',
-])
-@Index('idx_inventory_items_category_id', [
-  'categoryId',
-])
-@Check(
-  'chk_inventory_items_selling_price_non_negative',
-  '"selling_price" >= 0',
-)
+@Index('idx_inventory_items_company_id', ['companyId'])
+@Index('idx_inventory_items_category_id', ['categoryId'])
+@Check('chk_inventory_items_selling_price_non_negative', '"selling_price" >= 0')
 @Check(
   'chk_inventory_items_purchase_price_non_negative',
   '"purchase_price" >= 0',
 )
-@Check(
-  'chk_inventory_items_current_stock_non_negative',
-  '"current_stock" >= 0',
-)
-@Check(
-  'chk_inventory_items_minimum_stock_non_negative',
-  '"minimum_stock" >= 0',
-)
+@Check('chk_inventory_items_current_stock_non_negative', '"current_stock" >= 0')
+@Check('chk_inventory_items_minimum_stock_non_negative', '"minimum_stock" >= 0')
 export class ItemEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -87,12 +70,12 @@ export class ItemEntity {
   })
   name!: string;
 
- @Column({
-  type: 'varchar',
-  length: 128,
-  nullable: true,
-})
-sku!: string | null;
+  @Column({
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  sku!: string | null;
 
   @Column({
     type: 'varchar',
@@ -184,14 +167,10 @@ sku!: string | null;
   })
   deletedAt!: Date | null;
 
-  @ManyToOne(
-    () => CategoryEntity,
-    (category) => category.items,
-    {
-      nullable: true,
-      onDelete: 'SET NULL',
-    },
-  )
+  @ManyToOne(() => CategoryEntity, (category) => category.items, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({
     name: 'category_id',
   })

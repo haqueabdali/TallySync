@@ -55,9 +55,7 @@ describe('SalesReturnsService', () => {
       ],
     }).compile();
 
-    service = module.get<SalesReturnsService>(
-      SalesReturnsService,
-    );
+    service = module.get<SalesReturnsService>(SalesReturnsService);
   });
 
   it('should be defined', () => {

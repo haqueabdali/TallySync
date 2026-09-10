@@ -1,17 +1,9 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AlignPurchaseInvoicesWithCurrentEntities1788040000000
-  implements MigrationInterface
-{
-  name =
-    'AlignPurchaseInvoicesWithCurrentEntities1788040000000';
+export class AlignPurchaseInvoicesWithCurrentEntities1788040000000 implements MigrationInterface {
+  name = 'AlignPurchaseInvoicesWithCurrentEntities1788040000000';
 
-  public async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     /*
      * The original 178570 migration created purchase_invoices first.
      * The later 178730 migration used CREATE TABLE IF NOT EXISTS, so it
@@ -324,9 +316,7 @@ export class AlignPurchaseInvoicesWithCurrentEntities1788040000000
     `);
   }
 
-  public async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "purchase_invoices"
       DROP CONSTRAINT IF EXISTS

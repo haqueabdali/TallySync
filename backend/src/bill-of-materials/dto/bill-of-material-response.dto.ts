@@ -26,13 +26,15 @@ export class BillOfMaterialResponseDto {
   @ApiPropertyOptional({ nullable: true }) effectiveFrom!: string | null;
   @ApiPropertyOptional({ nullable: true }) effectiveTo!: string | null;
   @ApiPropertyOptional({ nullable: true }) notes!: string | null;
-  @ApiProperty({ type: [BillOfMaterialComponentResponseDto] }) components!: BillOfMaterialComponentResponseDto[];
+  @ApiProperty({ type: [BillOfMaterialComponentResponseDto] })
+  components!: BillOfMaterialComponentResponseDto[];
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }
 
 export class PaginatedBillsOfMaterialResponseDto {
-  @ApiProperty({ type: [BillOfMaterialResponseDto] }) data!: BillOfMaterialResponseDto[];
+  @ApiProperty({ type: [BillOfMaterialResponseDto] })
+  data!: BillOfMaterialResponseDto[];
   @ApiProperty() total!: number;
   @ApiProperty() page!: number;
   @ApiProperty() limit!: number;

@@ -29,9 +29,7 @@ describe('PurchaseInvoicesService', () => {
   };
 
   const accountingEngineMock = {
-    postPurchaseInvoice: jest
-      .fn()
-      .mockResolvedValue(undefined),
+    postPurchaseInvoice: jest.fn().mockResolvedValue(undefined),
   };
 
   const settingsRepositoryMock = {
@@ -42,84 +40,59 @@ describe('PurchaseInvoicesService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule =
-      await Test.createTestingModule({
-        providers: [
-          PurchaseInvoicesService,
-          {
-            provide: DataSource,
-            useValue: {
-              transaction: jest.fn(),
-            },
-          },
-          {
-            provide: getRepositoryToken(
-              PurchaseInvoiceEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              PurchaseInvoiceItemEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              SupplierEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              PurchaseOrderEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              PurchaseOrderItemEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              GoodsReceipt,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              GoodsReceiptItem,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              ItemEntity,
-            ),
-            useValue: repositoryMock,
-          },
-          {
-            provide: getRepositoryToken(
-              AccountingSettingsEntity,
-            ),
-            useValue:
-              settingsRepositoryMock,
-          },
-          {
-            provide:
-              AccountingEngineService,
-            useValue:
-              accountingEngineMock,
-          },
-        ],
-      }).compile();
-
-    service =
-      module.get<PurchaseInvoicesService>(
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
         PurchaseInvoicesService,
-      );
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseInvoiceItemEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(SupplierEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseOrderEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(PurchaseOrderItemEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(GoodsReceipt),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(GoodsReceiptItem),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(ItemEntity),
+          useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(AccountingSettingsEntity),
+          useValue: settingsRepositoryMock,
+        },
+        {
+          provide: AccountingEngineService,
+          useValue: accountingEngineMock,
+        },
+      ],
+    }).compile();
+
+    service = module.get<PurchaseInvoicesService>(PurchaseInvoicesService);
   });
 
   afterEach(() => {

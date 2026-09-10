@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 import { InventoryCostSourceType } from '../../inventory-cost-engine/enums/inventory-cost-source-type.enum';
 import { InventoryCostTransactionType } from '../../inventory-cost-engine/enums/inventory-cost-transaction-type.enum';
 
@@ -50,7 +58,9 @@ export class StockLedgerQueryDto {
   @Max(200)
   limit: number = 50;
 
-  @ApiPropertyOptional({ description: 'Set to true to sort oldest transactions first.' })
+  @ApiPropertyOptional({
+    description: 'Set to true to sort oldest transactions first.',
+  })
   @IsOptional()
   @Transform(({ value }): boolean => value === true || value === 'true')
   oldestFirst: boolean = false;

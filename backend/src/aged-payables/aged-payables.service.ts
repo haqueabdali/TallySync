@@ -55,10 +55,7 @@ export class AgedPayablesService {
         Number(row.purchaseReturnsApplied ?? 0),
       );
       const outstandingAmount = this.round(
-        Math.max(
-          0,
-          originalAmount - paymentsApplied - purchaseReturnsApplied,
-        ),
+        Math.max(0, originalAmount - paymentsApplied - purchaseReturnsApplied),
       );
 
       if (outstandingAmount <= 0) {

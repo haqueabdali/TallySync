@@ -1,10 +1,5 @@
-import {
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  Test,
-  type TestingModule,
-} from '@nestjs/testing';
+import { HttpStatus } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import type { Response } from 'express';
 
 import { HealthController } from './health.controller';
@@ -23,37 +18,31 @@ describe('HealthController', () => {
       ready: jest.fn(),
     };
 
-    const module: TestingModule =
-      await Test.createTestingModule({
-        controllers: [
-          HealthController,
-        ],
-        providers: [
-          {
-            provide: HealthService,
-            useValue: healthService,
-          },
-        ],
-      }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [HealthController],
+      providers: [
+        {
+          provide: HealthService,
+          useValue: healthService,
+        },
+      ],
+    }).compile();
 
-    controller =
-      module.get(HealthController);
+    controller = module.get(HealthController);
   });
 
   it('returns liveness result', () => {
     healthService.live.mockReturnValue({
       status: 'ok',
       service: 'tallysync-backend',
-      timestamp:
-        '2026-08-07T00:00:00.000Z',
+      timestamp: '2026-08-07T00:00:00.000Z',
       uptimeSeconds: 100,
     });
 
     expect(controller.live()).toEqual({
       status: 'ok',
       service: 'tallysync-backend',
-      timestamp:
-        '2026-08-07T00:00:00.000Z',
+      timestamp: '2026-08-07T00:00:00.000Z',
       uptimeSeconds: 100,
     });
   });
@@ -62,8 +51,7 @@ describe('HealthController', () => {
     healthService.ready.mockResolvedValue({
       status: 'ok',
       service: 'tallysync-backend',
-      timestamp:
-        '2026-08-07T00:00:00.000Z',
+      timestamp: '2026-08-07T00:00:00.000Z',
       uptimeSeconds: 100,
       database: 'up',
     });
@@ -76,17 +64,14 @@ describe('HealthController', () => {
 
     await controller.ready(response);
 
-    expect(status).toHaveBeenCalledWith(
-      HttpStatus.OK,
-    );
+    expect(status).toHaveBeenCalledWith(HttpStatus.OK);
   });
 
   it('uses 503 when database is down', async () => {
     healthService.ready.mockResolvedValue({
       status: 'error',
       service: 'tallysync-backend',
-      timestamp:
-        '2026-08-07T00:00:00.000Z',
+      timestamp: '2026-08-07T00:00:00.000Z',
       uptimeSeconds: 100,
       database: 'down',
     });
@@ -99,8 +84,6 @@ describe('HealthController', () => {
 
     await controller.ready(response);
 
-    expect(status).toHaveBeenCalledWith(
-      HttpStatus.SERVICE_UNAVAILABLE,
-    );
+    expect(status).toHaveBeenCalledWith(HttpStatus.SERVICE_UNAVAILABLE);
   });
 });

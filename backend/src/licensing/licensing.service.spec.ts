@@ -122,7 +122,6 @@ describe('LicensingService', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
-
   it('lists platform audit history with actor and company context', async () => {
     const { service, auditRepository, userRepository } = createService();
     const qb = {
@@ -154,7 +153,11 @@ describe('LicensingService', () => {
     };
     auditRepository.createQueryBuilder.mockReturnValue(qb);
     userRepository.find.mockResolvedValue([
-      { id: 'actor-1', fullName: 'Platform Owner', email: 'owner@tallysync.com' },
+      {
+        id: 'actor-1',
+        fullName: 'Platform Owner',
+        email: 'owner@tallysync.com',
+      },
     ]);
 
     const result = await service.listAuditLogs({ page: 1, limit: 20 });
@@ -227,7 +230,11 @@ describe('LicensingService', () => {
     const { service, licenseRepository, userRepository, activationRepository } =
       createService();
     licenseRepository.findOne.mockResolvedValue(
-      activeLicense({ company: undefined, features: undefined, activations: undefined }),
+      activeLicense({
+        company: undefined,
+        features: undefined,
+        activations: undefined,
+      }),
     );
     userRepository.count.mockResolvedValue(12);
     activationRepository.count.mockResolvedValue(3);
@@ -243,7 +250,6 @@ describe('LicensingService', () => {
       'relations',
     );
   });
-
 
   it('renews a license, invalidates its certificate and records audit metadata', async () => {
     const { service, licenseRepository, auditRepository } = createService();
@@ -286,7 +292,9 @@ describe('LicensingService', () => {
   it('rejects renewal that does not extend the current expiration', async () => {
     const { service, licenseRepository } = createService();
     const currentExpiry = new Date(Date.now() + 30 * 86_400_000);
-    licenseRepository.findOne.mockResolvedValue(activeLicense({ expiresAt: currentExpiry }));
+    licenseRepository.findOne.mockResolvedValue(
+      activeLicense({ expiresAt: currentExpiry }),
+    );
 
     await expect(
       service.renew(
@@ -352,6 +360,4 @@ describe('LicensingService', () => {
         ?.features,
     ).toEqual(expect.arrayContaining(Object.values(LicensedFeature)));
   });
-
-
 });

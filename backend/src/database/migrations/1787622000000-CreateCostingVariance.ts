@@ -1,17 +1,9 @@
-import type {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateCostingVariance1787622000000
-  implements MigrationInterface
-{
-  name =
-    'CreateCostingVariance1787622000000';
+export class CreateCostingVariance1787622000000 implements MigrationInterface {
+  name = 'CreateCostingVariance1787622000000';
 
-  async up(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TYPE "production_cost_analyses_status_enum"
       AS ENUM (
@@ -155,16 +147,12 @@ export class CreateCostingVariance1787622000000
     `);
   }
 
-  async down(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       'DROP TABLE IF EXISTS "production_cost_material_lines"',
     );
 
-    await queryRunner.query(
-      'DROP TABLE IF EXISTS "production_cost_analyses"',
-    );
+    await queryRunner.query('DROP TABLE IF EXISTS "production_cost_analyses"');
 
     await queryRunner.query(
       'DROP TYPE IF EXISTS "production_cost_analyses_status_enum"',

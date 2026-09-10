@@ -14,9 +14,7 @@ import { PostingDocument } from '../interfaces/posting-document.interface';
 import { PostingRule } from '../interfaces/posting-rule.interface';
 
 @Injectable()
-export class SalesInvoicePostingRule
-  implements PostingRule<SalesInvoiceEntity>
-{
+export class SalesInvoicePostingRule implements PostingRule<SalesInvoiceEntity> {
   constructor(
     @InjectRepository(SalesInvoiceEntity)
     private readonly salesInvoiceRepository: Repository<SalesInvoiceEntity>,
@@ -25,10 +23,7 @@ export class SalesInvoicePostingRule
     private readonly settingsRepository: Repository<AccountingSettingsEntity>,
   ) {}
 
-  async load(
-    sourceId: string,
-    companyId: string,
-  ): Promise<SalesInvoiceEntity> {
+  async load(sourceId: string, companyId: string): Promise<SalesInvoiceEntity> {
     const invoice = await this.salesInvoiceRepository.findOne({
       where: {
         id: sourceId,
@@ -65,20 +60,17 @@ export class SalesInvoicePostingRule
 
     const settings = await this.getSettings(companyId);
 
-    const accountsReceivableAccountId =
-      this.requireAccount(
-        settings.accountsReceivableAccountId,
-        'Accounts Receivable',
-      );
+    const accountsReceivableAccountId = this.requireAccount(
+      settings.accountsReceivableAccountId,
+      'Accounts Receivable',
+    );
 
     const salesRevenueAccountId = this.requireAccount(
       settings.salesRevenueAccountId,
       'Sales Revenue',
     );
 
-    const totalReceivable = this.round(
-      Number(invoice.grandTotal),
-    );
+    const totalReceivable = this.round(Number(invoice.grandTotal));
 
     const revenueAmount = this.round(
       Number(invoice.subtotal) -
@@ -86,9 +78,7 @@ export class SalesInvoicePostingRule
         Number(invoice.shippingTotal),
     );
 
-    const taxAmount = this.round(
-      Number(invoice.taxTotal),
-    );
+    const taxAmount = this.round(Number(invoice.taxTotal));
 
     const lines = [
       {
@@ -154,14 +144,9 @@ export class SalesInvoicePostingRule
     return settings;
   }
 
-  private requireAccount(
-    accountId: string | null,
-    label: string,
-  ): string {
+  private requireAccount(accountId: string | null, label: string): string {
     if (!accountId) {
-      throw new ConflictException(
-        `${label} account is not configured.`,
-      );
+      throw new ConflictException(`${label} account is not configured.`);
     }
 
     return accountId;

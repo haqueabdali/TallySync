@@ -32,14 +32,10 @@ export class DeliveryNoteItemEntity {
   @Column({ name: 'delivery_note_id', type: 'uuid' })
   deliveryNoteId!: string;
 
-  @ManyToOne(
-    () => DeliveryNoteEntity,
-    (deliveryNote) => deliveryNote.items,
-    {
-      nullable: false,
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => DeliveryNoteEntity, (deliveryNote) => deliveryNote.items, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'delivery_note_id' })
   deliveryNote!: DeliveryNoteEntity;
 

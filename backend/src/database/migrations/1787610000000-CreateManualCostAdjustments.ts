@@ -2,8 +2,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class CreateManualCostAdjustments1787610000000 implements MigrationInterface {
   name = 'CreateManualCostAdjustments1787610000000';
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "manual_cost_adjustment_status_enum" AS ENUM ('draft','posted')`);
-    await queryRunner.query(`CREATE TYPE "manual_cost_adjustment_type_enum" AS ENUM ('quantity_in','quantity_out','value_in','value_out')`);
+    await queryRunner.query(
+      `CREATE TYPE "manual_cost_adjustment_status_enum" AS ENUM ('draft','posted')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "manual_cost_adjustment_type_enum" AS ENUM ('quantity_in','quantity_out','value_in','value_out')`,
+    );
     await queryRunner.query(`CREATE TABLE "manual_cost_adjustments" (
       "id" uuid NOT NULL DEFAULT uuid_generate_v4(), "company_id" uuid NOT NULL, "adjustment_number" varchar(40) NOT NULL,
       "adjustment_date" date NOT NULL, "status" "manual_cost_adjustment_status_enum" NOT NULL DEFAULT 'draft',
@@ -14,7 +18,9 @@ export class CreateManualCostAdjustments1787610000000 implements MigrationInterf
       CONSTRAINT "PK_manual_cost_adjustments" PRIMARY KEY ("id"),
       CONSTRAINT "UQ_manual_cost_adjustments_company_number" UNIQUE ("company_id","adjustment_number")
     )`);
-    await queryRunner.query(`CREATE INDEX "IDX_manual_cost_adjustments_company_date" ON "manual_cost_adjustments" ("company_id","adjustment_date")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_manual_cost_adjustments_company_date" ON "manual_cost_adjustments" ("company_id","adjustment_date")`,
+    );
     await queryRunner.query(`CREATE TABLE "manual_cost_adjustment_lines" (
       "id" uuid NOT NULL DEFAULT uuid_generate_v4(), "adjustment_id" uuid NOT NULL, "item_id" uuid NOT NULL, "warehouse_id" uuid NOT NULL,
       "adjustment_type" "manual_cost_adjustment_type_enum" NOT NULL, "quantity_change" numeric(18,4) NOT NULL DEFAULT 0,
@@ -24,7 +30,9 @@ export class CreateManualCostAdjustments1787610000000 implements MigrationInterf
       CONSTRAINT "PK_manual_cost_adjustment_lines" PRIMARY KEY ("id"),
       CONSTRAINT "FK_manual_cost_adjustment_lines_adjustment" FOREIGN KEY ("adjustment_id") REFERENCES "manual_cost_adjustments"("id") ON DELETE CASCADE
     )`);
-    await queryRunner.query(`CREATE INDEX "IDX_manual_cost_adjustment_lines_adjustment" ON "manual_cost_adjustment_lines" ("adjustment_id")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_manual_cost_adjustment_lines_adjustment" ON "manual_cost_adjustment_lines" ("adjustment_id")`,
+    );
   }
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE "manual_cost_adjustment_lines"`);

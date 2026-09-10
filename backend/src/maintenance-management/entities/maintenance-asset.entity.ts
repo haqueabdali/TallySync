@@ -38,7 +38,12 @@ export class MaintenanceAssetEntity {
   @Column({ type: 'varchar', length: 200, nullable: true })
   model!: string | null;
 
-  @Column({ name: 'serial_number', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'serial_number',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   serialNumber!: string | null;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

@@ -4,7 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, ILike, In, IsNull, Repository } from 'typeorm';
+import { Brackets, DataSource, ILike, In, IsNull, Repository } from 'typeorm';
+import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
 
 import { ItemEntity } from '../inventory/entities/item.entity';
 import { CustomerEntity } from '../sales-orders/entities/customer.entity';
@@ -44,24 +45,96 @@ export class MobileService {
     @InjectRepository(ItemEntity)
     private readonly itemRepository: Repository<ItemEntity>,
 
+    @InjectRepository(WarehouseEntity)
+    private readonly warehouseRepository: Repository<WarehouseEntity>,
+
+    private readonly dataSource: DataSource,
+
     private readonly tallySyncService: TallySyncService,
     private readonly tallyHealthService: TallyHealthService,
   ) {}
 
   async getDashboard(companyId: string) {
-    const [totalOrders, pendingSync, failedSync, tally] = await Promise.all([
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [
+      totalOrders,
+      pendingSync,
+      failedSync,
+      totalCustomers,
+      totalProducts,
+      lowStockProducts,
+      tally,
+    ] = await Promise.all([
       this.countOrders(companyId),
       this.countOrders(companyId, SalesOrderSyncStatus.PENDING),
       this.countOrders(companyId, SalesOrderSyncStatus.FAILED),
+
+      this.customerRepository.count({
+        where: {
+          companyId,
+          deletedAt: IsNull(),
+        },
+      }),
+
+      this.itemRepository.count({
+        where: {
+          companyId,
+          deletedAt: IsNull(),
+        },
+      }),
+
+      this.itemRepository
+        .createQueryBuilder('item')
+        .where('item.company_id = :companyId', { companyId })
+        .andWhere('item.deleted_at IS NULL')
+        .andWhere('item.is_active = true')
+        .andWhere('item.track_inventory = true')
+        .andWhere('item.current_stock <= item.minimum_stock')
+        .getCount(),
+
       this.getSafeTallyStatus(),
     ]);
 
-    const totalResult = await this.salesOrderRepository
-      .createQueryBuilder('salesOrder')
-      .select('COALESCE(SUM(salesOrder.grandTotal), 0)', 'total')
-      .where('salesOrder.deletedAt IS NULL')
-      .andWhere('salesOrder.companyId = :companyId', { companyId })
-      .getRawOne<{ total: string | number | null }>();
+    const [totalResult, todayResult, recentOrders] = await Promise.all([
+      this.salesOrderRepository
+        .createQueryBuilder('salesOrder')
+        .select('COALESCE(SUM(salesOrder.grandTotal), 0)', 'total')
+        .where('salesOrder.deletedAt IS NULL')
+        .andWhere('salesOrder.companyId = :companyId', {
+          companyId,
+        })
+        .getRawOne<{
+          total: string | number | null;
+        }>(),
+
+      this.salesOrderRepository
+        .createQueryBuilder('salesOrder')
+        .select('COUNT(salesOrder.id)', 'orders')
+        .addSelect('COALESCE(SUM(salesOrder.grandTotal), 0)', 'sales')
+        .where('salesOrder.deletedAt IS NULL')
+        .andWhere('salesOrder.companyId = :companyId', {
+          companyId,
+        })
+        .andWhere('salesOrder.orderDate = :today', {
+          today,
+        })
+        .getRawOne<{
+          orders: string | number | null;
+          sales: string | number | null;
+        }>(),
+
+      this.salesOrderRepository
+        .createQueryBuilder('salesOrder')
+        .leftJoinAndSelect('salesOrder.customer', 'customer')
+        .where('salesOrder.deletedAt IS NULL')
+        .andWhere('salesOrder.companyId = :companyId', {
+          companyId,
+        })
+        .orderBy('salesOrder.createdAt', 'DESC')
+        .take(5)
+        .getMany(),
+    ]);
 
     return {
       success: true,
@@ -71,6 +144,16 @@ export class MobileService {
         pendingSync,
         failedSync,
         totalSales: Number(totalResult?.total ?? 0),
+
+        todayOrders: Number(todayResult?.orders ?? 0),
+        todaySales: Number(todayResult?.sales ?? 0),
+
+        totalCustomers,
+        totalProducts,
+        lowStockProducts,
+
+        recentOrders: recentOrders.map((order) => this.toOrderSummary(order)),
+
         tally,
       },
     };
@@ -284,18 +367,42 @@ export class MobileService {
     userId: string,
   ) {
     const customer = await this.customerRepository.findOne({
-      where: { id: dto.customerId, companyId, deletedAt: IsNull() },
+      where: {
+        id: dto.customerId,
+        companyId,
+        deletedAt: IsNull(),
+      },
     });
 
     if (!customer) {
       throw new NotFoundException('Customer not found');
     }
 
+    const warehouse = await this.warehouseRepository.findOne({
+      where: {
+        companyId,
+        isDefault: true,
+        isActive: true,
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (!warehouse) {
+      throw new BadRequestException(
+        'No active default warehouse is configured for this company',
+      );
+    }
+
     const uniqueProductIds = [
       ...new Set(dto.items.map((item) => item.productId)),
     ];
+
     const products = await this.itemRepository.find({
-      where: { id: In(uniqueProductIds), companyId, deletedAt: IsNull() },
+      where: {
+        id: In(uniqueProductIds),
+        companyId,
+        deletedAt: IsNull(),
+      },
     });
 
     if (products.length !== uniqueProductIds.length) {
@@ -330,72 +437,90 @@ export class MobileService {
         unit?: string | null;
       };
 
-      return { product, productData, quantity, unitPrice, lineSubtotal };
+      return {
+        product,
+        productData,
+        quantity,
+        unitPrice,
+        lineSubtotal,
+      };
     });
 
     const subtotal = this.roundMoney(
       preparedItems.reduce((sum, item) => sum + item.lineSubtotal, 0),
     );
 
-    const order = this.salesOrderRepository.create({
-      companyId,
-      customerId: customer.id,
-      customer,
-      createdBy: userId,
-      orderNumber: this.createOrderNumber(),
-      orderDate: new Date().toISOString().slice(0, 10),
-      expectedDeliveryDate: null,
-      status: SalesOrderStatus.SUBMITTED,
-      subtotal,
-      taxTotal: 0,
-      discountTotal: 0,
-      grandTotal: subtotal,
-      notes: dto.notes?.trim() || null,
-      approvalRequired: false,
-      approvedBy: null,
-      approvedAt: null,
-      rejectionReason: null,
-      syncStatus: SalesOrderSyncStatus.PENDING,
-      tallyVoucherId: null,
-      tallyVoucherNumber: null,
-      tallySyncError: null,
-      tallySyncAttempts: 0,
-      lastSyncedAt: null,
+    return this.dataSource.transaction(async (manager) => {
+      const salesOrderRepository = manager.getRepository(SalesOrderEntity);
+
+      const salesOrderItemRepository =
+        manager.getRepository(SalesOrderItemEntity);
+
+      const order = salesOrderRepository.create({
+        companyId,
+        customerId: customer.id,
+        customer,
+        warehouseId: warehouse.id,
+        createdBy: userId,
+        orderNumber: this.createOrderNumber(),
+        orderDate: new Date().toISOString().slice(0, 10),
+        expectedDeliveryDate: null,
+        status: SalesOrderStatus.SUBMITTED,
+        subtotal,
+        taxTotal: 0,
+        discountTotal: 0,
+        shippingTotal: 0,
+        grandTotal: subtotal,
+        notes: dto.notes?.trim() || null,
+        approvalRequired: false,
+        approvedBy: null,
+        approvedAt: null,
+        rejectionReason: null,
+        syncStatus: SalesOrderSyncStatus.PENDING,
+        tallyVoucherId: null,
+        tallyVoucherNumber: null,
+        tallySyncError: null,
+        tallySyncAttempts: 0,
+        lastSyncedAt: null,
+      });
+
+      const savedOrder = await salesOrderRepository.save(order);
+
+      const orderItems = preparedItems.map(
+        ({ product, productData, quantity, unitPrice, lineSubtotal }) =>
+          salesOrderItemRepository.create({
+            salesOrderId: savedOrder.id,
+            itemId: product.id,
+            itemName: product.name,
+            sku: productData.sku ?? null,
+            quantity,
+            deliveredQuantity: 0,
+            unit: productData.unit?.trim() || 'PCS',
+            unitPrice,
+            discountPercent: 0,
+            taxPercent: 0,
+            lineSubtotal,
+            lineDiscount: 0,
+            lineTax: 0,
+            discountAmount: 0,
+            taxAmount: 0,
+            lineTotal: lineSubtotal,
+          }),
+      );
+
+      await salesOrderItemRepository.save(orderItems);
+
+      return {
+        success: true,
+        message: 'Sales order created successfully',
+        data: {
+          id: savedOrder.id,
+          orderNumber: savedOrder.orderNumber,
+          totalAmount: savedOrder.grandTotal,
+          syncStatus: savedOrder.syncStatus,
+        },
+      };
     });
-
-    const savedOrder = await this.salesOrderRepository.save(order);
-
-    const orderItems = preparedItems.map(
-      ({ product, productData, quantity, unitPrice, lineSubtotal }) =>
-        this.salesOrderItemRepository.create({
-          salesOrderId: savedOrder.id,
-          itemId: product.id,
-          itemName: product.name,
-          sku: productData.sku ?? null,
-          quantity,
-          unit: productData.unit?.trim() || 'PCS',
-          unitPrice,
-          discountPercent: 0,
-          taxPercent: 0,
-          lineSubtotal,
-          lineDiscount: 0,
-          lineTax: 0,
-          lineTotal: lineSubtotal,
-        }),
-    );
-
-    await this.salesOrderItemRepository.save(orderItems);
-
-    return {
-      success: true,
-      message: 'Sales order created successfully',
-      data: {
-        id: savedOrder.id,
-        orderNumber: savedOrder.orderNumber,
-        totalAmount: savedOrder.grandTotal,
-        syncStatus: savedOrder.syncStatus,
-      },
-    };
   }
 
   async syncSalesOrder(id: string, companyId: string) {

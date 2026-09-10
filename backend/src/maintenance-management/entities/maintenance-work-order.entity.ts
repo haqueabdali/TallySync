@@ -23,9 +23,13 @@ const moneyTransformer = {
 };
 
 @Entity('maintenance_work_orders')
-@Index('UQ_maintenance_work_orders_company_number', ['companyId', 'workOrderNumber'], {
-  unique: true,
-})
+@Index(
+  'UQ_maintenance_work_orders_company_number',
+  ['companyId', 'workOrderNumber'],
+  {
+    unique: true,
+  },
+)
 @Index('IDX_maintenance_work_orders_company_status', ['companyId', 'status'])
 @Index('IDX_maintenance_work_orders_asset', ['companyId', 'assetId'])
 export class MaintenanceWorkOrderEntity {
@@ -38,7 +42,10 @@ export class MaintenanceWorkOrderEntity {
   @Column({ name: 'asset_id', type: 'uuid' })
   assetId!: string;
 
-  @ManyToOne(() => MaintenanceAssetEntity, { onDelete: 'RESTRICT', nullable: false })
+  @ManyToOne(() => MaintenanceAssetEntity, {
+    onDelete: 'RESTRICT',
+    nullable: false,
+  })
   @JoinColumn({ name: 'asset_id' })
   asset!: MaintenanceAssetEntity;
 

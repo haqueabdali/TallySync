@@ -65,7 +65,9 @@ export class GoodsReceiptsService {
     rejectedQty: number,
   ): void {
     if (receivedQty <= 0) {
-      throw new BadRequestException('Received quantity must be greater than zero.');
+      throw new BadRequestException(
+        'Received quantity must be greater than zero.',
+      );
     }
 
     if (acceptedQty < 0 || rejectedQty < 0) {
@@ -87,7 +89,9 @@ export class GoodsReceiptsService {
     goodsReceiptId?: string,
   ): GoodsReceiptItem[] {
     if (!dto.items?.length) {
-      throw new BadRequestException('At least one Goods Receipt item is required.');
+      throw new BadRequestException(
+        'At least one Goods Receipt item is required.',
+      );
     }
 
     const duplicateIds = dto.items
@@ -168,7 +172,9 @@ export class GoodsReceiptsService {
     }
 
     if (purchaseOrder.status === PurchaseOrderStatus.RECEIVED) {
-      throw new BadRequestException('This Purchase Order is already fully received.');
+      throw new BadRequestException(
+        'This Purchase Order is already fully received.',
+      );
     }
 
     const warehouse = await this.warehouseRepository.findOne({
@@ -295,10 +301,15 @@ export class GoodsReceiptsService {
     }
 
     if (receipt.status !== GoodsReceiptStatus.Draft) {
-      throw new BadRequestException('Only draft Goods Receipts can be updated.');
+      throw new BadRequestException(
+        'Only draft Goods Receipts can be updated.',
+      );
     }
 
-    if (dto.purchaseOrderId && dto.purchaseOrderId !== receipt.purchaseOrderId) {
+    if (
+      dto.purchaseOrderId &&
+      dto.purchaseOrderId !== receipt.purchaseOrderId
+    ) {
       throw new BadRequestException(
         'The Purchase Order cannot be changed after a Goods Receipt is created.',
       );
@@ -342,7 +353,9 @@ export class GoodsReceiptsService {
     receipt.updatedBy = userId;
 
     if (dto.items) {
-      await this.goodsReceiptItemRepository.delete({ goodsReceiptId: receipt.id });
+      await this.goodsReceiptItemRepository.delete({
+        goodsReceiptId: receipt.id,
+      });
       receipt.items = this.buildReceiptItems(dto, purchaseOrder, receipt.id);
     }
 
@@ -359,16 +372,15 @@ export class GoodsReceiptsService {
     }
 
     if (receipt.status !== GoodsReceiptStatus.Draft) {
-      throw new BadRequestException('Only draft Goods Receipts can be deleted.');
+      throw new BadRequestException(
+        'Only draft Goods Receipts can be deleted.',
+      );
     }
 
     await this.goodsReceiptRepository.softRemove(receipt);
   }
 
-  async post(
-    id: string,
-    companyId: string,
-  ): Promise<GoodsReceiptResponseDto> {
+  async post(id: string, companyId: string): Promise<GoodsReceiptResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const receipt = await manager.findOne(GoodsReceipt, {
         where: { id, companyId },
@@ -380,7 +392,9 @@ export class GoodsReceiptsService {
       }
 
       if (receipt.status !== GoodsReceiptStatus.Draft) {
-        throw new BadRequestException('Only draft Goods Receipts can be posted.');
+        throw new BadRequestException(
+          'Only draft Goods Receipts can be posted.',
+        );
       }
 
       const purchaseOrder = await manager.findOne(PurchaseOrderEntity, {
@@ -435,8 +449,7 @@ export class GoodsReceiptsService {
       }
 
       const fullyReceived = purchaseOrder.items.every(
-        (item) =>
-          Number(item.receivedQuantity ?? 0) >= Number(item.quantity),
+        (item) => Number(item.receivedQuantity ?? 0) >= Number(item.quantity),
       );
 
       const partiallyReceived = purchaseOrder.items.some(
@@ -471,7 +484,9 @@ export class GoodsReceiptsService {
       }
 
       if (receipt.status !== GoodsReceiptStatus.Posted) {
-        throw new BadRequestException('Only posted Goods Receipts can be reversed.');
+        throw new BadRequestException(
+          'Only posted Goods Receipts can be reversed.',
+        );
       }
 
       const purchaseOrder = await manager.findOne(PurchaseOrderEntity, {
@@ -526,8 +541,7 @@ export class GoodsReceiptsService {
       }
 
       const fullyReceived = purchaseOrder.items.every(
-        (item) =>
-          Number(item.receivedQuantity ?? 0) >= Number(item.quantity),
+        (item) => Number(item.receivedQuantity ?? 0) >= Number(item.quantity),
       );
 
       const partiallyReceived = purchaseOrder.items.some(

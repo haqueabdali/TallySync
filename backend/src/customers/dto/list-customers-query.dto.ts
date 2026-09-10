@@ -12,11 +12,7 @@ import {
 } from 'class-validator';
 
 export type CustomerSortField =
-  | 'name'
-  | 'email'
-  | 'creditLimit'
-  | 'createdAt'
-  | 'updatedAt';
+  'name' | 'email' | 'creditLimit' | 'createdAt' | 'updatedAt';
 
 export type CustomerSortOrder = 'ASC' | 'DESC';
 

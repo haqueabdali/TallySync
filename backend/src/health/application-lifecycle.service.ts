@@ -1,12 +1,7 @@
-import {
-  BeforeApplicationShutdown,
-  Injectable,
-} from '@nestjs/common';
+import { BeforeApplicationShutdown, Injectable } from '@nestjs/common';
 
 @Injectable()
-export class ApplicationLifecycleService
-  implements BeforeApplicationShutdown
-{
+export class ApplicationLifecycleService implements BeforeApplicationShutdown {
   private draining = false;
 
   isDraining(): boolean {

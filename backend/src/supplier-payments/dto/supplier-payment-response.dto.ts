@@ -16,15 +16,19 @@ export class SupplierPaymentResponseDto {
   @ApiProperty() supplierId!: string;
   @ApiProperty() paymentNumber!: string;
   @ApiProperty() paymentDate!: string;
-  @ApiProperty({ enum: SupplierPaymentMethod }) paymentMethod!: SupplierPaymentMethod;
+  @ApiProperty({ enum: SupplierPaymentMethod })
+  paymentMethod!: SupplierPaymentMethod;
   @ApiProperty({ enum: SupplierPaymentStatus }) status!: SupplierPaymentStatus;
   @ApiProperty() currency!: string;
   @ApiProperty() amount!: number;
   @ApiProperty() allocatedAmount!: number;
   @ApiProperty() unallocatedAmount!: number;
-  @ApiProperty({ required: false, nullable: true }) referenceNumber!: string | null;
-  @ApiProperty({ required: false, nullable: true }) bankAccountName!: string | null;
-  @ApiProperty({ required: false, nullable: true }) chequeNumber!: string | null;
+  @ApiProperty({ required: false, nullable: true }) referenceNumber!:
+    string | null;
+  @ApiProperty({ required: false, nullable: true }) bankAccountName!:
+    string | null;
+  @ApiProperty({ required: false, nullable: true }) chequeNumber!:
+    string | null;
   @ApiProperty({ required: false, nullable: true }) chequeDate!: string | null;
   @ApiProperty({ required: false, nullable: true }) notes!: string | null;
   @ApiProperty({ type: SupplierPaymentAllocationResponseDto, isArray: true })

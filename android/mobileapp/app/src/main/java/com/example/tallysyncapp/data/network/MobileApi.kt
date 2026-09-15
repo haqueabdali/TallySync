@@ -157,5 +157,255 @@ interface MobileApi {
 
 
 
+
+    @GET("goods-receipts")
+    suspend fun getGoodsReceipts(
+        @Query("purchaseOrderId") purchaseOrderId: String? = null,
+        @Query("warehouseId") warehouseId: String? = null,
+        @Query("status") status: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): GoodsReceiptsPage
+
+    @GET("goods-receipts/{id}")
+    suspend fun getGoodsReceipt(
+        @Path("id") id: String
+    ): GoodsReceiptRecord
+
+    @POST("goods-receipts")
+    suspend fun createGoodsReceipt(
+        @Body request: CreateGoodsReceiptRequest
+    ): GoodsReceiptRecord
+
+    @POST("goods-receipts/{id}/post")
+    suspend fun postGoodsReceipt(
+        @Path("id") id: String
+    ): GoodsReceiptRecord
+
+    @POST("goods-receipts/{id}/reverse")
+    suspend fun reverseGoodsReceipt(
+        @Path("id") id: String
+    ): GoodsReceiptRecord
+
+    @DELETE("goods-receipts/{id}")
+    suspend fun deleteGoodsReceipt(
+        @Path("id") id: String
+    )
+
+
+
+    // Stage 6N - Purchase Invoices
+
+    @GET("purchase-invoices")
+    suspend fun getPurchaseInvoices(
+        @Query("search") search: String? = null,
+        @Query("supplierId") supplierId: String? = null,
+        @Query("purchaseOrderId") purchaseOrderId: String? = null,
+        @Query("goodsReceiptId") goodsReceiptId: String? = null,
+        @Query("status") status: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): PurchaseInvoicesPage
+
+    @GET("purchase-invoices/{id}")
+    suspend fun getPurchaseInvoice(
+        @Path("id") id: String
+    ): PurchaseInvoiceRecord
+
+    @POST("purchase-invoices")
+    suspend fun createPurchaseInvoice(
+        @Body request: SavePurchaseInvoiceRequest
+    ): PurchaseInvoiceRecord
+
+    @PATCH("purchase-invoices/{id}")
+    suspend fun updatePurchaseInvoice(
+        @Path("id") id: String,
+        @Body request: SavePurchaseInvoiceRequest
+    ): PurchaseInvoiceRecord
+
+    @POST("purchase-invoices/{id}/post")
+    suspend fun postPurchaseInvoice(
+        @Path("id") id: String
+    ): PurchaseInvoiceRecord
+
+    @POST("purchase-invoices/{id}/cancel")
+    suspend fun cancelPurchaseInvoice(
+        @Path("id") id: String
+    ): PurchaseInvoiceRecord
+
+    @DELETE("purchase-invoices/{id}")
+    suspend fun deletePurchaseInvoice(
+        @Path("id") id: String
+    )
+
+    // Stage 6N - Supplier Payments
+
+    @GET("supplier-payments")
+    suspend fun getSupplierPayments(
+        @Query("search") search: String? = null,
+        @Query("supplierId") supplierId: String? = null,
+        @Query("status") status: String? = null,
+        @Query("paymentMethod") paymentMethod: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): SupplierPaymentsPage
+
+    @GET("supplier-payments/{id}")
+    suspend fun getSupplierPayment(
+        @Path("id") id: String
+    ): SupplierPaymentRecord
+
+    @POST("supplier-payments")
+    suspend fun createSupplierPayment(
+        @Body request: SaveSupplierPaymentRequest
+    ): SupplierPaymentRecord
+
+    @PATCH("supplier-payments/{id}")
+    suspend fun updateSupplierPayment(
+        @Path("id") id: String,
+        @Body request: SaveSupplierPaymentRequest
+    ): SupplierPaymentRecord
+
+    @POST("supplier-payments/{id}/post")
+    suspend fun postSupplierPayment(
+        @Path("id") id: String
+    ): SupplierPaymentRecord
+
+    @POST("supplier-payments/{id}/cancel")
+    suspend fun cancelSupplierPayment(
+        @Path("id") id: String
+    ): SupplierPaymentRecord
+
+    @DELETE("supplier-payments/{id}")
+    suspend fun deleteSupplierPayment(
+        @Path("id") id: String
+    )
+
+
+    // Stage 6Q - Sales Invoices
+
+    @GET("sales-invoices")
+    suspend fun getSalesInvoices(
+        @Query("search") search: String? = null,
+        @Query("customerId") customerId: String? = null,
+        @Query("salesOrderId") salesOrderId: String? = null,
+        @Query("deliveryNoteId") deliveryNoteId: String? = null,
+        @Query("status") status: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): SalesInvoicesPage
+
+    @GET("sales-invoices/{id}")
+    suspend fun getSalesInvoice(
+        @Path("id") id: String
+    ): SalesInvoiceRecord
+
+    @POST("sales-invoices")
+    suspend fun createSalesInvoice(
+        @Body request: SaveSalesInvoiceRequest
+    ): SalesInvoiceRecord
+
+    @PATCH("sales-invoices/{id}")
+    suspend fun updateSalesInvoice(
+        @Path("id") id: String,
+        @Body request: SaveSalesInvoiceRequest
+    ): SalesInvoiceRecord
+
+    @POST("sales-invoices/{id}/post")
+    suspend fun postSalesInvoice(
+        @Path("id") id: String
+    ): SalesInvoiceRecord
+
+    @POST("sales-invoices/{id}/cancel")
+    suspend fun cancelSalesInvoice(
+        @Path("id") id: String
+    ): SalesInvoiceRecord
+
+    @DELETE("sales-invoices/{id}")
+    suspend fun deleteSalesInvoice(
+        @Path("id") id: String
+    )
+
+    // Stage 6R - Customer Payments
+
+    @GET("customer-payments")
+    suspend fun getCustomerPayments(
+        @Query("search") search: String? = null,
+        @Query("customerId") customerId: String? = null,
+        @Query("status") status: String? = null,
+        @Query("paymentMethod") paymentMethod: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): CustomerPaymentsPage
+
+    @GET("customer-payments/{id}")
+    suspend fun getCustomerPayment(@Path("id") id: String): CustomerPaymentRecord
+
+    @POST("customer-payments")
+    suspend fun createCustomerPayment(@Body request: SaveCustomerPaymentRequest): CustomerPaymentRecord
+
+    @PATCH("customer-payments/{id}")
+    suspend fun updateCustomerPayment(
+        @Path("id") id: String,
+        @Body request: SaveCustomerPaymentRequest
+    ): CustomerPaymentRecord
+
+    @POST("customer-payments/{id}/post")
+    suspend fun postCustomerPayment(@Path("id") id: String): CustomerPaymentRecord
+
+    @POST("customer-payments/{id}/reverse")
+    suspend fun reverseCustomerPayment(
+        @Path("id") id: String,
+        @Body request: ReverseCustomerPaymentRequest
+    ): CustomerPaymentRecord
+
+    @POST("customer-payments/{id}/cancel")
+    suspend fun cancelCustomerPayment(@Path("id") id: String): CustomerPaymentRecord
+
+    @DELETE("customer-payments/{id}")
+    suspend fun deleteCustomerPayment(@Path("id") id: String)
+
+
+    // Stage 6S - Accounting Reports
+    @GET("aged-receivables")
+    suspend fun getAgedReceivables(
+        @Query("asOfDate") asOfDate: String,
+        @Query("customerId") customerId: String? = null,
+        @Query("currency") currency: String? = "EUR",
+        @Query("includeNotYetDue") includeNotYetDue: Boolean = true,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 200
+    ): AgedReceivablesReport
+
+    @GET("aged-payables")
+    suspend fun getAgedPayables(
+        @Query("asOfDate") asOfDate: String,
+        @Query("supplierId") supplierId: String? = null,
+        @Query("currency") currency: String? = "EUR",
+        @Query("includeNotYetDue") includeNotYetDue: Boolean = true,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 200
+    ): AgedPayablesReport
+
+    @GET("customer-statements")
+    suspend fun getCustomerStatement(
+        @Query("customerId") customerId: String,
+        @Query("dateFrom") dateFrom: String,
+        @Query("dateTo") dateTo: String,
+        @Query("currency") currency: String? = "EUR",
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 500
+    ): CustomerStatementReport
+
+    @GET("supplier-statements")
+    suspend fun getSupplierStatement(
+        @Query("supplierId") supplierId: String,
+        @Query("dateFrom") dateFrom: String,
+        @Query("dateTo") dateTo: String,
+        @Query("currency") currency: String? = "EUR",
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 500
+    ): SupplierStatementReport
+
 }
 

@@ -7,7 +7,7 @@ import com.example.tallysyncapp.data.local.entity.PendingOrderEntity
 
 @Database(
     entities = [PendingOrderEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

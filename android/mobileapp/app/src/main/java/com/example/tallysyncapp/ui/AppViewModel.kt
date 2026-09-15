@@ -1206,4 +1206,1107 @@ fun clearSupplierRecord() {
             finally { _uiState.value = _uiState.value.copy(loading = false) }
         }
     }
+
+    fun loadGoodsReceipts(
+        purchaseOrderId: String? = null
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loading = true,
+                error = null
+            )
+
+            try {
+                val response = repository.getGoodsReceipts(
+                    purchaseOrderId = purchaseOrderId
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceipts = response.data,
+                    loading = false
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error = error.message
+                        ?: "Unable to load goods receipts."
+                )
+            }
+        }
+    }
+
+    fun loadGoodsReceiptRecord(id: String) {
+        if (id.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loading = true,
+                error = null
+            )
+
+            try {
+                val record = repository.getGoodsReceipt(id)
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceiptRecord = record,
+                    loading = false
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error = error.message
+                        ?: "Unable to load goods receipt."
+                )
+            }
+        }
+    }
+
+    fun clearGoodsReceiptRecord() {
+        _uiState.value = _uiState.value.copy(
+            goodsReceiptRecord = null
+        )
+    }
+
+    fun createGoodsReceipt(
+        request: com.example.tallysyncapp.data.network.CreateGoodsReceiptRequest,
+        onSuccess: (String) -> Unit
+    ) {
+        if (_uiState.value.isSavingGoodsReceipt) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSavingGoodsReceipt = true,
+                error = null
+            )
+
+            try {
+                val created =
+                    repository.createGoodsReceipt(request)
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceiptRecord = created,
+                    isSavingGoodsReceipt = false,
+                    message = "Goods receipt created successfully."
+                )
+
+                onSuccess(created.id)
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSavingGoodsReceipt = false,
+                    error = error.message
+                        ?: "Unable to create goods receipt."
+                )
+            }
+        }
+    }
+
+    fun postGoodsReceipt(
+        id: String,
+        onSuccess: (() -> Unit)? = null
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value.isPostingGoodsReceipt
+        ) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isPostingGoodsReceipt = true,
+                error = null
+            )
+
+            try {
+                val posted =
+                    repository.postGoodsReceipt(id)
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceiptRecord = posted,
+                    isPostingGoodsReceipt = false,
+                    message = "Goods receipt posted successfully."
+                )
+
+                loadPurchaseOrderRecord(posted.purchaseOrderId)
+                onSuccess?.invoke()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isPostingGoodsReceipt = false,
+                    error = error.message
+                        ?: "Unable to post goods receipt."
+                )
+            }
+        }
+    }
+
+    fun reverseGoodsReceipt(
+        id: String,
+        onSuccess: (() -> Unit)? = null
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value.isReversingGoodsReceipt
+        ) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isReversingGoodsReceipt = true,
+                error = null
+            )
+
+            try {
+                val reversed =
+                    repository.reverseGoodsReceipt(id)
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceiptRecord = reversed,
+                    isReversingGoodsReceipt = false,
+                    message = "Goods receipt reversed successfully."
+                )
+
+                loadPurchaseOrderRecord(reversed.purchaseOrderId)
+                onSuccess?.invoke()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isReversingGoodsReceipt = false,
+                    error = error.message
+                        ?: "Unable to reverse goods receipt."
+                )
+            }
+        }
+    }
+
+    fun deleteGoodsReceipt(
+        id: String,
+        onSuccess: () -> Unit
+    ) {
+        if (id.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                repository.deleteGoodsReceipt(id)
+
+                _uiState.value = _uiState.value.copy(
+                    goodsReceiptRecord = null,
+                    message = "Draft goods receipt deleted."
+                )
+
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = error.message
+                        ?: "Unable to delete goods receipt."
+                )
+            }
+        }
+    }
+
+
+
+    // -------------------------------------------------------------------------
+    // Stage 6N - Purchase Invoices
+    // -------------------------------------------------------------------------
+
+    fun loadPurchaseInvoices(
+        search: String = _uiState.value.purchaseInvoiceSearch,
+        status: String? = _uiState.value.purchaseInvoiceStatusFilter,
+        supplierId: String? = null
+    ) {
+        _uiState.value = _uiState.value.copy(
+            purchaseInvoiceSearch = search,
+            purchaseInvoiceStatusFilter = status
+        )
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loading = true,
+                error = null
+            )
+
+            try {
+                val response =
+                    repository.getPurchaseInvoices(
+                        search =
+                            search.trim()
+                                .takeIf { it.isNotEmpty() },
+                        supplierId = supplierId,
+                        status = status
+                    )
+
+                _uiState.value = _uiState.value.copy(
+                    purchaseInvoices = response.data,
+                    loading = false
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error =
+                        error.message
+                            ?: "Unable to load purchase invoices."
+                )
+            }
+        }
+    }
+
+    fun updatePurchaseInvoiceSearch(value: String) {
+        _uiState.value =
+            _uiState.value.copy(
+                purchaseInvoiceSearch = value
+            )
+    }
+
+    fun updatePurchaseInvoiceStatusFilter(
+        value: String?
+    ) {
+        _uiState.value =
+            _uiState.value.copy(
+                purchaseInvoiceStatusFilter = value
+            )
+
+        loadPurchaseInvoices(
+            search =
+                _uiState.value.purchaseInvoiceSearch,
+            status = value
+        )
+    }
+
+    fun loadPurchaseInvoiceRecord(id: String) {
+        if (id.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    loading = true,
+                    error = null
+                )
+
+            try {
+                val record =
+                    repository.getPurchaseInvoice(id)
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        purchaseInvoiceRecord = record,
+                        loading = false
+                    )
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        loading = false,
+                        error =
+                            error.message
+                                ?: "Unable to load purchase invoice."
+                    )
+            }
+        }
+    }
+
+    fun clearPurchaseInvoiceRecord() {
+        _uiState.value =
+            _uiState.value.copy(
+                purchaseInvoiceRecord = null
+            )
+    }
+
+    fun createPurchaseInvoice(
+        request:
+            com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest,
+        onSuccess: (String) -> Unit
+    ) {
+        if (_uiState.value.isSavingPurchaseInvoice) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isSavingPurchaseInvoice = true,
+                    error = null
+                )
+
+            try {
+                val created =
+                    repository.createPurchaseInvoice(
+                        request
+                    )
+
+                val list =
+                    repository.getPurchaseInvoices()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        purchaseInvoiceRecord = created,
+                        purchaseInvoices = list.data,
+                        isSavingPurchaseInvoice = false,
+                        message =
+                            "Purchase invoice created successfully."
+                    )
+
+                onSuccess(created.id)
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isSavingPurchaseInvoice = false,
+                        error =
+                            error.message
+                                ?: "Unable to create purchase invoice."
+                    )
+            }
+        }
+    }
+
+    fun postPurchaseInvoice(id: String) {
+        changePurchaseInvoiceLifecycle(
+            id = id,
+            successMessage =
+                "Purchase invoice posted successfully."
+        ) {
+            repository.postPurchaseInvoice(id)
+        }
+    }
+
+    fun cancelPurchaseInvoice(id: String) {
+        changePurchaseInvoiceLifecycle(
+            id = id,
+            successMessage =
+                "Purchase invoice cancelled."
+        ) {
+            repository.cancelPurchaseInvoice(id)
+        }
+    }
+
+    fun deletePurchaseInvoice(
+        id: String,
+        onSuccess: () -> Unit
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value
+                .isChangingPurchaseInvoiceStatus
+        ) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isChangingPurchaseInvoiceStatus = true,
+                    error = null
+                )
+
+            try {
+                repository.deletePurchaseInvoice(id)
+
+                val list =
+                    repository.getPurchaseInvoices()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        purchaseInvoiceRecord = null,
+                        purchaseInvoices = list.data,
+                        isChangingPurchaseInvoiceStatus = false,
+                        message =
+                            "Purchase invoice deleted successfully."
+                    )
+
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isChangingPurchaseInvoiceStatus = false,
+                        error =
+                            error.message
+                                ?: "Unable to delete purchase invoice."
+                    )
+            }
+        }
+    }
+
+    private fun changePurchaseInvoiceLifecycle(
+        id: String,
+        successMessage: String,
+        request: suspend () ->
+            com.example.tallysyncapp.data.network.PurchaseInvoiceRecord
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value
+                .isChangingPurchaseInvoiceStatus
+        ) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isChangingPurchaseInvoiceStatus = true,
+                    error = null
+                )
+
+            try {
+                val updated = request()
+
+                val list =
+                    repository.getPurchaseInvoices()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        purchaseInvoiceRecord = updated,
+                        purchaseInvoices = list.data,
+                        isChangingPurchaseInvoiceStatus = false,
+                        message = successMessage
+                    )
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isChangingPurchaseInvoiceStatus = false,
+                        error =
+                            error.message
+                                ?: "Unable to update purchase invoice."
+                    )
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Stage 6N - Supplier Payments
+    // -------------------------------------------------------------------------
+
+    fun loadSupplierPayments(
+        search: String =
+            _uiState.value.supplierPaymentSearch,
+        status: String? =
+            _uiState.value.supplierPaymentStatusFilter,
+        supplierId: String? = null
+    ) {
+        _uiState.value =
+            _uiState.value.copy(
+                supplierPaymentSearch = search,
+                supplierPaymentStatusFilter = status
+            )
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    loading = true,
+                    error = null
+                )
+
+            try {
+                val response =
+                    repository.getSupplierPayments(
+                        search =
+                            search.trim()
+                                .takeIf {
+                                    it.isNotEmpty()
+                                },
+                        supplierId = supplierId,
+                        status = status
+                    )
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        supplierPayments =
+                            response.data,
+                        loading = false
+                    )
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        loading = false,
+                        error =
+                            error.message
+                                ?: "Unable to load supplier payments."
+                    )
+            }
+        }
+    }
+
+    fun updateSupplierPaymentSearch(
+        value: String
+    ) {
+        _uiState.value =
+            _uiState.value.copy(
+                supplierPaymentSearch = value
+            )
+    }
+
+    fun loadSupplierPaymentRecord(
+        id: String
+    ) {
+        if (id.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    loading = true,
+                    error = null
+                )
+
+            try {
+                val record =
+                    repository.getSupplierPayment(id)
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        supplierPaymentRecord = record,
+                        loading = false
+                    )
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        loading = false,
+                        error =
+                            error.message
+                                ?: "Unable to load supplier payment."
+                    )
+            }
+        }
+    }
+
+    fun clearSupplierPaymentRecord() {
+        _uiState.value =
+            _uiState.value.copy(
+                supplierPaymentRecord = null
+            )
+    }
+
+    fun createSupplierPayment(
+        request:
+            com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest,
+        onSuccess: (String) -> Unit
+    ) {
+        if (_uiState.value.isSavingSupplierPayment) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isSavingSupplierPayment = true,
+                    error = null
+                )
+
+            try {
+                val created =
+                    repository.createSupplierPayment(
+                        request
+                    )
+
+                val list =
+                    repository.getSupplierPayments()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        supplierPaymentRecord = created,
+                        supplierPayments = list.data,
+                        isSavingSupplierPayment = false,
+                        message =
+                            "Supplier payment created successfully."
+                    )
+
+                onSuccess(created.id)
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isSavingSupplierPayment = false,
+                        error =
+                            error.message
+                                ?: "Unable to create supplier payment."
+                    )
+            }
+        }
+    }
+
+    fun postSupplierPayment(id: String) {
+        changeSupplierPaymentLifecycle(
+            id = id,
+            successMessage =
+                "Supplier payment posted successfully."
+        ) {
+            repository.postSupplierPayment(id)
+        }
+    }
+
+    fun cancelSupplierPayment(id: String) {
+        changeSupplierPaymentLifecycle(
+            id = id,
+            successMessage =
+                "Supplier payment cancelled."
+        ) {
+            repository.cancelSupplierPayment(id)
+        }
+    }
+
+    fun deleteSupplierPayment(
+        id: String,
+        onSuccess: () -> Unit
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value
+                .isChangingSupplierPaymentStatus
+        ) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isChangingSupplierPaymentStatus = true,
+                    error = null
+                )
+
+            try {
+                repository.deleteSupplierPayment(id)
+
+                val list =
+                    repository.getSupplierPayments()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        supplierPaymentRecord = null,
+                        supplierPayments = list.data,
+                        isChangingSupplierPaymentStatus = false,
+                        message =
+                            "Supplier payment deleted successfully."
+                    )
+
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isChangingSupplierPaymentStatus = false,
+                        error =
+                            error.message
+                                ?: "Unable to delete supplier payment."
+                    )
+            }
+        }
+    }
+
+    private fun changeSupplierPaymentLifecycle(
+        id: String,
+        successMessage: String,
+        request: suspend () ->
+            com.example.tallysyncapp.data.network.SupplierPaymentRecord
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value
+                .isChangingSupplierPaymentStatus
+        ) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value =
+                _uiState.value.copy(
+                    isChangingSupplierPaymentStatus = true,
+                    error = null
+                )
+
+            try {
+                val updated = request()
+
+                val paymentList =
+                    repository.getSupplierPayments()
+
+                val invoiceList =
+                    repository.getPurchaseInvoices()
+
+                _uiState.value =
+                    _uiState.value.copy(
+                        supplierPaymentRecord = updated,
+                        supplierPayments =
+                            paymentList.data,
+                        purchaseInvoices =
+                            invoiceList.data,
+                        isChangingSupplierPaymentStatus = false,
+                        message = successMessage
+                    )
+            } catch (error: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isChangingSupplierPaymentStatus = false,
+                        error =
+                            error.message
+                                ?: "Unable to update supplier payment."
+                    )
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Stage 6Q - Sales Invoices
+    // -------------------------------------------------------------------------
+
+    fun loadSalesInvoices(
+        search: String = _uiState.value.salesInvoiceSearch,
+        status: String? = _uiState.value.salesInvoiceStatusFilter,
+        customerId: String? = null
+    ) {
+        _uiState.value = _uiState.value.copy(
+            salesInvoiceSearch = search,
+            salesInvoiceStatusFilter = status
+        )
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loading = true,
+                error = null
+            )
+
+            try {
+                val response = repository.getSalesInvoices(
+                    search = search.trim().takeIf { it.isNotEmpty() },
+                    customerId = customerId,
+                    status = status
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoices = response.data,
+                    loading = false
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error = error.message ?: "Unable to load sales invoices."
+                )
+            }
+        }
+    }
+
+    fun updateSalesInvoiceSearch(value: String) {
+        _uiState.value = _uiState.value.copy(
+            salesInvoiceSearch = value
+        )
+    }
+
+    fun updateSalesInvoiceStatusFilter(value: String?) {
+        _uiState.value = _uiState.value.copy(
+            salesInvoiceStatusFilter = value
+        )
+
+        loadSalesInvoices(
+            search = _uiState.value.salesInvoiceSearch,
+            status = value
+        )
+    }
+
+    fun loadSalesInvoiceRecord(id: String) {
+        if (id.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loading = true,
+                error = null
+            )
+
+            try {
+                val record = repository.getSalesInvoice(id)
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoiceRecord = record,
+                    loading = false
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    loading = false,
+                    error = error.message ?: "Unable to load sales invoice."
+                )
+            }
+        }
+    }
+
+    fun clearSalesInvoiceRecord() {
+        _uiState.value = _uiState.value.copy(
+            salesInvoiceRecord = null
+        )
+    }
+
+    fun createSalesInvoice(
+        request: com.example.tallysyncapp.data.network.SaveSalesInvoiceRequest,
+        onSuccess: (String) -> Unit
+    ) {
+        if (_uiState.value.isSavingSalesInvoice) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSavingSalesInvoice = true,
+                error = null
+            )
+
+            try {
+                val created = repository.createSalesInvoice(request)
+                val list = repository.getSalesInvoices()
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoiceRecord = created,
+                    salesInvoices = list.data,
+                    isSavingSalesInvoice = false,
+                    message = "Sales invoice created successfully."
+                )
+
+                onSuccess(created.id)
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSavingSalesInvoice = false,
+                    error = error.message ?: "Unable to create sales invoice."
+                )
+            }
+        }
+    }
+
+    fun postSalesInvoice(id: String) {
+        changeSalesInvoiceLifecycle(
+            id = id,
+            successMessage = "Sales invoice posted successfully."
+        ) {
+            repository.postSalesInvoice(id)
+        }
+    }
+
+    fun cancelSalesInvoice(id: String) {
+        changeSalesInvoiceLifecycle(
+            id = id,
+            successMessage = "Sales invoice cancelled."
+        ) {
+            repository.cancelSalesInvoice(id)
+        }
+    }
+
+    fun deleteSalesInvoice(
+        id: String,
+        onSuccess: () -> Unit
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value.isChangingSalesInvoiceStatus
+        ) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isChangingSalesInvoiceStatus = true,
+                error = null
+            )
+
+            try {
+                repository.deleteSalesInvoice(id)
+                val list = repository.getSalesInvoices()
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoiceRecord = null,
+                    salesInvoices = list.data,
+                    isChangingSalesInvoiceStatus = false,
+                    message = "Sales invoice deleted successfully."
+                )
+
+                onSuccess()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isChangingSalesInvoiceStatus = false,
+                    error = error.message ?: "Unable to delete sales invoice."
+                )
+            }
+        }
+    }
+
+    private fun changeSalesInvoiceLifecycle(
+        id: String,
+        successMessage: String,
+        request: suspend () -> com.example.tallysyncapp.data.network.SalesInvoiceRecord
+    ) {
+        if (
+            id.isBlank() ||
+            _uiState.value.isChangingSalesInvoiceStatus
+        ) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isChangingSalesInvoiceStatus = true,
+                error = null
+            )
+
+            try {
+                val updated = request()
+                val list = repository.getSalesInvoices()
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoiceRecord = updated,
+                    salesInvoices = list.data,
+                    isChangingSalesInvoiceStatus = false,
+                    message = successMessage
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isChangingSalesInvoiceStatus = false,
+                    error = error.message ?: "Unable to update sales invoice."
+                )
+            }
+        }
+    }
+
+
+    // -------------------------------------------------------------------------
+    // Stage 6R - Customer Payments
+    // -------------------------------------------------------------------------
+    fun loadCustomerPayments(search: String = _uiState.value.customerPaymentSearch, status: String? = _uiState.value.customerPaymentStatusFilter, customerId: String? = null) {
+        _uiState.value = _uiState.value.copy(customerPaymentSearch = search, customerPaymentStatusFilter = status)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(loading = true, error = null)
+            try {
+                val result = repository.getCustomerPayments(search.trim().takeIf { it.isNotEmpty() }, customerId, status)
+                _uiState.value = _uiState.value.copy(customerPayments = result.data, loading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(loading = false, error = e.message ?: "Unable to load customer payments.")
+            }
+        }
+    }
+
+    fun updateCustomerPaymentSearch(value: String) { _uiState.value = _uiState.value.copy(customerPaymentSearch = value) }
+
+    fun loadCustomerPaymentRecord(id: String) {
+        if (id.isBlank()) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(loading = true, error = null)
+            try {
+                val record = repository.getCustomerPayment(id)
+                _uiState.value = _uiState.value.copy(customerPaymentRecord = record, loading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(loading = false, error = e.message ?: "Unable to load customer payment.")
+            }
+        }
+    }
+
+    fun clearCustomerPaymentRecord() { _uiState.value = _uiState.value.copy(customerPaymentRecord = null) }
+
+    fun createCustomerPayment(request: com.example.tallysyncapp.data.network.SaveCustomerPaymentRequest, onSuccess: (String) -> Unit) {
+        if (_uiState.value.isSavingCustomerPayment) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSavingCustomerPayment = true, error = null)
+            try {
+                val created = repository.createCustomerPayment(request)
+                val payments = repository.getCustomerPayments()
+                val invoices = repository.getSalesInvoices()
+                _uiState.value = _uiState.value.copy(customerPaymentRecord = created, customerPayments = payments.data, salesInvoices = invoices.data, isSavingCustomerPayment = false, message = "Customer payment created successfully.")
+                onSuccess(created.id)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isSavingCustomerPayment = false, error = e.message ?: "Unable to create customer payment.")
+            }
+        }
+    }
+
+    fun postCustomerPayment(id: String) = changeCustomerPaymentLifecycle(id, "Customer payment posted successfully.") { repository.postCustomerPayment(id) }
+    fun cancelCustomerPayment(id: String) = changeCustomerPaymentLifecycle(id, "Customer payment cancelled.") { repository.cancelCustomerPayment(id) }
+    fun reverseCustomerPayment(id: String, reason: String) = changeCustomerPaymentLifecycle(id, "Customer payment reversed successfully.") { repository.reverseCustomerPayment(id, reason) }
+
+    fun deleteCustomerPayment(id: String, onSuccess: () -> Unit) {
+        if (id.isBlank() || _uiState.value.isChangingCustomerPaymentStatus) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isChangingCustomerPaymentStatus = true, error = null)
+            try {
+                repository.deleteCustomerPayment(id)
+                val list = repository.getCustomerPayments()
+                _uiState.value = _uiState.value.copy(customerPaymentRecord = null, customerPayments = list.data, isChangingCustomerPaymentStatus = false, message = "Customer payment deleted successfully.")
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isChangingCustomerPaymentStatus = false, error = e.message ?: "Unable to delete customer payment.")
+            }
+        }
+    }
+
+    private fun changeCustomerPaymentLifecycle(id: String, successMessage: String, request: suspend () -> com.example.tallysyncapp.data.network.CustomerPaymentRecord) {
+        if (id.isBlank() || _uiState.value.isChangingCustomerPaymentStatus) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isChangingCustomerPaymentStatus = true, error = null)
+            try {
+                val updated = request()
+                val payments = repository.getCustomerPayments()
+                val invoices = repository.getSalesInvoices()
+                _uiState.value = _uiState.value.copy(customerPaymentRecord = updated, customerPayments = payments.data, salesInvoices = invoices.data, isChangingCustomerPaymentStatus = false, message = successMessage)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isChangingCustomerPaymentStatus = false, error = e.message ?: "Unable to update customer payment.")
+            }
+        }
+    }
+
+
+    // Stage 6S - Accounting Reports
+    fun setReportTab(tab: String) {
+        _uiState.value = _uiState.value.copy(reportTab = tab)
+    }
+
+    fun loadAccountingReports() {
+        if (_uiState.value.accountingReportsLoading) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(accountingReportsLoading = true, error = null)
+            try {
+                val today = java.time.LocalDate.now().toString()
+                val agedReceivables = repository.getAgedReceivables(today)
+                val agedPayables = repository.getAgedPayables(today)
+                _uiState.value = _uiState.value.copy(
+                    agedReceivables = agedReceivables,
+                    agedPayables = agedPayables
+                )
+                if (_uiState.value.customers.isEmpty()) loadCustomers()
+                if (_uiState.value.suppliers.isEmpty()) loadSuppliers()
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = error.message ?: "Unable to load accounting reports."
+                )
+            } finally {
+                _uiState.value = _uiState.value.copy(accountingReportsLoading = false)
+            }
+        }
+    }
+
+    fun loadCustomerStatement(customerId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                accountingReportsLoading = true,
+                statementCustomerId = customerId,
+                error = null
+            )
+            try {
+                val today = java.time.LocalDate.now()
+                val report = repository.getCustomerStatement(
+                    customerId = customerId,
+                    dateFrom = today.minusMonths(12).toString(),
+                    dateTo = today.toString()
+                )
+                _uiState.value = _uiState.value.copy(customerStatement = report)
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = error.message ?: "Unable to load customer statement."
+                )
+            } finally {
+                _uiState.value = _uiState.value.copy(accountingReportsLoading = false)
+            }
+        }
+    }
+
+    fun loadSupplierStatement(supplierId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                accountingReportsLoading = true,
+                statementSupplierId = supplierId,
+                error = null
+            )
+            try {
+                val today = java.time.LocalDate.now()
+                val report = repository.getSupplierStatement(
+                    supplierId = supplierId,
+                    dateFrom = today.minusMonths(12).toString(),
+                    dateTo = today.toString()
+                )
+                _uiState.value = _uiState.value.copy(supplierStatement = report)
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = error.message ?: "Unable to load supplier statement."
+                )
+            } finally {
+                _uiState.value = _uiState.value.copy(accountingReportsLoading = false)
+            }
+        }
+    }
+
 }

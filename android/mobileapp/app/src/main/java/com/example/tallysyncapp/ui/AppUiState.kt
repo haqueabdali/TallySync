@@ -46,6 +46,12 @@ data class AppUiState(
     val isOnline: Boolean = true,
     val localPendingOrders: Int = 0,
     val localPendingOrderItems: List<PendingOrderEntity> = emptyList(),
+    val goodsReceipts: List<com.example.tallysyncapp.data.network.GoodsReceiptRecord> = emptyList(),
+    val goodsReceiptRecord: com.example.tallysyncapp.data.network.GoodsReceiptRecord? = null,
+    val isSavingGoodsReceipt: Boolean = false,
+    val isPostingGoodsReceipt: Boolean = false,
+    val isReversingGoodsReceipt: Boolean = false,
+
     val loading: Boolean = false,
     val isSubmittingOrder: Boolean = false,
     val error: String? = null,
@@ -57,4 +63,46 @@ data class AppUiState(
     val purchaseOrderStatusFilter: String? = null,
     val isSavingPurchaseOrder: Boolean = false,
     val isChangingPurchaseOrderStatus: Boolean = false,
+
+    // Stage 6N - Purchase Invoices
+    val purchaseInvoices: List<com.example.tallysyncapp.data.network.PurchaseInvoiceRecord> = emptyList(),
+    val purchaseInvoiceRecord: com.example.tallysyncapp.data.network.PurchaseInvoiceRecord? = null,
+    val purchaseInvoiceSearch: String = "",
+    val purchaseInvoiceStatusFilter: String? = null,
+    val isSavingPurchaseInvoice: Boolean = false,
+    val isChangingPurchaseInvoiceStatus: Boolean = false,
+
+    // Stage 6N - Supplier Payments
+    val supplierPayments: List<com.example.tallysyncapp.data.network.SupplierPaymentRecord> = emptyList(),
+    val supplierPaymentRecord: com.example.tallysyncapp.data.network.SupplierPaymentRecord? = null,
+    val supplierPaymentSearch: String = "",
+    val supplierPaymentStatusFilter: String? = null,
+    val isSavingSupplierPayment: Boolean = false,
+    val isChangingSupplierPaymentStatus: Boolean = false,
+
+    // Stage 6Q - Sales Invoices
+    val salesInvoices: List<com.example.tallysyncapp.data.network.SalesInvoiceRecord> = emptyList(),
+    val salesInvoiceRecord: com.example.tallysyncapp.data.network.SalesInvoiceRecord? = null,
+    val salesInvoiceSearch: String = "",
+    val salesInvoiceStatusFilter: String? = null,
+    val isSavingSalesInvoice: Boolean = false,
+    val isChangingSalesInvoiceStatus: Boolean = false,
+
+    // Stage 6R - Customer Payments
+    val customerPayments: List<com.example.tallysyncapp.data.network.CustomerPaymentRecord> = emptyList(),
+    val customerPaymentRecord: com.example.tallysyncapp.data.network.CustomerPaymentRecord? = null,
+    val customerPaymentSearch: String = "",
+    val customerPaymentStatusFilter: String? = null,
+    val isSavingCustomerPayment: Boolean = false,
+    val isChangingCustomerPaymentStatus: Boolean = false,
+
+    // Stage 6S - Accounting Reports
+    val reportTab: String = "sales",
+    val agedReceivables: com.example.tallysyncapp.data.network.AgedReceivablesReport? = null,
+    val agedPayables: com.example.tallysyncapp.data.network.AgedPayablesReport? = null,
+    val customerStatement: com.example.tallysyncapp.data.network.CustomerStatementReport? = null,
+    val supplierStatement: com.example.tallysyncapp.data.network.SupplierStatementReport? = null,
+    val statementCustomerId: String? = null,
+    val statementSupplierId: String? = null,
+    val accountingReportsLoading: Boolean = false,
 )

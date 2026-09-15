@@ -126,10 +126,9 @@ export class SalesOrdersService {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 20;
 
-    const query = this.salesOrderRepository
-      .createQueryBuilder('salesOrder')
-      .leftJoinAndSelect('salesOrder.items', 'items')
-      .where('salesOrder.company_id = :companyId', { companyId });
+   const query = this.salesOrderRepository
+  .createQueryBuilder('salesOrder')
+  .where('salesOrder.company_id = :companyId', { companyId });
 
     if (filter.search?.trim()) {
       const search = `%${filter.search.trim()}%`;
@@ -187,19 +186,47 @@ export class SalesOrdersService {
       createdAt: 'salesOrder.created_at',
       updatedAt: 'salesOrder.updated_at',
     };
+const sortColumn =
+  sortColumns[filter.sortBy] ?? 'salesOrder.created_at';
 
-    query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'salesOrder.created_at',
-        filter.sortOrder,
-      )
-      .addOrderBy('salesOrder.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+const sortOrder = filter.sortOrder ?? 'DESC';
 
-    const [orders, total] = await query.getManyAndCount();
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+const total = await query.clone().getCount();
+
+const idRows = await query
+  .clone()
+  .select('salesOrder.id', 'id')
+  .orderBy(sortColumn, sortOrder)
+  .addOrderBy('salesOrder.id', 'DESC')
+  .offset((page - 1) * limit)
+  .limit(limit)
+  .getRawMany<{ id: string }>();
+
+const ids = idRows.map((row) => row.id);
+
+let orders: SalesOrderEntity[] = [];
+
+if (ids.length > 0) {
+  const loadedOrders = await this.salesOrderRepository
+    .createQueryBuilder('salesOrder')
+    .leftJoinAndSelect('salesOrder.items', 'items')
+    .where('salesOrder.company_id = :companyId', { companyId })
+    .andWhere('salesOrder.id IN (:...ids)', { ids })
+    .getMany();
+
+  const orderById = new Map(
+    loadedOrders.map((order) => [order.id, order]),
+  );
+
+  orders = ids
+    .map((id) => orderById.get(id))
+    .filter(
+      (order): order is SalesOrderEntity =>
+        order !== undefined,
+    );
+}
+
+const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
       data: orders.map((order) => this.toResponse(order)),

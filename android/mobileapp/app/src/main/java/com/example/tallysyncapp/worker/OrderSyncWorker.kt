@@ -25,29 +25,105 @@ class OrderSyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val orders = dao.getOrdersReadyForSync()
-        if (orders.isEmpty()) return Result.success()
+
+        if (orders.isEmpty()) {
+            return Result.success()
+        }
 
         var retryRequired = false
 
         for (order in orders) {
-            dao.updateStatus(order.id, PendingOrderEntity.STATUS_SYNCING)
+
+            // Defensive protection:
+            // a row that already owns a backend ID must never be created again.
+            val latest = dao.getById(order.id)
+
+            if (latest?.backendOrderId != null) {
+                continue
+            }
+
+            dao.updateStatus(
+                id = order.id,
+                status = PendingOrderEntity.STATUS_SYNCING
+            )
+
             try {
-                val request = gson.fromJson(order.requestJson, CreateSalesOrderRequest::class.java)
-                repository.createSalesOrder(request)
-                dao.deleteById(order.id)
+                val request = gson.fromJson(
+                    order.requestJson,
+                    CreateSalesOrderRequest::class.java
+                )
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * This worker performs ONLY backend Sales Order creation.
+                 *
+                 * It must never:
+                 * - fulfill the order
+                 * - call Tally synchronization
+                 * - call retrySalesOrder()
+                 * - call syncPendingSalesOrders()
+                 */
+
+                val response = repository.createSalesOrder(request)
+
+                val result = response.data
+
+                if (result == null || result.id.isBlank()) {
+                    dao.markFailed(
+                        order.id,
+                        "Backend returned no Sales Order identity"
+                    )
+                    retryRequired = true
+                    break
+                }
+
+                dao.markSynced(
+                    id = order.id,
+                    backendOrderId = result.id,
+                    backendOrderNumber = result.orderNumber
+                )
+
             } catch (error: IOException) {
-                dao.markFailed(order.id, error.message ?: "Network unavailable")
+
+                dao.markFailed(
+                    order.id,
+                    error.message ?: "Network unavailable"
+                )
+
                 retryRequired = true
                 break
+
             } catch (error: HttpException) {
-                dao.markFailed(order.id, "Server error ${error.code()}")
-                if (error.code() >= 500) retryRequired = true
+
+                val code = error.code()
+
+                dao.markFailed(
+                    order.id,
+                    "Server error $code"
+                )
+
+                // Authentication/validation errors require user intervention.
+                // Server failures are safe candidates for WorkManager retry.
+                if (code >= 500) {
+                    retryRequired = true
+                    break
+                }
+
             } catch (error: Exception) {
-                dao.markFailed(order.id, error.message ?: "Unable to sync order")
+
+                dao.markFailed(
+                    order.id,
+                    error.message ?: "Unable to upload offline order"
+                )
             }
         }
 
-        return if (retryRequired) Result.retry() else Result.success()
+        return if (retryRequired) {
+            Result.retry()
+        } else {
+            Result.success()
+        }
     }
 
     companion object {

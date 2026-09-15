@@ -38,7 +38,9 @@ fun PurchaseOrderDetailsScreen(
     onEdit: () -> Unit,
     onSend: () -> Unit,
     onCancel: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onOpenPurchaseInvoices: () -> Unit = {},
+    onOpenSupplierPayments: () -> Unit = {}
 ) {
     val purchaseOrder =
         state.purchaseOrderRecord
@@ -284,6 +286,20 @@ fun PurchaseOrderDetailsScreen(
                 verticalArrangement =
                     Arrangement.spacedBy(8.dp)
             ) {
+                OutlinedButton(
+                    onClick = onOpenPurchaseInvoices,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Purchase invoices")
+                }
+
+                OutlinedButton(
+                    onClick = onOpenSupplierPayments,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Supplier payments")
+                }
+
                 if (canEdit) {
                     OutlinedButton(
                         onClick = onEdit,

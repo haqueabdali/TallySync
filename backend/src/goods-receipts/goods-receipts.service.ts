@@ -59,6 +59,19 @@ export class GoodsReceiptsService {
     return `GRN-${year}-${String(next).padStart(6, '0')}`;
   }
 
+  private assertPurchaseOrderReceivable(
+    purchaseOrder: PurchaseOrderEntity,
+  ): void {
+    if (
+      purchaseOrder.status !== PurchaseOrderStatus.SENT &&
+      purchaseOrder.status !== PurchaseOrderStatus.PARTIALLY_RECEIVED
+    ) {
+      throw new BadRequestException(
+        'Goods Receipts can only be created or posted for sent or partially received Purchase Orders.',
+      );
+    }
+  }
+
   private validateQuantities(
     receivedQty: number,
     acceptedQty: number,
@@ -76,7 +89,11 @@ export class GoodsReceiptsService {
       );
     }
 
-    if (acceptedQty + rejectedQty !== receivedQty) {
+    const normalizedReceived = Math.round(receivedQty * 10_000);
+    const normalizedAccepted = Math.round(acceptedQty * 10_000);
+    const normalizedRejected = Math.round(rejectedQty * 10_000);
+
+    if (normalizedAccepted + normalizedRejected !== normalizedReceived) {
       throw new BadRequestException(
         'Accepted quantity plus rejected quantity must equal received quantity.',
       );
@@ -165,17 +182,7 @@ export class GoodsReceiptsService {
       throw new NotFoundException('Purchase Order not found.');
     }
 
-    if (purchaseOrder.status === PurchaseOrderStatus.CANCELLED) {
-      throw new BadRequestException(
-        'A Goods Receipt cannot be created for a cancelled Purchase Order.',
-      );
-    }
-
-    if (purchaseOrder.status === PurchaseOrderStatus.RECEIVED) {
-      throw new BadRequestException(
-        'This Purchase Order is already fully received.',
-      );
-    }
+    this.assertPurchaseOrderReceivable(purchaseOrder);
 
     const warehouse = await this.warehouseRepository.findOne({
       where: { id: dto.warehouseId, companyId },
@@ -405,6 +412,8 @@ export class GoodsReceiptsService {
       if (!purchaseOrder) {
         throw new NotFoundException('Purchase Order not found.');
       }
+
+      this.assertPurchaseOrderReceivable(purchaseOrder);
 
       for (const line of receipt.items) {
         const purchaseOrderItem = purchaseOrder.items.find(

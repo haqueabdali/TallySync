@@ -234,6 +234,13 @@ private fun AuthenticatedTallyMobileApp(
         ) {
             launchSingleTop = true
         }
+    },
+    onOpenSalesInvoices = {
+        navController.navigate(
+            AppRoute.SalesInvoices.route
+        ) {
+            launchSingleTop = true
+        }
     }
 )
             }
@@ -548,6 +555,16 @@ composable(
             ) {
                 navController.popBackStack()
             }
+        },
+        onOpenPurchaseInvoices = {
+            navController.navigate(
+                AppRoute.PurchaseInvoices.route
+            )
+        },
+        onOpenSupplierPayments = {
+            navController.navigate(
+                AppRoute.SupplierPayments.route
+            )
         }
     )
 }
@@ -1183,6 +1200,479 @@ onSyncWithTally = {
             }
 
             /*
+             * Stage 6Q - Sales invoices
+             */
+            composable(
+                route = AppRoute.SalesInvoices.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadCustomers()
+                    appViewModel.loadProducts()
+                    appViewModel.loadSalesInvoices()
+                }
+
+                SalesInvoicesScreen(
+                    state = state,
+                    onSearchChange = appViewModel::updateSalesInvoiceSearch,
+                    onSearch = {
+                        appViewModel.loadSalesInvoices()
+                    },
+                    onStatusFilter = appViewModel::updateSalesInvoiceStatusFilter,
+                    onOpen = { invoice ->
+                        navController.navigate(
+                            AppRoute.SalesInvoiceDetails.createRoute(invoice.id)
+                        )
+                    },
+                    onAdd = {
+                        navController.navigate(
+                            AppRoute.SalesInvoiceForm.route
+                        )
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenPayments = {
+                        navController.navigate(AppRoute.CustomerPayments.route)
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SalesInvoiceForm.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadCustomers()
+                    appViewModel.loadProducts()
+                }
+
+                SalesInvoiceFormScreen(
+                    customers = state.customers,
+                    products = state.products,
+                    isSaving = state.isSavingSalesInvoice,
+                    onSave = { request ->
+                        appViewModel.createSalesInvoice(request) { invoiceId ->
+                            navController.navigate(
+                                AppRoute.SalesInvoiceDetails.createRoute(invoiceId)
+                            ) {
+                                popUpTo(AppRoute.SalesInvoiceForm.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SalesInvoiceDetails.route
+            ) { backStackEntry ->
+                val invoiceId = backStackEntry.arguments
+                    ?.getString("id")
+                    .orEmpty()
+
+                LaunchedEffect(invoiceId) {
+                    if (invoiceId.isNotBlank()) {
+                        appViewModel.loadSalesInvoiceRecord(invoiceId)
+                    }
+                }
+
+                SalesInvoiceDetailsScreen(
+                    state = state,
+                    invoiceId = invoiceId,
+                    onBack = {
+                        appViewModel.clearSalesInvoiceRecord()
+                        navController.popBackStack()
+                    },
+                    onPost = {
+                        appViewModel.postSalesInvoice(invoiceId)
+                    },
+                    onCancel = {
+                        appViewModel.cancelSalesInvoice(invoiceId)
+                    },
+                    onDelete = {
+                        appViewModel.deleteSalesInvoice(invoiceId) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onReceivePayment = {
+                        navController.navigate(
+                            AppRoute.CustomerPaymentForInvoice.createRoute(invoiceId)
+                        )
+                    }
+                )
+            }
+
+            /* Stage 6R - Customer payments */
+            composable(route = AppRoute.CustomerPayments.route) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadCustomers()
+                    appViewModel.loadCustomerPayments()
+                    appViewModel.loadSalesInvoices()
+                }
+                CustomerPaymentsScreen(
+                    state = state,
+                    onSearchChange = appViewModel::updateCustomerPaymentSearch,
+                    onSearch = { appViewModel.loadCustomerPayments() },
+                    onOpen = { id -> navController.navigate(AppRoute.CustomerPaymentDetails.createRoute(id)) },
+                    onAdd = { navController.navigate(AppRoute.CustomerPaymentForm.route) },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = AppRoute.CustomerPaymentForm.route) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadCustomers()
+                    appViewModel.loadSalesInvoices()
+                }
+                CustomerPaymentFormScreen(
+                    customers = state.customers,
+                    invoices = state.salesInvoices,
+                    isSaving = state.isSavingCustomerPayment,
+                    onSave = { request ->
+                        appViewModel.createCustomerPayment(request) { id ->
+                            navController.navigate(AppRoute.CustomerPaymentDetails.createRoute(id)) {
+                                popUpTo(AppRoute.CustomerPaymentForm.route) { inclusive = true }
+                            }
+                        }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = AppRoute.CustomerPaymentForInvoice.route) { backStackEntry ->
+                val invoiceId = backStackEntry.arguments?.getString("invoiceId").orEmpty()
+                LaunchedEffect(invoiceId) {
+                    appViewModel.loadCustomers()
+                    appViewModel.loadSalesInvoices()
+                }
+                CustomerPaymentFormScreen(
+                    customers = state.customers,
+                    invoices = state.salesInvoices,
+                    preselectedInvoiceId = invoiceId,
+                    isSaving = state.isSavingCustomerPayment,
+                    onSave = { request ->
+                        appViewModel.createCustomerPayment(request) { id ->
+                            navController.navigate(AppRoute.CustomerPaymentDetails.createRoute(id)) {
+                                popUpTo(AppRoute.CustomerPaymentForInvoice.route) { inclusive = true }
+                            }
+                        }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = AppRoute.CustomerPaymentDetails.route) { backStackEntry ->
+                val paymentId = backStackEntry.arguments?.getString("id").orEmpty()
+                LaunchedEffect(paymentId) {
+                    if (paymentId.isNotBlank()) appViewModel.loadCustomerPaymentRecord(paymentId)
+                }
+                CustomerPaymentDetailsScreen(
+                    state = state,
+                    paymentId = paymentId,
+                    onBack = {
+                        appViewModel.clearCustomerPaymentRecord()
+                        navController.popBackStack()
+                    },
+                    onPost = { appViewModel.postCustomerPayment(paymentId) },
+                    onCancel = { appViewModel.cancelCustomerPayment(paymentId) },
+                    onDelete = { appViewModel.deleteCustomerPayment(paymentId) { navController.popBackStack() } },
+                    onReverse = { reason -> appViewModel.reverseCustomerPayment(paymentId, reason) }
+                )
+            }
+
+            /*
+             * Stage 6N - Purchase invoices
+             */
+            composable(
+                route = AppRoute.PurchaseInvoices.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadSuppliers()
+                    appViewModel.loadProducts()
+                    appViewModel.loadPurchaseInvoices()
+                }
+
+                PurchaseInvoicesScreen(
+                    state = state,
+                    onSearchChange =
+                        appViewModel::updatePurchaseInvoiceSearch,
+                    onSearch = {
+                        appViewModel.loadPurchaseInvoices()
+                    },
+                    onStatusFilter =
+                        appViewModel::updatePurchaseInvoiceStatusFilter,
+                    onOpen = { invoice ->
+                        navController.navigate(
+                            AppRoute.PurchaseInvoiceDetails
+                                .createRoute(invoice.id)
+                        )
+                    },
+                    onAdd = {
+                        navController.navigate(
+                            AppRoute.PurchaseInvoiceForm.route
+                        )
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenPayments = {
+                        navController.navigate(
+                            AppRoute.SupplierPayments.route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.PurchaseInvoiceForm.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadSuppliers()
+                    appViewModel.loadProducts()
+                }
+
+                PurchaseInvoiceFormScreen(
+                    suppliers =
+                        state.suppliers.filter {
+                            it.isActive
+                        },
+                    products = state.products,
+                    isSaving =
+                        state.isSavingPurchaseInvoice,
+                    onSave = { request ->
+                        appViewModel.createPurchaseInvoice(
+                            request
+                        ) { invoiceId ->
+                            navController.navigate(
+                                AppRoute.PurchaseInvoiceDetails
+                                    .createRoute(invoiceId)
+                            ) {
+                                popUpTo(
+                                    AppRoute.PurchaseInvoiceForm.route
+                                ) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.PurchaseInvoiceDetails.route
+            ) { backStackEntry ->
+
+                val invoiceId =
+                    backStackEntry.arguments
+                        ?.getString("id")
+                        .orEmpty()
+
+                LaunchedEffect(invoiceId) {
+                    if (invoiceId.isNotBlank()) {
+                        appViewModel.loadPurchaseInvoiceRecord(
+                            invoiceId
+                        )
+                    }
+                }
+
+                PurchaseInvoiceDetailsScreen(
+                    state = state,
+                    invoiceId = invoiceId,
+                    onBack = {
+                        appViewModel.clearPurchaseInvoiceRecord()
+                        navController.popBackStack()
+                    },
+                    onPost = {
+                        appViewModel.postPurchaseInvoice(
+                            invoiceId
+                        )
+                    },
+                    onCancel = {
+                        appViewModel.cancelPurchaseInvoice(
+                            invoiceId
+                        )
+                    },
+                    onDelete = {
+                        appViewModel.deletePurchaseInvoice(
+                            invoiceId
+                        ) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onMakePayment = {
+                        navController.navigate(
+                            AppRoute.SupplierPaymentForInvoice
+                                .createRoute(invoiceId)
+                        )
+                    }
+                )
+            }
+
+            /*
+             * Stage 6N - Supplier payments
+             */
+            composable(
+                route = AppRoute.SupplierPayments.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadSuppliers()
+                    appViewModel.loadSupplierPayments()
+                    appViewModel.loadPurchaseInvoices()
+                }
+
+                SupplierPaymentsScreen(
+                    state = state,
+                    onSearchChange =
+                        appViewModel::updateSupplierPaymentSearch,
+                    onSearch = {
+                        appViewModel.loadSupplierPayments()
+                    },
+                    onOpen = { paymentId ->
+                        navController.navigate(
+                            AppRoute.SupplierPaymentDetails
+                                .createRoute(paymentId)
+                        )
+                    },
+                    onAdd = {
+                        navController.navigate(
+                            AppRoute.SupplierPaymentForm.route
+                        )
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SupplierPaymentForm.route
+            ) {
+                LaunchedEffect(Unit) {
+                    appViewModel.loadSuppliers()
+                    appViewModel.loadPurchaseInvoices()
+                }
+
+                SupplierPaymentFormScreen(
+                    suppliers = state.suppliers,
+                    invoices = state.purchaseInvoices,
+                    isSaving =
+                        state.isSavingSupplierPayment,
+                    onSave = { request ->
+                        appViewModel.createSupplierPayment(
+                            request
+                        ) { paymentId ->
+                            navController.navigate(
+                                AppRoute.SupplierPaymentDetails
+                                    .createRoute(paymentId)
+                            ) {
+                                popUpTo(
+                                    AppRoute.SupplierPaymentForm.route
+                                ) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SupplierPaymentForInvoice.route
+            ) { backStackEntry ->
+
+                val invoiceId =
+                    backStackEntry.arguments
+                        ?.getString("invoiceId")
+                        .orEmpty()
+
+                LaunchedEffect(invoiceId) {
+                    appViewModel.loadSuppliers()
+                    appViewModel.loadPurchaseInvoices()
+                }
+
+                SupplierPaymentFormScreen(
+                    suppliers = state.suppliers,
+                    invoices = state.purchaseInvoices,
+                    preselectedInvoiceId = invoiceId,
+                    isSaving =
+                        state.isSavingSupplierPayment,
+                    onSave = { request ->
+                        appViewModel.createSupplierPayment(
+                            request
+                        ) { paymentId ->
+                            navController.navigate(
+                                AppRoute.SupplierPaymentDetails
+                                    .createRoute(paymentId)
+                            ) {
+                                popUpTo(
+                                    AppRoute.SupplierPaymentForInvoice.route
+                                ) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = AppRoute.SupplierPaymentDetails.route
+            ) { backStackEntry ->
+
+                val paymentId =
+                    backStackEntry.arguments
+                        ?.getString("id")
+                        .orEmpty()
+
+                LaunchedEffect(paymentId) {
+                    if (paymentId.isNotBlank()) {
+                        appViewModel.loadSupplierPaymentRecord(
+                            paymentId
+                        )
+                    }
+                }
+
+                SupplierPaymentDetailsScreen(
+                    state = state,
+                    paymentId = paymentId,
+                    onBack = {
+                        appViewModel.clearSupplierPaymentRecord()
+                        navController.popBackStack()
+                    },
+                    onPost = {
+                        appViewModel.postSupplierPayment(
+                            paymentId
+                        )
+                    },
+                    onCancel = {
+                        appViewModel.cancelSupplierPayment(
+                            paymentId
+                        )
+                    },
+                    onDelete = {
+                        appViewModel.deleteSupplierPayment(
+                            paymentId
+                        ) {
+                            navController.popBackStack()
+                        }
+                    }
+                )
+            }
+
+
+            /*
              * Reports and analytics
              */
             composable(
@@ -1190,6 +1680,7 @@ onSyncWithTally = {
             ) {
                 LaunchedEffect(Unit) {
                     appViewModel.loadReports()
+                    appViewModel.loadAccountingReports()
                 }
 
                 val reportSummary = buildSalesReport(
@@ -1202,6 +1693,10 @@ onSyncWithTally = {
                     summary = reportSummary,
                     onRangeSelected = appViewModel::updateReportRange,
                     onRefresh = appViewModel::loadReports,
+                    onRefreshAccounting = appViewModel::loadAccountingReports,
+                    onReportTabSelected = appViewModel::setReportTab,
+                    onCustomerStatementSelected = appViewModel::loadCustomerStatement,
+                    onSupplierStatementSelected = appViewModel::loadSupplierStatement,
                     onExportCsv = {
                         runCatching {
                             CsvReportExporter.createCsv(context, state.reportOrders)

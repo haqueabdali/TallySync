@@ -37,6 +37,7 @@ fun DashboardScreen(
     onSyncPending: () -> Unit,
     onRetryLocalOrders: () -> Unit,
     onOpenPurchaseOrders: () -> Unit,
+    onOpenSalesInvoices: () -> Unit,
 ) {
     val dashboard = state.dashboard
 
@@ -277,6 +278,7 @@ fun DashboardScreen(
             onOpenOrders = onOpenOrders,
             onOpenSuppliers = onOpenSuppliers,
             onOpenPurchaseOrders = onOpenPurchaseOrders,
+            onOpenSalesInvoices = onOpenSalesInvoices,
             onOpenReports = onOpenReports,
             onRefresh = onRefresh
         )

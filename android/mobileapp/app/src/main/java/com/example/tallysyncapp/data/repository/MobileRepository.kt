@@ -89,4 +89,205 @@ class MobileRepository @Inject constructor(
         api.deletePurchaseOrder(id)
 
 
+
+    suspend fun getGoodsReceipts(
+        purchaseOrderId: String? = null,
+        warehouseId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getGoodsReceipts(
+        purchaseOrderId = purchaseOrderId,
+        warehouseId = warehouseId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getGoodsReceipt(
+        id: String
+    ) = api.getGoodsReceipt(id)
+
+    suspend fun createGoodsReceipt(
+        request: com.example.tallysyncapp.data.network.CreateGoodsReceiptRequest
+    ) = api.createGoodsReceipt(request)
+
+    suspend fun postGoodsReceipt(
+        id: String
+    ) = api.postGoodsReceipt(id)
+
+    suspend fun reverseGoodsReceipt(
+        id: String
+    ) = api.reverseGoodsReceipt(id)
+
+    suspend fun deleteGoodsReceipt(
+        id: String
+    ) = api.deleteGoodsReceipt(id)
+
+
+
+    // Stage 6N - Purchase Invoices
+
+    suspend fun getPurchaseInvoices(
+        search: String? = null,
+        supplierId: String? = null,
+        purchaseOrderId: String? = null,
+        goodsReceiptId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getPurchaseInvoices(
+        search = search,
+        supplierId = supplierId,
+        purchaseOrderId = purchaseOrderId,
+        goodsReceiptId = goodsReceiptId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getPurchaseInvoice(id: String) =
+        api.getPurchaseInvoice(id)
+
+    suspend fun createPurchaseInvoice(
+        request: com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest
+    ) = api.createPurchaseInvoice(request)
+
+    suspend fun updatePurchaseInvoice(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest
+    ) = api.updatePurchaseInvoice(id, request)
+
+    suspend fun postPurchaseInvoice(id: String) =
+        api.postPurchaseInvoice(id)
+
+    suspend fun cancelPurchaseInvoice(id: String) =
+        api.cancelPurchaseInvoice(id)
+
+    suspend fun deletePurchaseInvoice(id: String) =
+        api.deletePurchaseInvoice(id)
+
+    // Stage 6N - Supplier Payments
+
+    suspend fun getSupplierPayments(
+        search: String? = null,
+        supplierId: String? = null,
+        status: String? = null,
+        paymentMethod: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getSupplierPayments(
+        search = search,
+        supplierId = supplierId,
+        status = status,
+        paymentMethod = paymentMethod,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getSupplierPayment(id: String) =
+        api.getSupplierPayment(id)
+
+    suspend fun createSupplierPayment(
+        request: com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest
+    ) = api.createSupplierPayment(request)
+
+    suspend fun updateSupplierPayment(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest
+    ) = api.updateSupplierPayment(id, request)
+
+    suspend fun postSupplierPayment(id: String) =
+        api.postSupplierPayment(id)
+
+    suspend fun cancelSupplierPayment(id: String) =
+        api.cancelSupplierPayment(id)
+
+    suspend fun deleteSupplierPayment(id: String) =
+        api.deleteSupplierPayment(id)
+
+
+    // Stage 6Q - Sales Invoices
+
+    suspend fun getSalesInvoices(
+        search: String? = null,
+        customerId: String? = null,
+        salesOrderId: String? = null,
+        deliveryNoteId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getSalesInvoices(
+        search = search,
+        customerId = customerId,
+        salesOrderId = salesOrderId,
+        deliveryNoteId = deliveryNoteId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getSalesInvoice(id: String) =
+        api.getSalesInvoice(id)
+
+    suspend fun createSalesInvoice(
+        request: com.example.tallysyncapp.data.network.SaveSalesInvoiceRequest
+    ) = api.createSalesInvoice(request)
+
+    suspend fun updateSalesInvoice(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SaveSalesInvoiceRequest
+    ) = api.updateSalesInvoice(id, request)
+
+    suspend fun postSalesInvoice(id: String) =
+        api.postSalesInvoice(id)
+
+    suspend fun cancelSalesInvoice(id: String) =
+        api.cancelSalesInvoice(id)
+
+    suspend fun deleteSalesInvoice(id: String) =
+        api.deleteSalesInvoice(id)
+
+    // Stage 6R - Customer Payments
+    suspend fun getCustomerPayments(
+        search: String? = null, customerId: String? = null, status: String? = null,
+        paymentMethod: String? = null, page: Int = 1, limit: Int = 20
+    ) = api.getCustomerPayments(search, customerId, status, paymentMethod, page, limit)
+
+    suspend fun getCustomerPayment(id: String) = api.getCustomerPayment(id)
+    suspend fun createCustomerPayment(request: com.example.tallysyncapp.data.network.SaveCustomerPaymentRequest) = api.createCustomerPayment(request)
+    suspend fun updateCustomerPayment(id: String, request: com.example.tallysyncapp.data.network.SaveCustomerPaymentRequest) = api.updateCustomerPayment(id, request)
+    suspend fun postCustomerPayment(id: String) = api.postCustomerPayment(id)
+    suspend fun reverseCustomerPayment(id: String, reason: String) = api.reverseCustomerPayment(id, com.example.tallysyncapp.data.network.ReverseCustomerPaymentRequest(reason))
+    suspend fun cancelCustomerPayment(id: String) = api.cancelCustomerPayment(id)
+    suspend fun deleteCustomerPayment(id: String) = api.deleteCustomerPayment(id)
+
+
+    // Stage 6S - Accounting Reports
+    suspend fun getAgedReceivables(asOfDate: String) =
+        api.getAgedReceivables(asOfDate = asOfDate)
+
+    suspend fun getAgedPayables(asOfDate: String) =
+        api.getAgedPayables(asOfDate = asOfDate)
+
+    suspend fun getCustomerStatement(
+        customerId: String,
+        dateFrom: String,
+        dateTo: String
+    ) = api.getCustomerStatement(
+        customerId = customerId,
+        dateFrom = dateFrom,
+        dateTo = dateTo
+    )
+
+    suspend fun getSupplierStatement(
+        supplierId: String,
+        dateFrom: String,
+        dateTo: String
+    ) = api.getSupplierStatement(
+        supplierId = supplierId,
+        dateFrom = dateFrom,
+        dateTo = dateTo
+    )
+
 }

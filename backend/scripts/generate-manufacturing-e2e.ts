@@ -538,6 +538,19 @@ describe(
       'test/manufacturing.e2e-spec.ts',
     );
 
+  // Never overwrite a hand-written spec: only replace a missing file or a pure todo scaffold.
+  if (
+    existsSync(outputPath) &&
+    !/it\.todo\(/.test(readFileSync(outputPath, 'utf8')) &&
+    process.env.FORCE_REGENERATE_MANUFACTURING_E2E !== 'true'
+  ) {
+    console.error(
+      'test/manufacturing.e2e-spec.ts contains real tests; refusing to overwrite. ' +
+        'Set FORCE_REGENERATE_MANUFACTURING_E2E=true to replace it with a scaffold.',
+    );
+    process.exit(1);
+  }
+
   mkdirSync(
     dirname(
       outputPath,

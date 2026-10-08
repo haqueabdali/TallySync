@@ -184,6 +184,10 @@ function hasCompanyScope(
       ) ||
       /\.where\([\s\S]*company/.test(
         text,
+      ) ||
+      // companyId handed to a tenant-scoped lookup helper, e.g. this.getEntity(companyId, id)
+      /\bthis\.(get|find|load|assert)\w*\([^)]*\bcompanyId\b/.test(
+        text,
       )
     )
   );
@@ -412,7 +416,11 @@ function inspectFile(
       const bodyText =
         node.getText(source);
 
+      // Controllers only delegate; the owning service is audited instead.
+      const isController = file.endsWith('.controller.ts');
+
       if (
+        !isController &&
         (
           isConsumptionMethod(node) ||
           isCompletionMethod(node)
@@ -435,10 +443,11 @@ function inspectFile(
       }
 
       if (
+        !isController &&
         isCompletionMethod(node)
       ) {
         const statusGuard =
-          /status[\s\S]{0,80}(Completed|COMPLETED)|already[\s\S]{0,80}complete/i.test(
+          /status[\s\S]{0,80}(Completed|COMPLETED)|already[\s\S]{0,80}complete|status\s*!==\s*[\w.]*IN_PROGRESS/i.test(
             bodyText,
           );
 

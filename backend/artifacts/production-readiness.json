@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T21:08:17.259Z",
+  "generatedAt": "2026-10-08T21:54:10.900Z",
   "database": "tallysync_e2e_test",
   "dockerDeferred": true,
   "steps": [
@@ -10,7 +10,7 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 13646,
+      "durationMs": 13759,
       "command": "npm run build",
       "outputTail": "> backend@0.0.1 build\n> nest build"
     },
@@ -18,12 +18,12 @@
       "id": "security",
       "label": "Security audit",
       "group": "security",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": 1,
-      "durationMs": 12702,
+      "exitCode": 0,
+      "durationMs": 11538,
       "command": "npm run audit:security",
-      "outputTail": "> backend@0.0.1 audit:security\n> ts-node -r tsconfig-paths/register scripts/audit/security-audit.ts\n==> Controller prefix audit\nController prefix audit passed.\n==> Controller security audit\n==> Secret scan\nSecret scan passed.\n==> Circular dependency audit\nMadge found 33 total cycle(s).\n33 cycle(s) are entity-only ORM relationship cycles and are informational.\nCircular dependency audit passed: no non-entity architectural cycles found.\nController security audit FAILED.\n- src/licensing/license-runtime.controller.ts: mutation routes detected without Jwt/Auth guard\nReview manually before changing intentionally-public controllers.\n(node:2045) DeprecationWarning: The 'argument' property is deprecated on TSImportType nodes. Use source instead. See https://tseslint.com/key-property-deprecated.\n(Use `node --trace-deprecation ...` to show where the warning was created)\nSecurity/dependency audit FAILED."
+      "outputTail": "> backend@0.0.1 audit:security\n> ts-node -r tsconfig-paths/register scripts/audit/security-audit.ts\n==> Controller prefix audit\nController prefix audit passed.\n==> Controller security audit\nController security audit passed.\n==> Secret scan\nSecret scan passed.\n==> Circular dependency audit\nMadge found 33 total cycle(s).\n33 cycle(s) are entity-only ORM relationship cycles and are informational.\nCircular dependency audit passed: no non-entity architectural cycles found.\nSecurity/dependency audit passed."
     },
     {
       "id": "entity-schema",
@@ -32,9 +32,9 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 10904,
+      "durationMs": 10051,
       "command": "npm run audit:entity-schema",
-      "outputTail": "> backend@0.0.1 audit:entity-schema\n> ts-node -r tsconfig-paths/register scripts/audit-entity-schema.ts\nEntity schema audit checked 84 entity metadata definitions.\nEntity schema audit passed: no blocking entity/database column mismatches found."
+      "outputTail": "> backend@0.0.1 audit:entity-schema\n> ts-node -r tsconfig-paths/register scripts/audit-entity-schema.ts\nquery: SELECT version()\nquery: SELECT * FROM current_schema()\nquery: CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"\nquery: \n        SELECT\n          table_name,\n          column_name,\n          is_nullable,\n          data_type,\n          udt_name\n        FROM information_schema.columns\n        WHERE table_schema = 'public'\n      \nEntity schema audit checked 88 entity metadata definitions.\nEntity schema audit passed: no blocking entity/database column mismatches found."
     },
     {
       "id": "accounting-idempotency",
@@ -43,7 +43,7 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 1784,
+      "durationMs": 1783,
       "command": "npm run audit:accounting-idempotency",
       "outputTail": "> backend@0.0.1 audit:accounting-idempotency\n> ts-node -r tsconfig-paths/register scripts/audit-accounting-idempotency.ts\nAccounting idempotency audit passed: source journals are uniquely protected."
     },
@@ -51,12 +51,12 @@
       "id": "manufacturing-fixes",
       "label": "Manufacturing fix analyzer",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": 1,
-      "durationMs": 1998,
+      "exitCode": 0,
+      "durationMs": 1891,
       "command": "npm run audit:manufacturing:fixes",
-      "outputTail": "> backend@0.0.1 audit:manufacturing:fixes\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-fix-analyzer.ts\nManufacturing fix analyzer scanned 114 source file(s).\nBLOCKER: 0\nHIGH: 9\nTOTAL findings: 9\nReports:\n- artifacts/manufacturing-fix-report.json\n- artifacts/manufacturing-fix-report.md"
+      "outputTail": "> backend@0.0.1 audit:manufacturing:fixes\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-fix-analyzer.ts\nManufacturing fix analyzer scanned 114 source file(s).\nBLOCKER: 0\nHIGH: 0\nTOTAL findings: 0\nReports:\n- artifacts/manufacturing-fix-report.json\n- artifacts/manufacturing-fix-report.md"
     },
     {
       "id": "manufacturing-contract",
@@ -65,9 +65,9 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 10521,
+      "durationMs": 10228,
       "command": "npm run audit:manufacturing:contract",
-      "outputTail": "> backend@0.0.1 audit:manufacturing:contract\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-contract-report.ts\nManufacturing contract report generated:\n- artifacts/manufacturing-contract-report.json\n- artifacts/manufacturing-contract-report.md\nRoutes: 57\nDTOs: 55\nEntities: 16\nEnums: 10\nServices: 9\nWarnings: 0\nBlocking errors: 0"
+      "outputTail": "            ORDER BY ordinal_position\n           -- PARAMETERS: [\"work_centers\"]\nquery: \n        SELECT\n          table_name,\n          column_name,\n          is_nullable,\n          data_type,\n          udt_name,\n          column_default\n        FROM information_schema.columns\n        WHERE table_schema = 'public'\n          AND table_name = 'items'\n          AND (\n            column_name ILIKE '%stock%'\n            OR column_name ILIKE '%on_hand%'\n            OR column_name ILIKE '%quantity%'\n          )\n        ORDER BY ordinal_position\n      \nManufacturing contract report generated:\n- artifacts/manufacturing-contract-report.json\n- artifacts/manufacturing-contract-report.md\nRoutes: 57\nDTOs: 55\nEntities: 16\nEnums: 10\nServices: 9\nWarnings: 0\nBlocking errors: 0"
     },
     {
       "id": "unit-tests",
@@ -76,9 +76,9 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 28834,
+      "durationMs": 27599,
       "command": "npm test -- --runInBand",
-      "outputTail": "> backend@0.0.1 test\n> jest --runInBand\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Ignored Product\": <ENVELOPE />\u001b[39m\nTest Suites: 71 passed, 71 total\nTests:       309 passed, 309 total\nSnapshots:   0 total\nTime:        28.255 s, estimated 43 s\nRan all test suites."
+      "outputTail": "> backend@0.0.1 test\n> jest --runInBand\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Ignored Product\": <ENVELOPE />\u001b[39m\nTest Suites: 72 passed, 72 total\nTests:       312 passed, 312 total\nSnapshots:   0 total\nTime:        27.084 s, estimated 28 s\nRan all test suites."
     },
     {
       "id": "sales-to-cash",
@@ -87,9 +87,9 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 4215,
+      "durationMs": 4140,
       "command": "npm run test:e2e:business",
-      "outputTail": "> backend@0.0.1 test:e2e:business\n> jest --config ./test/jest-e2e.json sales-to-cash.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.708 s, estimated 5 s\nRan all test suites matching sales-to-cash.e2e-spec.ts."
+      "outputTail": "> backend@0.0.1 test:e2e:business\n> jest --config ./test/jest-e2e.json sales-to-cash.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.688 s, estimated 4 s\nRan all test suites matching sales-to-cash.e2e-spec.ts."
     },
     {
       "id": "procure-to-pay",
@@ -98,9 +98,9 @@
       "status": "passed",
       "required": true,
       "exitCode": 0,
-      "durationMs": 4435,
+      "durationMs": 4126,
       "command": "npm run test:e2e:procure",
-      "outputTail": "> backend@0.0.1 test:e2e:procure\n> jest --config ./test/jest-e2e.json procure-to-pay.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.926 s, estimated 4 s\nRan all test suites matching procure-to-pay.e2e-spec.ts."
+      "outputTail": "> backend@0.0.1 test:e2e:procure\n> jest --config ./test/jest-e2e.json procure-to-pay.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.653 s, estimated 4 s\nRan all test suites matching procure-to-pay.e2e-spec.ts."
     },
     {
       "id": "manufacturing-e2e",
@@ -109,20 +109,20 @@
       "status": "passed",
       "required": false,
       "exitCode": 0,
-      "durationMs": 970,
+      "durationMs": 2832,
       "command": "npm run test:e2e:manufacturing",
-      "outputTail": "> backend@0.0.1 test:e2e:manufacturing\n> jest --config ./test/jest-e2e.json manufacturing.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       12 todo, 12 total\nSnapshots:   0 total\nTime:        0.481 s, estimated 1 s\nRan all test suites matching manufacturing.e2e-spec.ts."
+      "outputTail": "> backend@0.0.1 test:e2e:manufacturing\n> jest --config ./test/jest-e2e.json manufacturing.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       12 passed, 12 total\nSnapshots:   0 total\nTime:        2.296 s, estimated 3 s\nRan all test suites matching manufacturing.e2e-spec.ts."
     },
     {
       "id": "manufacturing-release",
       "label": "Manufacturing release gate",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": false,
-      "exitCode": 1,
-      "durationMs": 1926,
+      "exitCode": 0,
+      "durationMs": 1754,
       "command": "npm run audit:manufacturing:release",
-      "outputTail": "> backend@0.0.1 audit:manufacturing:release\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-release-gate.ts\nManufacturing release gate\nRoutes: 57\nDTOs: 55\nEntities: 16\nServices: 9\nBlocking contract errors: 0\nManufacturing gate NOT GREEN: 12 test.todo case(s) remain."
+      "outputTail": "> backend@0.0.1 audit:manufacturing:release\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-release-gate.ts\nManufacturing release gate\nRoutes: 57\nDTOs: 55\nEntities: 16\nServices: 9\nBlocking contract errors: 0\nManufacturing contract/E2E gate passed."
     }
   ],
   "groups": {
@@ -133,10 +133,10 @@
       "score": 100
     },
     "security": {
-      "passed": 0,
-      "failed": 1,
+      "passed": 1,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "schema": {
       "passed": 2,
@@ -145,10 +145,10 @@
       "score": 100
     },
     "manufacturing": {
-      "passed": 2,
-      "failed": 2,
+      "passed": 4,
+      "failed": 0,
       "skipped": 0,
-      "score": 50
+      "score": 100
     },
     "unit": {
       "passed": 1,
@@ -164,11 +164,11 @@
     }
   },
   "overall": {
-    "requiredPassed": 7,
-    "requiredFailed": 2,
-    "optionalPassed": 1,
-    "optionalFailed": 1,
-    "score": 73,
-    "productionReady": false
+    "requiredPassed": 9,
+    "requiredFailed": 0,
+    "optionalPassed": 2,
+    "optionalFailed": 0,
+    "score": 100,
+    "productionReady": true
   }
 }

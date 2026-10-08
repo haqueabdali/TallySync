@@ -134,7 +134,7 @@ export class InventoryRevaluationService {
       const revaluation = await repo
         .createQueryBuilder('r')
         .leftJoinAndSelect('r.lines', 'line')
-        .setLock('pessimistic_write')
+        .setLock('pessimistic_write', undefined, ['r'])
         .where('r.id = :id AND r.companyId = :companyId', { id, companyId })
         .getOne();
       if (!revaluation)

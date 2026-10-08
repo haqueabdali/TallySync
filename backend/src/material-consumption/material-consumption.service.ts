@@ -139,7 +139,7 @@ export class MaterialConsumptionService {
     const productionOrder = await manager
       .getRepository(ProductionOrderEntity)
       .createQueryBuilder('productionOrder')
-      .setLock('pessimistic_write')
+      .setLock('pessimistic_write', undefined, ['"productionOrder"'])
       .leftJoinAndSelect('productionOrder.components', 'components')
       .where('productionOrder.id = :id', { id: dto.productionOrderId })
       .andWhere('productionOrder.companyId = :companyId', { companyId })
@@ -239,9 +239,24 @@ export class MaterialConsumptionService {
       productionOrder.status = ProductionOrderStatus.IN_PROGRESS;
       productionOrder.actualStartDate =
         productionOrder.actualStartDate ?? new Date();
-      productionOrder.updatedBy = userId;
-      await manager.getRepository(ProductionOrderEntity).save(productionOrder);
     }
+
+    // Roll consumed material cost into the order (row is locked above) so the
+    // completion posting rule, which reads actualTotalCost, has real figures.
+    const consumedCost = savedLines.reduce(
+      (sum, line) => sum + Number(line.totalCost),
+      0,
+    );
+    productionOrder.actualMaterialCost = this.round2(
+      Number(productionOrder.actualMaterialCost ?? 0) + consumedCost,
+    );
+    productionOrder.actualTotalCost = this.round2(
+      Number(productionOrder.actualMaterialCost) +
+        Number(productionOrder.actualLaborCost ?? 0) +
+        Number(productionOrder.actualOverheadCost ?? 0),
+    );
+    productionOrder.updatedBy = userId;
+    await manager.getRepository(ProductionOrderEntity).save(productionOrder);
 
     consumption.lines = savedLines;
     return consumption;
@@ -254,6 +269,10 @@ export class MaterialConsumptionService {
         'A production-order component may appear only once per material consumption.',
       );
     }
+  }
+
+  private round2(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
   private round6(value: number): number {

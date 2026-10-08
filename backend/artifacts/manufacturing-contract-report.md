@@ -1,6 +1,6 @@
 # Manufacturing Contract Report
 
-Generated: 2026-08-08T23:11:34.560Z
+Generated: 2026-10-08T21:07:28.486Z
 Database: tallysync_e2e_test
 
 ## Routes
@@ -14,55 +14,56 @@ Database: tallysync_e2e_test
 | POST | /bill-of-materials/:id/activate | activate | UseGuards(JwtAuthGuard) |  |
 | POST | /bill-of-materials/:id/deactivate | deactivate | UseGuards(JwtAuthGuard) |  |
 | DELETE | /bill-of-materials/:id | remove | UseGuards(JwtAuthGuard) |  |
-| POST | /production-orders | create | UseGuards(JwtAuthGuard) |  |
-| GET | /production-orders | findAll | UseGuards(JwtAuthGuard) |  |
-| GET | /production-orders/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| PATCH | /production-orders/:id | update | UseGuards(JwtAuthGuard) |  |
-| POST | /production-orders/:id/release | release | UseGuards(JwtAuthGuard) |  |
-| POST | /production-orders/:id/start | start | UseGuards(JwtAuthGuard) |  |
-| POST | /production-orders/:id/cancel | cancel | UseGuards(JwtAuthGuard) |  |
-| DELETE | /production-orders/:id | remove | UseGuards(JwtAuthGuard) |  |
-| POST | /material-consumptions | create | UseGuards(JwtAuthGuard) |  |
-| GET | /material-consumptions | findAll | UseGuards(JwtAuthGuard) |  |
-| GET | /material-consumptions/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| GET | /manufacturing/mrp/plan | getPlan | UseGuards(JwtAuthGuard) |  |
-| GET | /production-variances/settings | getSettings | UseGuards(JwtAuthGuard) |  |
-| PUT | /production-variances/settings | upsertSettings | UseGuards(JwtAuthGuard) |  |
-| POST | /production-variances/production-orders/:productionOrderId/calculate | calculate | UseGuards(JwtAuthGuard) |  |
-| POST | /production-variances/:id/post | post | UseGuards(JwtAuthGuard) |  |
-| GET | /production-variances | list | UseGuards(JwtAuthGuard) |  |
-| GET | /production-variances/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| POST | /costing-variance | create | UseGuards(JwtAuthGuard) |  |
-| GET | /costing-variance | findAll | UseGuards(JwtAuthGuard) |  |
-| GET | /costing-variance/profitability | profitability | UseGuards(JwtAuthGuard) |  |
-| GET | /costing-variance/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| PATCH | /costing-variance/:id | update | UseGuards(JwtAuthGuard) |  |
-| POST | /costing-variance/:id/finalize | finalize | UseGuards(JwtAuthGuard) |  |
-| POST | /costing-variance/:id/cancel | cancel | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules | create | UseGuards(JwtAuthGuard) |  |
-| GET | /production-schedules | findAll | UseGuards(JwtAuthGuard) |  |
-| GET | /production-schedules/gantt | gantt | UseGuards(JwtAuthGuard) |  |
-| GET | /production-schedules/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| PATCH | /production-schedules/:id | update | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules/:id/schedule | schedule | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules/:id/start | start | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules/:id/complete | complete | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules/:id/cancel | cancel | UseGuards(JwtAuthGuard) |  |
-| POST | /production-schedules/:id/reschedule | reschedule | UseGuards(JwtAuthGuard) |  |
-| POST | /capacity-planning/work-centers | createWorkCenter | UseGuards(JwtAuthGuard) |  |
-| GET | /capacity-planning/work-centers | listWorkCenters | UseGuards(JwtAuthGuard) |  |
-| PATCH | /capacity-planning/work-centers/:id | updateWorkCenter | UseGuards(JwtAuthGuard) |  |
-| POST | /capacity-planning/work-centers/:id/overrides | setCapacityOverride | UseGuards(JwtAuthGuard) |  |
-| GET | /capacity-planning/report | getReport | UseGuards(JwtAuthGuard) |  |
-| POST | /quality-inspections | create | UseGuards(JwtAuthGuard) |  |
-| GET | /quality-inspections | findAll | UseGuards(JwtAuthGuard) |  |
-| GET | /quality-inspections/report | report | UseGuards(JwtAuthGuard) |  |
-| GET | /quality-inspections/:id | findOne | UseGuards(JwtAuthGuard) |  |
-| PATCH | /quality-inspections/:id | update | UseGuards(JwtAuthGuard) |  |
-| POST | /quality-inspections/:id/start | start | UseGuards(JwtAuthGuard) |  |
-| PATCH | /quality-inspections/:inspectionId/checks/:checkId/result | recordCheckResult | UseGuards(JwtAuthGuard) |  |
-| POST | /quality-inspections/:id/complete | complete | UseGuards(JwtAuthGuard) |  |
-| POST | /quality-inspections/:id/cancel | cancel | UseGuards(JwtAuthGuard) |  |
+| POST | /production-orders | create | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-orders | findAll | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-orders/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /production-orders/:id | update | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-orders/:id/release | release | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-orders/:id/start | start | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-orders/:id/complete | complete | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-orders/:id/cancel | cancel | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| DELETE | /production-orders/:id | remove | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /material-consumptions | create | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /material-consumptions | findAll | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /material-consumptions/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /manufacturing/mrp/plan | getPlan | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-variances/settings | getSettings | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PUT | /production-variances/settings | upsertSettings | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-variances/production-orders/:productionOrderId/calculate | calculate | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-variances/:id/post | post | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-variances | list | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-variances/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /costing-variance | create | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /costing-variance | findAll | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /costing-variance/profitability | profitability | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /costing-variance/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /costing-variance/:id | update | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /costing-variance/:id/finalize | finalize | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /costing-variance/:id/cancel | cancel | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules | create | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-schedules | findAll | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-schedules/gantt | gantt | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /production-schedules/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /production-schedules/:id | update | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules/:id/schedule | schedule | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules/:id/start | start | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules/:id/complete | complete | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules/:id/cancel | cancel | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /production-schedules/:id/reschedule | reschedule | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /capacity-planning/work-centers | createWorkCenter | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /capacity-planning/work-centers | listWorkCenters | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /capacity-planning/work-centers/:id | updateWorkCenter | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /capacity-planning/work-centers/:id/overrides | setCapacityOverride | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /capacity-planning/report | getReport | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /quality-inspections | create | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /quality-inspections | findAll | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /quality-inspections/report | report | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| GET | /quality-inspections/:id | findOne | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /quality-inspections/:id | update | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /quality-inspections/:id/start | start | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| PATCH | /quality-inspections/:inspectionId/checks/:checkId/result | recordCheckResult | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /quality-inspections/:id/complete | complete | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
+| POST | /quality-inspections/:id/cancel | cancel | UseGuards(JwtAuthGuard, LicenseFeatureGuard) |  |
 
 ## DTOs
 
@@ -811,6 +812,10 @@ Table: `production_orders`
 - `notes: string | null` → `(implicit name)`
 - `createdBy: string | null` → `created_by`
 - `updatedBy: string | null` → `updated_by`
+- `actualMaterialCost: number` → `actual_material_cost`
+- `actualLaborCost: number` → `actual_labor_cost`
+- `actualOverheadCost: number` → `actual_overhead_cost`
+- `actualTotalCost: number` → `actual_total_cost`
 - `createdAt: Date` → `created_at`
 - `updatedAt: Date` → `updated_at`
 - `deletedAt: Date | null` → `deleted_at`
@@ -888,6 +893,7 @@ Table: `production_variances`
 - `journalEntryId: string | null` → `journal_entry_id`
 - `notes: string | null` → `(implicit name)`
 - `createdBy: string | null` → `created_by`
+- `totalVariance: number` → `total_variance`
 - `createdAt: Date` → `created_at`
 
 ### ProductionCostAnalysisEntity
@@ -1120,6 +1126,7 @@ Table: `quality_inspections`
 - `findAll`: transaction=false, stockMutation=false, lock=false, completion=true, consumption=false
 - `findOne`: transaction=false, stockMutation=false, lock=false, completion=true, consumption=false
 - `update`: transaction=true, stockMutation=false, lock=false, completion=true, consumption=true
+- `complete`: transaction=true, stockMutation=false, lock=true, completion=true, consumption=false
 - `toResponse`: transaction=false, stockMutation=false, lock=false, completion=true, consumption=true
 
 ### MaterialConsumptionService
@@ -1127,6 +1134,7 @@ Table: `quality_inspections`
 - `create`: transaction=true, stockMutation=false, lock=false, completion=false, consumption=true
 - `findAll`: transaction=false, stockMutation=false, lock=false, completion=false, consumption=true
 - `findOne`: transaction=false, stockMutation=false, lock=false, completion=false, consumption=true
+- `autoPostMaterialConsumptionIfEnabled`: transaction=false, stockMutation=false, lock=false, completion=false, consumption=true
 - `createWithManager`: transaction=false, stockMutation=false, lock=true, completion=false, consumption=true
 - `assertUniqueComponentLines`: transaction=false, stockMutation=false, lock=false, completion=false, consumption=true
 
@@ -1292,6 +1300,10 @@ Table: `quality_inspections`
 - `created_at` — timestamp with time zone, nullable=NO
 - `updated_at` — timestamp with time zone, nullable=NO
 - `deleted_at` — timestamp with time zone, nullable=YES
+- `actual_material_cost` — numeric, nullable=NO
+- `actual_labor_cost` — numeric, nullable=NO
+- `actual_overhead_cost` — numeric, nullable=NO
+- `actual_total_cost` — numeric, nullable=NO
 
 ### production_schedules
 
@@ -1349,6 +1361,7 @@ Table: `quality_inspections`
 - `notes` — text, nullable=YES
 - `created_by` — uuid, nullable=YES
 - `created_at` — timestamp with time zone, nullable=NO
+- `total_variance` — numeric, nullable=NO
 
 ### work_center_capacity_overrides
 
@@ -1382,4 +1395,4 @@ Table: `quality_inspections`
 
 ## Findings
 
-- **INFO** [summary] 56 routes, 55 DTO classes, 16 entities, 10 enums, 9 services analyzed.
+- **INFO** [summary] 57 routes, 55 DTO classes, 16 entities, 10 enums, 9 services analyzed.

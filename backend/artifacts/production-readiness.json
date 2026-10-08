@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T23:14:43.689Z",
+  "generatedAt": "2026-10-08T21:08:17.259Z",
   "database": "tallysync_e2e_test",
   "dockerDeferred": true,
   "steps": [
@@ -7,12 +7,12 @@
       "id": "build",
       "label": "TypeScript / Nest build",
       "group": "build",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 2,
-      "command": "npm.cmd run build",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 13646,
+      "command": "npm run build",
+      "outputTail": "> backend@0.0.1 build\n> nest build"
     },
     {
       "id": "security",
@@ -20,32 +20,32 @@
       "group": "security",
       "status": "failed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:security",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 1,
+      "durationMs": 12702,
+      "command": "npm run audit:security",
+      "outputTail": "> backend@0.0.1 audit:security\n> ts-node -r tsconfig-paths/register scripts/audit/security-audit.ts\n==> Controller prefix audit\nController prefix audit passed.\n==> Controller security audit\n==> Secret scan\nSecret scan passed.\n==> Circular dependency audit\nMadge found 33 total cycle(s).\n33 cycle(s) are entity-only ORM relationship cycles and are informational.\nCircular dependency audit passed: no non-entity architectural cycles found.\nController security audit FAILED.\n- src/licensing/license-runtime.controller.ts: mutation routes detected without Jwt/Auth guard\nReview manually before changing intentionally-public controllers.\n(node:2045) DeprecationWarning: The 'argument' property is deprecated on TSImportType nodes. Use source instead. See https://tseslint.com/key-property-deprecated.\n(Use `node --trace-deprecation ...` to show where the warning was created)\nSecurity/dependency audit FAILED."
     },
     {
       "id": "entity-schema",
       "label": "Entity ↔ DB schema audit",
       "group": "schema",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:entity-schema",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 10904,
+      "command": "npm run audit:entity-schema",
+      "outputTail": "> backend@0.0.1 audit:entity-schema\n> ts-node -r tsconfig-paths/register scripts/audit-entity-schema.ts\nEntity schema audit checked 84 entity metadata definitions.\nEntity schema audit passed: no blocking entity/database column mismatches found."
     },
     {
       "id": "accounting-idempotency",
       "label": "Accounting source idempotency",
       "group": "schema",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:accounting-idempotency",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 1784,
+      "command": "npm run audit:accounting-idempotency",
+      "outputTail": "> backend@0.0.1 audit:accounting-idempotency\n> ts-node -r tsconfig-paths/register scripts/audit-accounting-idempotency.ts\nAccounting idempotency audit passed: source journals are uniquely protected."
     },
     {
       "id": "manufacturing-fixes",
@@ -53,65 +53,65 @@
       "group": "manufacturing",
       "status": "failed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:manufacturing:fixes",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 1,
+      "durationMs": 1998,
+      "command": "npm run audit:manufacturing:fixes",
+      "outputTail": "> backend@0.0.1 audit:manufacturing:fixes\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-fix-analyzer.ts\nManufacturing fix analyzer scanned 114 source file(s).\nBLOCKER: 0\nHIGH: 9\nTOTAL findings: 9\nReports:\n- artifacts/manufacturing-fix-report.json\n- artifacts/manufacturing-fix-report.md"
     },
     {
       "id": "manufacturing-contract",
       "label": "Manufacturing contract report",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run audit:manufacturing:contract",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 10521,
+      "command": "npm run audit:manufacturing:contract",
+      "outputTail": "> backend@0.0.1 audit:manufacturing:contract\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-contract-report.ts\nManufacturing contract report generated:\n- artifacts/manufacturing-contract-report.json\n- artifacts/manufacturing-contract-report.md\nRoutes: 57\nDTOs: 55\nEntities: 16\nEnums: 10\nServices: 9\nWarnings: 0\nBlocking errors: 0"
     },
     {
       "id": "unit-tests",
       "label": "Full unit test suite",
       "group": "unit",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd test -- --runInBand",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 28834,
+      "command": "npm test -- --runInBand",
+      "outputTail": "> backend@0.0.1 test\n> jest --runInBand\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 2160  - \u001b[39m10/08/2026, 9:08:01 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Ignored Product\": <ENVELOPE />\u001b[39m\nTest Suites: 71 passed, 71 total\nTests:       309 passed, 309 total\nSnapshots:   0 total\nTime:        28.255 s, estimated 43 s\nRan all test suites."
     },
     {
       "id": "sales-to-cash",
       "label": "Sales-to-Cash E2E",
       "group": "commercial-e2e",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:business",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 4215,
+      "command": "npm run test:e2e:business",
+      "outputTail": "> backend@0.0.1 test:e2e:business\n> jest --config ./test/jest-e2e.json sales-to-cash.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.708 s, estimated 5 s\nRan all test suites matching sales-to-cash.e2e-spec.ts."
     },
     {
       "id": "procure-to-pay",
       "label": "Procure-to-Pay E2E",
       "group": "commercial-e2e",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:procure",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 4435,
+      "command": "npm run test:e2e:procure",
+      "outputTail": "> backend@0.0.1 test:e2e:procure\n> jest --config ./test/jest-e2e.json procure-to-pay.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.926 s, estimated 4 s\nRan all test suites matching procure-to-pay.e2e-spec.ts."
     },
     {
       "id": "manufacturing-e2e",
       "label": "Manufacturing E2E",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": false,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:manufacturing",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 970,
+      "command": "npm run test:e2e:manufacturing",
+      "outputTail": "> backend@0.0.1 test:e2e:manufacturing\n> jest --config ./test/jest-e2e.json manufacturing.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       12 todo, 12 total\nSnapshots:   0 total\nTime:        0.481 s, estimated 1 s\nRan all test suites matching manufacturing.e2e-spec.ts."
     },
     {
       "id": "manufacturing-release",
@@ -119,18 +119,18 @@
       "group": "manufacturing",
       "status": "failed",
       "required": false,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run audit:manufacturing:release",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 1,
+      "durationMs": 1926,
+      "command": "npm run audit:manufacturing:release",
+      "outputTail": "> backend@0.0.1 audit:manufacturing:release\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-release-gate.ts\nManufacturing release gate\nRoutes: 57\nDTOs: 55\nEntities: 16\nServices: 9\nBlocking contract errors: 0\nManufacturing gate NOT GREEN: 12 test.todo case(s) remain."
     }
   ],
   "groups": {
     "build": {
-      "passed": 0,
-      "failed": 1,
+      "passed": 1,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "security": {
       "passed": 0,
@@ -139,36 +139,36 @@
       "score": 0
     },
     "schema": {
-      "passed": 0,
-      "failed": 2,
+      "passed": 2,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "manufacturing": {
-      "passed": 0,
-      "failed": 4,
-      "skipped": 0,
-      "score": 0
-    },
-    "unit": {
-      "passed": 0,
-      "failed": 1,
-      "skipped": 0,
-      "score": 0
-    },
-    "commercial-e2e": {
-      "passed": 0,
+      "passed": 2,
       "failed": 2,
       "skipped": 0,
-      "score": 0
+      "score": 50
+    },
+    "unit": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "score": 100
+    },
+    "commercial-e2e": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "score": 100
     }
   },
   "overall": {
-    "requiredPassed": 0,
-    "requiredFailed": 9,
-    "optionalPassed": 0,
-    "optionalFailed": 2,
-    "score": 0,
+    "requiredPassed": 7,
+    "requiredFailed": 2,
+    "optionalPassed": 1,
+    "optionalFailed": 1,
+    "score": 73,
     "productionReady": false
   }
 }

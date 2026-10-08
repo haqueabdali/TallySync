@@ -107,6 +107,7 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.reflect)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

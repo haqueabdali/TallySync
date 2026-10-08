@@ -312,7 +312,7 @@ export class MobileService {
   async getSalesOrder(id: string, companyId: string) {
     const order = await this.salesOrderRepository.findOne({
       where: { id, companyId },
-      relations: { customer: true, items: true },
+      relations: { customer: true, items: { item: true } },
     });
 
     if (!order || order.deletedAt) {
@@ -351,10 +351,11 @@ export class MobileService {
         items: order.items.map((item) => ({
           id: item.id,
           itemId: item.itemId,
-          itemName: item.itemName,
-          sku: item.sku,
+          // Lines created outside the mobile app may lack the name snapshot.
+          itemName: item.itemName ?? item.item?.name ?? 'Item',
+          sku: item.sku ?? item.item?.sku ?? null,
           quantity: item.quantity,
-          unit: item.unit,
+          unit: item.unit ?? item.item?.unit ?? null,
           unitPrice: item.unitPrice,
           discountPercent: item.discountPercent,
           taxPercent: item.taxPercent,

@@ -353,7 +353,8 @@ function runStep(
         },
         encoding:
           'utf8',
-        shell: false,
+        // Node >=18.20 refuses to spawn .cmd files without a shell (EINVAL).
+        shell: process.platform === 'win32',
         windowsHide:
           true,
       },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T23:11:34.560Z",
+  "generatedAt": "2026-10-08T21:07:28.486Z",
   "sourceRoots": [
     "src/bill-of-materials",
     "src/production-orders",
@@ -215,7 +215,7 @@
       "path": "",
       "handler": "create",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -242,7 +242,7 @@
       "path": "",
       "handler": "findAll",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -269,7 +269,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -296,7 +296,7 @@
       "path": ":id",
       "handler": "update",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -330,7 +330,7 @@
       "path": ":id/release",
       "handler": "release",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -357,7 +357,34 @@
       "path": ":id/start",
       "handler": "start",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
+      ],
+      "roles": [],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "decorators": [
+            "Param('id', ParseUUIDPipe)"
+          ]
+        },
+        {
+          "name": "request",
+          "type": "AuthenticatedProductionOrderRequest",
+          "decorators": [
+            "Req()"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/production-orders/production-orders.controller.ts",
+      "controller": "production-orders",
+      "method": "POST",
+      "path": ":id/complete",
+      "handler": "complete",
+      "guards": [
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -384,7 +411,7 @@
       "path": ":id/cancel",
       "handler": "cancel",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -411,7 +438,7 @@
       "path": ":id",
       "handler": "remove",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -438,7 +465,7 @@
       "path": "",
       "handler": "create",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -465,7 +492,7 @@
       "path": "",
       "handler": "findAll",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -492,7 +519,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -519,7 +546,7 @@
       "path": "plan",
       "handler": "getPlan",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -546,7 +573,7 @@
       "path": "settings",
       "handler": "getSettings",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -566,7 +593,7 @@
       "path": "settings",
       "handler": "upsertSettings",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -593,7 +620,7 @@
       "path": "production-orders/:productionOrderId/calculate",
       "handler": "calculate",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -627,7 +654,7 @@
       "path": ":id/post",
       "handler": "post",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -654,7 +681,7 @@
       "path": "",
       "handler": "list",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -681,7 +708,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -708,7 +735,7 @@
       "path": "",
       "handler": "create",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -735,7 +762,7 @@
       "path": "",
       "handler": "findAll",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -762,7 +789,7 @@
       "path": "profitability",
       "handler": "profitability",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -789,7 +816,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -816,7 +843,7 @@
       "path": ":id",
       "handler": "update",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -850,7 +877,7 @@
       "path": ":id/finalize",
       "handler": "finalize",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -877,7 +904,7 @@
       "path": ":id/cancel",
       "handler": "cancel",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -904,7 +931,7 @@
       "path": "",
       "handler": "create",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -931,7 +958,7 @@
       "path": "",
       "handler": "findAll",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -958,7 +985,7 @@
       "path": "gantt",
       "handler": "gantt",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -992,7 +1019,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1019,7 +1046,7 @@
       "path": ":id",
       "handler": "update",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1053,7 +1080,7 @@
       "path": ":id/schedule",
       "handler": "schedule",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1080,7 +1107,7 @@
       "path": ":id/start",
       "handler": "start",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1107,7 +1134,7 @@
       "path": ":id/complete",
       "handler": "complete",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1134,7 +1161,7 @@
       "path": ":id/cancel",
       "handler": "cancel",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1161,7 +1188,7 @@
       "path": ":id/reschedule",
       "handler": "reschedule",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1195,7 +1222,7 @@
       "path": "work-centers",
       "handler": "createWorkCenter",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1222,7 +1249,7 @@
       "path": "work-centers",
       "handler": "listWorkCenters",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1242,7 +1269,7 @@
       "path": "work-centers/:id",
       "handler": "updateWorkCenter",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1276,7 +1303,7 @@
       "path": "work-centers/:id/overrides",
       "handler": "setCapacityOverride",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1310,7 +1337,7 @@
       "path": "report",
       "handler": "getReport",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1337,7 +1364,7 @@
       "path": "",
       "handler": "create",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1364,7 +1391,7 @@
       "path": "",
       "handler": "findAll",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1391,7 +1418,7 @@
       "path": "report",
       "handler": "report",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1418,7 +1445,7 @@
       "path": ":id",
       "handler": "findOne",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1445,7 +1472,7 @@
       "path": ":id",
       "handler": "update",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1479,7 +1506,7 @@
       "path": ":id/start",
       "handler": "start",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1506,7 +1533,7 @@
       "path": ":inspectionId/checks/:checkId/result",
       "handler": "recordCheckResult",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1521,7 +1548,7 @@
           "name": "inspectionId",
           "type": "string",
           "decorators": [
-            "Param( 'inspectionId', ParseUUIDPipe, )"
+            "Param('inspectionId', ParseUUIDPipe)"
           ]
         },
         {
@@ -1547,7 +1574,7 @@
       "path": ":id/complete",
       "handler": "complete",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -1581,7 +1608,7 @@
       "path": ":id/cancel",
       "handler": "cancel",
       "guards": [
-        "UseGuards(JwtAuthGuard)"
+        "UseGuards(JwtAuthGuard, LicenseFeatureGuard)"
       ],
       "roles": [],
       "parameters": [
@@ -6095,6 +6122,34 @@
           "defaultValue": null
         },
         {
+          "property": "actualMaterialCost",
+          "databaseName": "actual_material_cost",
+          "type": "number",
+          "nullable": null,
+          "defaultValue": "0"
+        },
+        {
+          "property": "actualLaborCost",
+          "databaseName": "actual_labor_cost",
+          "type": "number",
+          "nullable": null,
+          "defaultValue": "0"
+        },
+        {
+          "property": "actualOverheadCost",
+          "databaseName": "actual_overhead_cost",
+          "type": "number",
+          "nullable": null,
+          "defaultValue": "0"
+        },
+        {
+          "property": "actualTotalCost",
+          "databaseName": "actual_total_cost",
+          "type": "number",
+          "nullable": null,
+          "defaultValue": "0"
+        },
+        {
           "property": "createdAt",
           "databaseName": "created_at",
           "type": "Date",
@@ -6492,6 +6547,13 @@
           "type": "string | null",
           "nullable": true,
           "defaultValue": null
+        },
+        {
+          "property": "totalVariance",
+          "databaseName": "total_variance",
+          "type": "number",
+          "nullable": null,
+          "defaultValue": "0"
         },
         {
           "property": "createdAt",
@@ -7511,6 +7573,17 @@
           "statusSignal": true
         },
         {
+          "name": "complete",
+          "async": true,
+          "transactionSignal": true,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": true,
+          "completionSignal": true,
+          "consumptionSignal": false,
+          "statusSignal": true
+        },
+        {
           "name": "cancel",
           "async": true,
           "transactionSignal": false,
@@ -7531,6 +7604,17 @@
           "completionSignal": false,
           "consumptionSignal": false,
           "statusSignal": true
+        },
+        {
+          "name": "autoPostProductionCompletionIfEnabled",
+          "async": true,
+          "transactionSignal": false,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": false,
+          "completionSignal": false,
+          "consumptionSignal": false,
+          "statusSignal": false
         },
         {
           "name": "getEntity",
@@ -7588,6 +7672,17 @@
           "statusSignal": false
         },
         {
+          "name": "roundMoney",
+          "async": false,
+          "transactionSignal": false,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": false,
+          "completionSignal": false,
+          "consumptionSignal": false,
+          "statusSignal": false
+        },
+        {
           "name": "toResponse",
           "async": false,
           "transactionSignal": false,
@@ -7628,6 +7723,17 @@
         },
         {
           "name": "findOne",
+          "async": true,
+          "transactionSignal": false,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": false,
+          "completionSignal": false,
+          "consumptionSignal": true,
+          "statusSignal": false
+        },
+        {
+          "name": "autoPostMaterialConsumptionIfEnabled",
           "async": true,
           "transactionSignal": false,
           "currentStockSignal": false,
@@ -7780,6 +7886,17 @@
           "completionSignal": false,
           "consumptionSignal": false,
           "statusSignal": true
+        },
+        {
+          "name": "autoPostProductionVarianceIfEnabled",
+          "async": true,
+          "transactionSignal": false,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": false,
+          "completionSignal": false,
+          "consumptionSignal": false,
+          "statusSignal": false
         },
         {
           "name": "getWipCosts",
@@ -9554,6 +9671,38 @@
             "data_type": "timestamp with time zone",
             "udt_name": "timestamptz",
             "column_default": null
+          },
+          {
+            "table_name": "production_orders",
+            "column_name": "actual_material_cost",
+            "is_nullable": "NO",
+            "data_type": "numeric",
+            "udt_name": "numeric",
+            "column_default": "0"
+          },
+          {
+            "table_name": "production_orders",
+            "column_name": "actual_labor_cost",
+            "is_nullable": "NO",
+            "data_type": "numeric",
+            "udt_name": "numeric",
+            "column_default": "0"
+          },
+          {
+            "table_name": "production_orders",
+            "column_name": "actual_overhead_cost",
+            "is_nullable": "NO",
+            "data_type": "numeric",
+            "udt_name": "numeric",
+            "column_default": "0"
+          },
+          {
+            "table_name": "production_orders",
+            "column_name": "actual_total_cost",
+            "is_nullable": "NO",
+            "data_type": "numeric",
+            "udt_name": "numeric",
+            "column_default": "0"
           }
         ]
       },
@@ -9934,6 +10083,14 @@
             "data_type": "timestamp with time zone",
             "udt_name": "timestamptz",
             "column_default": "now()"
+          },
+          {
+            "table_name": "production_variances",
+            "column_name": "total_variance",
+            "is_nullable": "NO",
+            "data_type": "numeric",
+            "udt_name": "numeric",
+            "column_default": "0"
           }
         ]
       },
@@ -10179,7 +10336,7 @@
     {
       "severity": "INFO",
       "area": "summary",
-      "detail": "56 routes, 55 DTO classes, 16 entities, 10 enums, 9 services analyzed."
+      "detail": "57 routes, 55 DTO classes, 16 entities, 10 enums, 9 services analyzed."
     }
   ]
 }

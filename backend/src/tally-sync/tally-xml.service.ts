@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { PreviewSalesVoucherDto } from './dto/preview-sales-voucher.dto';
@@ -193,9 +197,18 @@ export class TallyXmlService {
     }
   }
 
+  private requireTallyCompanyName(): string {
+    const name = this.configService.get<string>('TALLY_COMPANY_NAME');
+    if (name === undefined) {
+      throw new ServiceUnavailableException(
+        'Tally is not configured on the server: set TALLY_COMPANY_NAME in the backend environment.',
+      );
+    }
+    return name;
+  }
+
   private getTallyCompanyName(): string {
-    const companyName =
-      this.configService.getOrThrow<string>('TALLY_COMPANY_NAME');
+    const companyName = this.requireTallyCompanyName();
 
     if (!companyName.trim()) {
       throw new BadRequestException('TALLY_COMPANY_NAME must not be empty');

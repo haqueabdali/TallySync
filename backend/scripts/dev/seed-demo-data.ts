@@ -74,6 +74,31 @@ async function main(): Promise<void> {
       console.log('Active all-module demo licence ensured.');
     }
 
+    // Mobile order creation requires an active *default* warehouse. Repair runs too.
+    const hasDefault = await q(
+      `SELECT 1 FROM warehouses
+        WHERE company_id=$1 AND is_default=true AND is_active=true AND deleted_at IS NULL LIMIT 1`,
+      [companyId],
+    );
+    if (!hasDefault.length) {
+      const promoted = await q(
+        `UPDATE warehouses SET is_default=true
+          WHERE id = (SELECT id FROM warehouses
+                       WHERE company_id=$1 AND is_active=true AND deleted_at IS NULL
+                       ORDER BY created_at LIMIT 1)
+        RETURNING id`,
+        [companyId],
+      );
+      if (!promoted.length) {
+        await q(
+          `INSERT INTO warehouses (company_id, warehouse_code, name, is_default, is_active)
+           VALUES ($1,'DEMO-MAIN','Main Warehouse',true,true)`,
+          [companyId],
+        );
+      }
+      console.log('Default warehouse ensured.');
+    }
+
     const existing = await q(
       `SELECT 1 FROM customers WHERE company_id=$1 AND name=$2 LIMIT 1`,
       [companyId, CUSTOMERS[0]],
@@ -92,8 +117,8 @@ async function main(): Promise<void> {
       const wh =
         (
           await run<{ id: string }>(
-            `INSERT INTO warehouses (company_id, warehouse_code, name)
-           VALUES ($1,'DEMO-MAIN','Main Warehouse')
+            `INSERT INTO warehouses (company_id, warehouse_code, name, is_default, is_active)
+           VALUES ($1,'DEMO-MAIN','Main Warehouse',true,true)
            ON CONFLICT DO NOTHING RETURNING id`,
             [companyId],
           )

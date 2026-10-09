@@ -43,3 +43,14 @@ Emulator? Use the default build (`http://10.0.2.2:3000/api/v1/`); every push alr
 Building locally instead: `cd android/mobileapp && ./gradlew assembleDebug -PapiBaseUrl=http://<ip>:3000/api/v1/`.
 
 Debug builds allow plain HTTP for local use. Use HTTPS for anything real.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| App says "No active default warehouse" when saving an order | `cd backend && npm run seed:demo` (it now repairs the default warehouse; safe to re-run) |
+| Tally sync returns 503 "Tally is not configured" | Add `TALLY_COMPANY_NAME=<your Tally company>` to `backend/.env` and restart. Syncing to Tally also needs the Tally agent / RabbitMQ; orders can be created and fulfilled without it |
+| Phone cannot log in / "failed to connect" | Wrong `api_base_url` baked into the APK, different Wi-Fi, or port 3000 blocked by the firewall. Check `http://<ip>:3000/health/live` from the phone's browser |
+| 403 licence error in app or web | `npm run seed:demo` ensures an active all-module licence |
+| `python3` not found on Windows Git Bash | use `python -m http.server 8080` or `npx serve admin-web -l 8080` |
+| Port 3000 busy | stop the old process (`netstat -ano \| findstr :3000`, then `taskkill /PID <pid> /F`) |

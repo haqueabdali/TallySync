@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -17,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.ShoppingCart
 
 @Composable
 fun DashboardActions(
@@ -27,6 +27,7 @@ fun DashboardActions(
     onOpenOrders: () -> Unit,
     onOpenSuppliers: () -> Unit,
     onOpenPurchaseOrders: () -> Unit,
+    onOpenSalesInvoices: () -> Unit,
     onOpenReports: () -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -40,7 +41,10 @@ fun DashboardActions(
             enabled = !loading && canSyncPending,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Default.Sync, contentDescription = null)
+            Icon(
+                imageVector = Icons.Default.Sync,
+                contentDescription = null
+            )
             Text(" Sync pending orders")
         }
 
@@ -52,7 +56,10 @@ fun DashboardActions(
                 onClick = onOpenOrders,
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Default.ReceiptLong, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.ReceiptLong,
+                    contentDescription = null
+                )
                 Text(" Orders")
             }
 
@@ -60,42 +67,62 @@ fun DashboardActions(
                 onClick = onOpenSuppliers,
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Default.Business, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Business,
+                    contentDescription = null
+                )
                 Text(" Suppliers")
             }
+        }
+
+        OutlinedButton(
+            onClick = onOpenSalesInvoices,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.ReceiptLong,
+                contentDescription = null
+            )
+            Text(" Sales Invoices")
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
             OutlinedButton(
-            onClick = onOpenPurchaseOrders,
-            modifier = Modifier.fillMaxWidth()
+                onClick = onOpenPurchaseOrders,
+                modifier = Modifier.weight(1f)
             ) {
-            Icon(
-                Icons.Default.ShoppingCart,
-                contentDescription = null
-            )
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = null
+                )
                 Text(" Purchase Orders")
             }
+
             OutlinedButton(
                 onClick = onOpenReports,
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Default.Assessment, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Assessment,
+                    contentDescription = null
+                )
                 Text(" Reports")
             }
+        }
 
-            OutlinedButton(
-                onClick = onRefresh,
-                enabled = !loading,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Text(" Refresh")
-            }
+        OutlinedButton(
+            onClick = onRefresh,
+            enabled = !loading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null
+            )
+            Text(" Refresh")
         }
     }
 }

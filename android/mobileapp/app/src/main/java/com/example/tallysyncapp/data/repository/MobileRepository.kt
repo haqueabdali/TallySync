@@ -1,5 +1,10 @@
 package com.example.tallysyncapp.data.repository
 
+import com.example.tallysyncapp.data.local.dao.CachedCustomerDao
+import com.example.tallysyncapp.data.local.dao.CachedProductDao
+import com.example.tallysyncapp.data.local.entity.CachedCustomerEntity
+import com.example.tallysyncapp.data.local.entity.CachedProductEntity
+
 import com.example.tallysyncapp.data.network.CreateSalesOrderRequest
 import com.example.tallysyncapp.data.network.MobileApi
 import com.example.tallysyncapp.data.network.SaveCustomerRequest
@@ -12,10 +17,66 @@ import com.example.tallysyncapp.data.network.SavePurchaseOrderRequest
 
 @Singleton
 class MobileRepository @Inject constructor(
-    private val api: MobileApi
+    private val api: MobileApi,
+    private val cachedCustomerDao: CachedCustomerDao,
+    private val cachedProductDao: CachedProductDao
 ) {
     suspend fun getDashboard() = api.getDashboard()
-    suspend fun getCustomers(search: String? = null) = api.getCustomers(search)
+
+    /**
+     * Refresh the local customer/product master cache while online.
+     *
+     * This is intentionally separate from getDashboard() so a failure to
+     * refresh offline masters never prevents the dashboard from loading.
+     */
+    suspend fun refreshOfflineMasterCache() {
+        try {
+            val customers = api.getCustomers(null)
+
+            cachedCustomerDao.deleteAll()
+            cachedCustomerDao.insertAll(
+                customers.data.map(CachedCustomerEntity::fromNetwork)
+            )
+        } catch (_: Exception) {
+            // Keep the previous customer cache.
+        }
+
+        try {
+            val products = api.getProducts(null)
+
+            cachedProductDao.deleteAll()
+            cachedProductDao.insertAll(
+                products.data.map(CachedProductEntity::fromNetwork)
+            )
+        } catch (_: Exception) {
+            // Keep the previous product cache.
+        }
+    }
+    suspend fun getCustomers(search: String? = null) =
+        try {
+            val response = api.getCustomers(search)
+
+            if (search.isNullOrBlank()) {
+                cachedCustomerDao.deleteAll()
+                cachedCustomerDao.insertAll(
+                    response.data.map(CachedCustomerEntity::fromNetwork)
+                )
+            }
+
+            response
+        } catch (error: Exception) {
+            val cached = if (search.isNullOrBlank()) {
+                cachedCustomerDao.getAll()
+            } else {
+                cachedCustomerDao.search(search.trim())
+            }
+
+            com.example.tallysyncapp.data.network.ApiResponse(
+                success = true,
+                message = "Offline customer cache",
+                data = cached.map { it.toNetworkModel() }
+            )
+        }
     suspend fun createCustomer(request: SaveCustomerRequest) = api.createCustomer(request)
     suspend fun getCustomer(id: String) = api.getCustomer(id)
     suspend fun updateCustomer(id: String, request: SaveCustomerRequest) =
@@ -24,13 +85,79 @@ class MobileRepository @Inject constructor(
         api.updateCustomerStatus(id, UpdateActiveStatusRequest(isActive))
     suspend fun syncCustomerMaster(id: String) =
         api.syncCustomerMaster(id)
-    suspend fun getProducts(search: String? = null) = api.getProducts(search)
-    suspend fun createProduct(request: SaveProductRequest) = api.createProduct(request)
+    suspend fun getProducts(search: String? = null) =
+        try {
+            val response = api.getProducts(search)
+
+            if (search.isNullOrBlank()) {
+                cachedProductDao.deleteAll()
+                cachedProductDao.insertAll(
+                    response.data.map(CachedProductEntity::fromNetwork)
+                )
+            }
+
+            response
+        } catch (error: Exception) {
+            val cached = if (search.isNullOrBlank()) {
+                cachedProductDao.getAll()
+            } else {
+                cachedProductDao.search(search.trim())
+            }
+
+            com.example.tallysyncapp.data.network.ApiResponse(
+                success = true,
+                message = "Offline product cache",
+                data = cached.map { it.toNetworkModel() }
+            )
+        }
+    suspend fun createProduct(request: SaveProductRequest) =
+        api.createProduct(request).also { product ->
+            if (product.isActive) {
+                cachedProductDao.upsert(
+                    CachedProductEntity(
+                        id = product.id,
+                        name = product.name,
+                        sku = product.sku,
+                        barcode = product.barcode,
+                        sellingPrice = product.sellingPrice,
+                        stock = product.currentStock,
+                        unit = product.unit
+                    )
+                )
+            }
+        }
+    suspend fun ensureProductCached(product: com.example.tallysyncapp.data.network.ProductRecord) {
+        if (!product.isActive) return
+
+        cachedProductDao.upsert(
+            CachedProductEntity(
+                id = product.id,
+                name = product.name,
+                sku = product.sku,
+                barcode = product.barcode,
+                sellingPrice = product.sellingPrice,
+                stock = product.currentStock,
+                unit = product.unit
+            )
+        )
+    }
+
     suspend fun getProduct(id: String) = api.getProduct(id)
     suspend fun updateProduct(id: String, request: SaveProductRequest) =
         api.updateProduct(id, request)
-    suspend fun updateProductStatus(id: String, isActive: Boolean) =
-        api.updateProductStatus(id, UpdateActiveStatusRequest(isActive))
+    suspend fun updateProductStatus(
+        id: String,
+        isActive: Boolean
+    ) = api.updateProductStatus(
+        id,
+        UpdateActiveStatusRequest(isActive)
+    ).also { product ->
+        if (product.isActive) {
+            ensureProductCached(product)
+        } else {
+            cachedProductDao.deleteById(product.id)
+        }
+    }
     suspend fun syncProductMaster(id: String) =
         api.syncProductMaster(id)
     suspend fun getSalesOrders(syncStatus: String? = null, search: String? = null, page: Int = 1) =
@@ -88,5 +215,209 @@ class MobileRepository @Inject constructor(
     suspend fun deletePurchaseOrder(id: String) =
         api.deletePurchaseOrder(id)
 
+
+
+    suspend fun getGoodsReceipts(
+        purchaseOrderId: String? = null,
+        warehouseId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getGoodsReceipts(
+        purchaseOrderId = purchaseOrderId,
+        warehouseId = warehouseId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getGoodsReceipt(
+        id: String
+    ) = api.getGoodsReceipt(id)
+
+    suspend fun createGoodsReceipt(
+        request: com.example.tallysyncapp.data.network.CreateGoodsReceiptRequest
+    ) = api.createGoodsReceipt(request)
+
+    suspend fun postGoodsReceipt(
+        id: String
+    ) = api.postGoodsReceipt(id)
+
+    suspend fun reverseGoodsReceipt(
+        id: String
+    ) = api.reverseGoodsReceipt(id)
+
+    suspend fun deleteGoodsReceipt(
+        id: String
+    ) = api.deleteGoodsReceipt(id)
+
+
+
+    // Stage 6N - Purchase Invoices
+
+    suspend fun getPurchaseInvoices(
+        search: String? = null,
+        supplierId: String? = null,
+        purchaseOrderId: String? = null,
+        goodsReceiptId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getPurchaseInvoices(
+        search = search,
+        supplierId = supplierId,
+        purchaseOrderId = purchaseOrderId,
+        goodsReceiptId = goodsReceiptId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getPurchaseInvoice(id: String) =
+        api.getPurchaseInvoice(id)
+
+    suspend fun createPurchaseInvoice(
+        request: com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest
+    ) = api.createPurchaseInvoice(request)
+
+    suspend fun updatePurchaseInvoice(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest
+    ) = api.updatePurchaseInvoice(id, request)
+
+    suspend fun postPurchaseInvoice(id: String) =
+        api.postPurchaseInvoice(id)
+
+    suspend fun cancelPurchaseInvoice(id: String) =
+        api.cancelPurchaseInvoice(id)
+
+    suspend fun deletePurchaseInvoice(id: String) =
+        api.deletePurchaseInvoice(id)
+
+    // Stage 6N - Supplier Payments
+
+    suspend fun getSupplierPayments(
+        search: String? = null,
+        supplierId: String? = null,
+        status: String? = null,
+        paymentMethod: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getSupplierPayments(
+        search = search,
+        supplierId = supplierId,
+        status = status,
+        paymentMethod = paymentMethod,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getSupplierPayment(id: String) =
+        api.getSupplierPayment(id)
+
+    suspend fun createSupplierPayment(
+        request: com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest
+    ) = api.createSupplierPayment(request)
+
+    suspend fun updateSupplierPayment(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest
+    ) = api.updateSupplierPayment(id, request)
+
+    suspend fun postSupplierPayment(id: String) =
+        api.postSupplierPayment(id)
+
+    suspend fun cancelSupplierPayment(id: String) =
+        api.cancelSupplierPayment(id)
+
+    suspend fun deleteSupplierPayment(id: String) =
+        api.deleteSupplierPayment(id)
+
+
+    // Stage 6Q - Sales Invoices
+
+    suspend fun getSalesInvoices(
+        search: String? = null,
+        customerId: String? = null,
+        salesOrderId: String? = null,
+        deliveryNoteId: String? = null,
+        status: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ) = api.getSalesInvoices(
+        search = search,
+        customerId = customerId,
+        salesOrderId = salesOrderId,
+        deliveryNoteId = deliveryNoteId,
+        status = status,
+        page = page,
+        limit = limit
+    )
+
+    suspend fun getSalesInvoice(id: String) =
+        api.getSalesInvoice(id)
+
+    suspend fun createSalesInvoice(
+        request: com.example.tallysyncapp.data.network.SaveSalesInvoiceRequest
+    ) = api.createSalesInvoice(request)
+
+    suspend fun updateSalesInvoice(
+        id: String,
+        request: com.example.tallysyncapp.data.network.SaveSalesInvoiceRequest
+    ) = api.updateSalesInvoice(id, request)
+
+    suspend fun postSalesInvoice(id: String) =
+        api.postSalesInvoice(id)
+
+    suspend fun syncSalesInvoiceToTally(id: String) =
+        api.syncSalesInvoiceToTally(id)
+
+    suspend fun cancelSalesInvoice(id: String) =
+        api.cancelSalesInvoice(id)
+
+    suspend fun deleteSalesInvoice(id: String) =
+        api.deleteSalesInvoice(id)
+
+    // Stage 6R - Customer Payments
+    suspend fun getCustomerPayments(
+        search: String? = null, customerId: String? = null, status: String? = null,
+        paymentMethod: String? = null, page: Int = 1, limit: Int = 20
+    ) = api.getCustomerPayments(search, customerId, status, paymentMethod, page, limit)
+
+    suspend fun getCustomerPayment(id: String) = api.getCustomerPayment(id)
+    suspend fun createCustomerPayment(request: com.example.tallysyncapp.data.network.SaveCustomerPaymentRequest) = api.createCustomerPayment(request)
+    suspend fun updateCustomerPayment(id: String, request: com.example.tallysyncapp.data.network.SaveCustomerPaymentRequest) = api.updateCustomerPayment(id, request)
+    suspend fun postCustomerPayment(id: String) = api.postCustomerPayment(id)
+    suspend fun reverseCustomerPayment(id: String, reason: String) = api.reverseCustomerPayment(id, com.example.tallysyncapp.data.network.ReverseCustomerPaymentRequest(reason))
+    suspend fun cancelCustomerPayment(id: String) = api.cancelCustomerPayment(id)
+    suspend fun deleteCustomerPayment(id: String) = api.deleteCustomerPayment(id)
+
+
+    // Stage 6S - Accounting Reports
+    suspend fun getAgedReceivables(asOfDate: String) =
+        api.getAgedReceivables(asOfDate = asOfDate)
+
+    suspend fun getAgedPayables(asOfDate: String) =
+        api.getAgedPayables(asOfDate = asOfDate)
+
+    suspend fun getCustomerStatement(
+        customerId: String,
+        dateFrom: String,
+        dateTo: String
+    ) = api.getCustomerStatement(
+        customerId = customerId,
+        dateFrom = dateFrom,
+        dateTo = dateTo
+    )
+
+    suspend fun getSupplierStatement(
+        supplierId: String,
+        dateFrom: String,
+        dateTo: String
+    ) = api.getSupplierStatement(
+        supplierId = supplierId,
+        dateFrom = dateFrom,
+        dateTo = dateTo
+    )
 
 }

@@ -215,8 +215,8 @@ export class MobileService {
       .addSelect('item.unit', 'unit')
       .where('item.deletedAt IS NULL')
       .andWhere('item.companyId = :companyId', { companyId })
-      .orderBy('item.name', 'ASC')
-      .take(100);
+      .andWhere('item.isActive = :isActive', { isActive: true })
+      .orderBy('item.name', 'ASC');
 
     if (normalizedSearch) {
       query.andWhere(
@@ -373,6 +373,28 @@ export class MobileService {
     companyId: string,
     userId: string,
   ) {
+        if (dto.clientRequestId) {
+      const existingOrder = await this.salesOrderRepository.findOne({
+        where: {
+          companyId,
+          clientRequestId: dto.clientRequestId,
+          deletedAt: IsNull(),
+        },
+      });
+
+      if (existingOrder) {
+        return {
+          success: true,
+          message: 'Sales order already exists',
+          data: {
+            id: existingOrder.id,
+            orderNumber: existingOrder.orderNumber,
+            totalAmount: existingOrder.grandTotal,
+            syncStatus: existingOrder.syncStatus,
+          },
+        };
+      }
+    }
     const customer = await this.customerRepository.findOne({
       where: {
         id: dto.customerId,
@@ -465,6 +487,7 @@ export class MobileService {
 
       const order = salesOrderRepository.create({
         companyId,
+        clientRequestId: dto.clientRequestId ?? null,
         customerId: customer.id,
         customer,
         warehouseId: warehouse.id,

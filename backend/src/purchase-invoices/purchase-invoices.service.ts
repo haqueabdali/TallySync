@@ -17,7 +17,6 @@ import { PurchaseOrderItemEntity } from '../purchase-orders/entities/purchase-or
 import { PurchaseOrderEntity } from '../purchase-orders/entities/purchase-order.entity';
 import { SupplierEntity } from '../suppliers/entities/supplier.entity';
 import { CreatePurchaseInvoiceDto } from './dto/create-purchase-invoice.dto';
-import { PurchaseInvoiceFilterDto } from './dto/purchase-invoice-filter.dto';
 import {
   PaginatedPurchaseInvoicesResponseDto,
   PurchaseInvoiceItemResponseDto,
@@ -27,6 +26,10 @@ import { UpdatePurchaseInvoiceDto } from './dto/update-purchase-invoice.dto';
 import { PurchaseInvoiceStatus } from './enums/purchase-invoice-status.enum';
 import { PurchaseInvoiceItemEntity } from '../purchase-invoices/entities/purchase-invoice-item.entity';
 import { PurchaseInvoiceEntity } from '../purchase-invoices/entities/purchase-invoice.entity';
+import {
+  PurchaseInvoiceFilterDto,
+  PurchaseInvoiceSortField,
+} from './dto/purchase-invoice-filter.dto';
 
 @Injectable()
 export class PurchaseInvoicesService {
@@ -147,83 +150,89 @@ export class PurchaseInvoicesService {
     filter: PurchaseInvoiceFilterDto,
     companyId: string,
   ): Promise<PaginatedPurchaseInvoicesResponseDto> {
-    const page = filter.page ?? 1;
-    const limit = filter.limit ?? 20;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      supplierId,
+      purchaseOrderId,
+      goodsReceiptId,
+      status,
+      dateFrom,
+      dateTo,
+      dueDateFrom,
+      dueDateTo,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = filter;
 
-    const query = this.purchaseInvoiceRepository
-      .createQueryBuilder('invoice')
-      .leftJoinAndSelect('invoice.items', 'items')
-      .where('invoice.company_id = :companyId', {
-        companyId,
-      });
+    const applyFilters = (
+      query: ReturnType<Repository<PurchaseInvoiceEntity>['createQueryBuilder']>,
+    ) => {
+      query.where('invoice.company_id = :companyId', { companyId });
 
-    if (filter.search?.trim()) {
-      const search = `%${filter.search.trim()}%`;
+      if (search?.trim()) {
+        const normalizedSearch = `%${search.trim()}%`;
 
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where('invoice.invoice_number ILIKE :search', {
-            search,
-          })
-            .orWhere('invoice.supplier_invoice_number ILIKE :search', {
-              search,
-            })
-            .orWhere('invoice.notes ILIKE :search', {
-              search,
-            });
-        }),
-      );
-    }
+        query.andWhere(
+          `(
+            invoice.invoice_number ILIKE :search
+            OR invoice.supplier_invoice_number ILIKE :search
+          )`,
+          { search: normalizedSearch },
+        );
+      }
 
-    if (filter.supplierId) {
-      query.andWhere('invoice.supplier_id = :supplierId', {
-        supplierId: filter.supplierId,
-      });
-    }
+      if (supplierId) {
+        query.andWhere('invoice.supplier_id = :supplierId', {
+          supplierId,
+        });
+      }
 
-    if (filter.purchaseOrderId) {
-      query.andWhere('invoice.purchase_order_id = :purchaseOrderId', {
-        purchaseOrderId: filter.purchaseOrderId,
-      });
-    }
+      if (purchaseOrderId) {
+        query.andWhere('invoice.purchase_order_id = :purchaseOrderId', {
+          purchaseOrderId,
+        });
+      }
 
-    if (filter.goodsReceiptId) {
-      query.andWhere('invoice.goods_receipt_id = :goodsReceiptId', {
-        goodsReceiptId: filter.goodsReceiptId,
-      });
-    }
+      if (goodsReceiptId) {
+        query.andWhere('invoice.goods_receipt_id = :goodsReceiptId', {
+          goodsReceiptId,
+        });
+      }
 
-    if (filter.status) {
-      query.andWhere('invoice.status = :status', {
-        status: filter.status,
-      });
-    }
+      if (status) {
+        query.andWhere('invoice.status = :status', { status });
+      }
 
-    if (filter.dateFrom) {
-      query.andWhere('invoice.invoice_date >= :dateFrom', {
-        dateFrom: filter.dateFrom,
-      });
-    }
+      if (dateFrom) {
+        query.andWhere('invoice.invoice_date >= :dateFrom', {
+          dateFrom,
+        });
+      }
 
-    if (filter.dateTo) {
-      query.andWhere('invoice.invoice_date <= :dateTo', {
-        dateTo: filter.dateTo,
-      });
-    }
+      if (dateTo) {
+        query.andWhere('invoice.invoice_date <= :dateTo', {
+          dateTo,
+        });
+      }
 
-    if (filter.dueDateFrom) {
-      query.andWhere('invoice.due_date >= :dueDateFrom', {
-        dueDateFrom: filter.dueDateFrom,
-      });
-    }
+      if (dueDateFrom) {
+        query.andWhere('invoice.due_date >= :dueDateFrom', {
+          dueDateFrom,
+        });
+      }
 
-    if (filter.dueDateTo) {
-      query.andWhere('invoice.due_date <= :dueDateTo', {
-        dueDateTo: filter.dueDateTo,
-      });
-    }
+      if (dueDateTo) {
+        query.andWhere('invoice.due_date <= :dueDateTo', {
+          dueDateTo,
+        });
+      }
 
-    const sortColumns: Record<string, string> = {
+      return query;
+    };
+
+    const sortColumns: Record<PurchaseInvoiceSortField, string> = {
       invoiceNumber: 'invoice.invoice_number',
       invoiceDate: 'invoice.invoice_date',
       dueDate: 'invoice.due_date',
@@ -233,21 +242,81 @@ export class PurchaseInvoicesService {
       updatedAt: 'invoice.updated_at',
     };
 
-    query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'invoice.created_at',
-        filter.sortOrder,
-      )
-      .addOrderBy('invoice.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+    const sortColumn = sortColumns[sortBy];
 
-    const [invoices, total] = await query.getManyAndCount();
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    /*
+     * IMPORTANT:
+     *
+     * Do not paginate a query that joins invoice.items.
+     *
+     * TypeORM's joined DISTINCT + skip/take pagination path can transform
+     * the query internally. Page invoice IDs first, then load relations.
+     */
+
+    const countQuery =
+      this.purchaseInvoiceRepository.createQueryBuilder('invoice');
+
+    applyFilters(countQuery);
+
+    const total = await countQuery.getCount();
+
+    const idQuery =
+      this.purchaseInvoiceRepository.createQueryBuilder('invoice');
+
+    applyFilters(idQuery);
+
+    const idRows = await idQuery
+      .select('invoice.id', 'id')
+      .orderBy(sortColumn, sortOrder)
+      .addOrderBy('invoice.id', 'ASC')
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getRawMany<{ id: string }>();
+
+    const ids = idRows.map((row) => row.id);
+
+    if (ids.length === 0) {
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data: [],
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      };
+    }
+
+    const invoices = await this.purchaseInvoiceRepository
+      .createQueryBuilder('invoice')
+      .leftJoinAndSelect('invoice.items', 'items')
+      .where('invoice.company_id = :companyId', { companyId })
+      .andWhere('invoice.id IN (:...ids)', { ids })
+      .getMany();
+
+    const invoiceById = new Map(
+      invoices.map((invoice) => [invoice.id, invoice]),
+    );
+
+    /*
+     * SQL IN does not preserve the ordering from idQuery, so reconstruct
+     * the requested page in exactly the same order as the ID query.
+     */
+    const orderedInvoices = ids
+      .map((id) => invoiceById.get(id))
+      .filter(
+        (invoice): invoice is PurchaseInvoiceEntity =>
+          invoice !== undefined,
+      );
+
+    const totalPages = Math.ceil(total / limit);
 
     return {
-      data: invoices.map((invoice) => this.toResponse(invoice)),
+      data: orderedInvoices.map((invoice) => this.toResponse(invoice)),
       meta: {
         page,
         limit,

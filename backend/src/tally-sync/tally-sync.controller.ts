@@ -22,6 +22,7 @@ import { TallyCacheService } from './tally-cache.service';
 import { TallyMasterService } from './tally-master.service';
 import { TallyRetryService } from './tally-retry.service';
 import { TallySyncService } from './tally-sync.service';
+import { TallyAccountingSyncService } from './tally-accounting-sync.service';
 import { TallyMasterPullService } from './tally-master-pull.service';
 
 type AuthenticatedTallyRequest = Request & { user: AuthenticatedUser };
@@ -34,6 +35,7 @@ type AuthenticatedTallyRequest = Request & { user: AuthenticatedUser };
 export class TallySyncController {
   constructor(
     private readonly tallySyncService: TallySyncService,
+    private readonly tallyAccountingSyncService: TallyAccountingSyncService,
     private readonly tallyCacheService: TallyCacheService,
     private readonly tallyMasterService: TallyMasterService,
     private readonly tallyMasterPullService: TallyMasterPullService,
@@ -93,6 +95,50 @@ export class TallySyncController {
     @Req() request: AuthenticatedTallyRequest,
   ) {
     return this.tallySyncService.syncSalesOrder(id, this.companyId(request));
+  }
+
+  @Post('sales-invoice/:id')
+  syncSalesInvoice(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedTallyRequest,
+  ) {
+    return this.tallyAccountingSyncService.syncSalesInvoice(
+      id,
+      this.companyId(request),
+    );
+  }
+
+  @Post('customer-payment/:id')
+  syncCustomerPayment(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedTallyRequest,
+  ) {
+    return this.tallyAccountingSyncService.syncCustomerPayment(
+      id,
+      this.companyId(request),
+    );
+  }
+
+  @Post('purchase-invoice/:id')
+  syncPurchaseInvoice(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedTallyRequest,
+  ) {
+    return this.tallyAccountingSyncService.syncPurchaseInvoice(
+      id,
+      this.companyId(request),
+    );
+  }
+
+  @Post('supplier-payment/:id')
+  syncSupplierPayment(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedTallyRequest,
+  ) {
+    return this.tallyAccountingSyncService.syncSupplierPayment(
+      id,
+      this.companyId(request),
+    );
   }
 
   @Post('sync')

@@ -50,7 +50,7 @@ class OfflineOrderRepository @Inject constructor(
 
         workManager.enqueueUniqueWork(
             OrderSyncWorker.UNIQUE_WORK_NAME,
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }

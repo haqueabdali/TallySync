@@ -57,10 +57,91 @@ sealed class AppRoute(val route: String) {
     data object PurchaseOrderEdit : AppRoute("purchase-orders/{id}/edit") {
         fun createRoute(id: String): String = "purchase-orders/$id/edit"
     }
+    data object GoodsReceipts : AppRoute("goods-receipts")
+
+    data object GoodsReceiptForm :
+        AppRoute("purchase-orders/{purchaseOrderId}/receive") {
+        fun createRoute(purchaseOrderId: String): String =
+            "purchase-orders/$purchaseOrderId/receive"
+    }
+
+    data object GoodsReceiptDetails :
+        AppRoute("goods-receipts/{id}") {
+        fun createRoute(id: String): String =
+            "goods-receipts/$id"
+    }
+
     data object Reports : AppRoute("reports")
     data object Settings : AppRoute("settings")
 
     data object OrderDetails : AppRoute("orders/{id}") {
         fun createRoute(id: String): String = "orders/$id"
     }
+
+
+    // Stage 6N - Purchase Invoices
+
+    data object PurchaseInvoices :
+        AppRoute("purchase-invoices")
+
+    data object PurchaseInvoiceForm :
+        AppRoute("purchase-invoices/new")
+
+    data object PurchaseInvoiceDetails :
+        AppRoute("purchase-invoices/{id}") {
+        fun createRoute(id: String): String =
+            "purchase-invoices/$id"
+    }
+
+    data object PurchaseInvoiceEdit :
+        AppRoute("purchase-invoices/{id}/edit") {
+        fun createRoute(id: String): String =
+            "purchase-invoices/$id/edit"
+    }
+
+    // Stage 6N - Supplier Payments
+
+    data object SupplierPayments :
+        AppRoute("supplier-payments")
+
+    data object SupplierPaymentForm :
+        AppRoute("supplier-payments/new")
+
+    data object SupplierPaymentForInvoice :
+        AppRoute("purchase-invoices/{invoiceId}/payment") {
+        fun createRoute(invoiceId: String): String =
+            "purchase-invoices/$invoiceId/payment"
+    }
+
+    data object SupplierPaymentDetails :
+        AppRoute("supplier-payments/{id}") {
+        fun createRoute(id: String): String =
+            "supplier-payments/$id"
+    }
+
+
+    // Stage 6Q - Sales Invoices
+
+    data object SalesInvoices :
+        AppRoute("sales-invoices")
+
+    data object SalesInvoiceForm :
+        AppRoute("sales-invoices/new")
+
+    data object SalesInvoiceDetails :
+        AppRoute("sales-invoices/{id}") {
+        fun createRoute(id: String): String =
+            "sales-invoices/$id"
+    }
+
+    // Stage 6R - Customer Payments
+    data object CustomerPayments : AppRoute("customer-payments")
+    data object CustomerPaymentForm : AppRoute("customer-payments/new")
+    data object CustomerPaymentForInvoice : AppRoute("sales-invoices/{invoiceId}/payment") {
+        fun createRoute(invoiceId: String): String = "sales-invoices/$invoiceId/payment"
+    }
+    data object CustomerPaymentDetails : AppRoute("customer-payments/{id}") {
+        fun createRoute(id: String): String = "customer-payments/$id"
+    }
+
 }

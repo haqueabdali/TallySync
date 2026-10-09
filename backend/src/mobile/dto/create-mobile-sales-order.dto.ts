@@ -30,6 +30,10 @@ export class CreateMobileSalesOrderDto {
   @IsUUID()
   customerId: string;
 
+  @IsOptional()
+  @IsUUID()
+  clientRequestId?: string;
+
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

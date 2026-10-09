@@ -75,13 +75,13 @@ fun OrderDetailsScreen(
     if (confirmSync) {
         AlertDialog(
             onDismissRequest = { if (!state.loading) confirmSync = false },
-            title = { Text("Synchronize with Tally?") },
+            title = { Text("Sync to Tally Prime?") },
             text = { Text("This will send ${order.orderNumber} to Tally. Confirm only once to avoid duplicate requests.") },
             confirmButton = {
                 TextButton(enabled = !state.loading, onClick = {
                     confirmSync = false
                     onSync(order.id)
-                }) { Text("Synchronize") }
+                }) { Text("Sync to Tally") }
             },
             dismissButton = { TextButton(enabled = !state.loading, onClick = { confirmSync = false }) { Text("Cancel") } }
         )
@@ -197,14 +197,10 @@ fun OrderDetailsScreen(
                 }
             }
 
-            orderStatus in setOf(
-                "submitted",
-                "confirmed",
-                "delivered"
-            ) -> {
+            orderStatus == "submitted" -> {
 
                 Text(
-                    text = "This order must be fulfilled before it can be synchronized with Tally.",
+                    text = "This order must be fulfilled before it can be synced to Tally Prime.",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -233,14 +229,14 @@ fun OrderDetailsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (state.loading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    else Text("Retry Tally synchronization")
+                    else Text("Retry Sync to Tally")
                 }
             }
 
             orderStatus == "fulfilled" -> {
 
                 Text(
-                    text = "Order fulfilled. It is ready to synchronize with Tally.",
+                    text = "Order fulfilled. It is ready to sync to Tally Prime.",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -250,7 +246,7 @@ fun OrderDetailsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (state.loading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    else Text("Synchronize with Tally")
+                    else Text("Sync to Tally")
                 }
             }
 

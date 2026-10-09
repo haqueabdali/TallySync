@@ -206,7 +206,7 @@ private fun ProductCard(
 
                 Text(
                     text = String.format(
-                        Locale.getDefault(),
+                        Locale.ITALY,
                         "€%.2f",
                         product.sellingPrice
                     ),

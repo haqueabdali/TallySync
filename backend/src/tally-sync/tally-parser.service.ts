@@ -64,6 +64,39 @@ export class TallyParserService {
     };
   }
 
+  parseVoucherLookup(responseXml: string, expectedNumber: string, expectedType: string): {
+    found: boolean;
+    voucherNumber: string | null;
+    voucherType: string | null;
+    masterId: string | null;
+    guid: string | null;
+  } {
+    const decoded = this.decodeXml(responseXml);
+    const expectedNumberNormalized = this.normalizeName(expectedNumber);
+    const expectedTypeNormalized = this.normalizeName(expectedType);
+
+    for (const voucherXml of this.extractElements(decoded, 'VOUCHER')) {
+      const voucherNumber = this.extractXmlText(voucherXml, 'VOUCHERNUMBER');
+      const voucherType = this.extractXmlText(voucherXml, 'VOUCHERTYPENAME');
+      if (
+        voucherNumber &&
+        voucherType &&
+        this.normalizeName(voucherNumber) === expectedNumberNormalized &&
+        this.normalizeName(voucherType) === expectedTypeNormalized
+      ) {
+        return {
+          found: true,
+          voucherNumber,
+          voucherType,
+          masterId: this.extractXmlText(voucherXml, 'MASTERID'),
+          guid: this.extractXmlText(voucherXml, 'GUID'),
+        };
+      }
+    }
+
+    return { found: false, voucherNumber: null, voucherType: null, masterId: null, guid: null };
+  }
+
   parseMasterImportResponse(responseXml: string): TallyBaseImportResult {
     const created = this.extractXmlNumber(responseXml, 'CREATED');
     const altered = this.extractXmlNumber(responseXml, 'ALTERED');

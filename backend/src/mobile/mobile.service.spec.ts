@@ -41,6 +41,16 @@ describe('MobileService', () => {
     createQueryBuilder: jest.fn(),
   };
 
+  const itemQueryBuilder = {
+    select: jest.fn(),
+    addSelect: jest.fn(),
+    where: jest.fn(),
+    andWhere: jest.fn(),
+    orderBy: jest.fn(),
+    take: jest.fn(),
+    getRawMany: jest.fn(),
+  };
+
   const warehouseRepository = {
     findOne: jest.fn(),
   };
@@ -55,6 +65,13 @@ describe('MobileService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    Object.values(itemQueryBuilder).forEach((mock) => {
+      mock.mockReturnValue(itemQueryBuilder);
+    });
+
+    itemQueryBuilder.getRawMany.mockResolvedValue([]);
+    itemRepository.createQueryBuilder.mockReturnValue(itemQueryBuilder);
 
     transactionManager.getRepository.mockImplementation((entity: unknown) => {
       if (entity === SalesOrderEntity) {
@@ -117,6 +134,45 @@ describe('MobileService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should load only active company products for mobile transactions', async () => {
+    itemQueryBuilder.getRawMany.mockResolvedValue([
+      {
+        id: 'product-1',
+        name: 'Active product',
+        sku: 'ACTIVE-001',
+        barcode: null,
+        sellingPrice: '12.50',
+        stock: '5',
+        unit: 'PCS',
+      },
+    ]);
+
+    const result = await service.getProducts(undefined, 'company-1');
+
+    expect(itemRepository.createQueryBuilder).toHaveBeenCalledWith('item');
+
+    expect(itemQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'item.companyId = :companyId',
+      { companyId: 'company-1' },
+    );
+
+    expect(itemQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'item.isActive = :isActive',
+      { isActive: true },
+    );
+
+    expect(itemQueryBuilder.take).not.toHaveBeenCalled();
+
+    expect(result.data).toEqual([
+      expect.objectContaining({
+        id: 'product-1',
+        name: 'Active product',
+        sellingPrice: 12.5,
+        stock: 5,
+      }),
+    ]);
   });
 
   it('should reject order creation when no active default warehouse exists', async () => {

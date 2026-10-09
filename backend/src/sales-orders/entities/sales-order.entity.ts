@@ -47,6 +47,7 @@ const decimalTransformer = {
 @Index('IDX_sales_orders_quotation', ['salesQuotationId'])
 @Index('IDX_sales_orders_status', ['companyId', 'status'])
 @Index('IDX_sales_orders_sync_status', ['companyId', 'syncStatus'])
+@Index('IDX_sales_orders_client_request', ['companyId', 'clientRequestId'])
 @Index('UQ_sales_orders_company_number', ['companyId', 'orderNumber'], {
   unique: true,
   where: '"deleted_at" IS NULL',
@@ -84,6 +85,13 @@ export class SalesOrderEntity {
     nullable: true,
   })
   salesQuotationId!: string | null;
+  
+  @Column({
+    name: 'client_request_id',
+    type: 'uuid',
+    nullable: true,
+  })
+  clientRequestId!: string | null;
 
   @Column({
     name: 'order_number',

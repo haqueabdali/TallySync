@@ -397,3 +397,513 @@ data class PurchaseOrdersPage(
     val data: List<PurchaseOrderRecord> = emptyList(),
     val meta: Pagination = Pagination()
 )
+data class GoodsReceiptItemRequest(
+    val purchaseOrderItemId: String,
+    val itemId: String,
+    val receivedQty: Double,
+    val acceptedQty: Double,
+    val rejectedQty: Double = 0.0,
+    val unitCost: Double = 0.0,
+    val remarks: String? = null
+)
+
+data class CreateGoodsReceiptRequest(
+    val purchaseOrderId: String,
+    val warehouseId: String,
+    val grnDate: String,
+    val remarks: String? = null,
+    val items: List<GoodsReceiptItemRequest>
+)
+
+data class GoodsReceiptItemRecord(
+    val id: String,
+    val goodsReceiptId: String,
+    val purchaseOrderItemId: String,
+    val itemId: String,
+    val orderedQty: Double = 0.0,
+    val receivedQty: Double = 0.0,
+    val acceptedQty: Double = 0.0,
+    val rejectedQty: Double = 0.0,
+    val unitCost: Double = 0.0,
+    val remarks: String? = null
+)
+
+data class GoodsReceiptRecord(
+    val id: String,
+    val companyId: String? = null,
+    val purchaseOrderId: String,
+    val warehouseId: String,
+    val grnNumber: String,
+    val grnDate: String,
+    val status: String,
+    val remarks: String? = null,
+    val items: List<GoodsReceiptItemRecord> = emptyList(),
+    val createdBy: String? = null,
+    val updatedBy: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class GoodsReceiptsPage(
+    val data: List<GoodsReceiptRecord> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+
+// -----------------------------------------------------------------------------
+// Stage 6N - Purchase Invoices
+// -----------------------------------------------------------------------------
+
+data class PurchaseInvoiceItemRequest(
+    val itemId: String,
+    val purchaseOrderItemId: String? = null,
+    val goodsReceiptItemId: String? = null,
+    val description: String? = null,
+    val quantity: Double,
+    val unitCost: Double,
+    val discountPercent: Double = 0.0,
+    val taxPercent: Double = 0.0
+)
+
+data class SavePurchaseInvoiceRequest(
+    val supplierId: String,
+    val purchaseOrderId: String? = null,
+    val goodsReceiptId: String? = null,
+    val supplierInvoiceNumber: String? = null,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val currency: String = "EUR",
+    val shippingTotal: Double = 0.0,
+    val billingAddress: String? = null,
+    val notes: String? = null,
+    val items: List<PurchaseInvoiceItemRequest>
+)
+
+data class PurchaseInvoiceItemRecord(
+    val id: String,
+    val purchaseInvoiceId: String? = null,
+    val itemId: String,
+    val purchaseOrderItemId: String? = null,
+    val goodsReceiptItemId: String? = null,
+    val itemName: String? = null,
+    val sku: String? = null,
+    val unit: String? = null,
+    val description: String? = null,
+    val quantity: Double = 0.0,
+    val unitCost: Double = 0.0,
+    val discountPercent: Double = 0.0,
+    val taxPercent: Double = 0.0,
+    val lineSubtotal: Double = 0.0,
+    val discountAmount: Double = 0.0,
+    val taxAmount: Double = 0.0,
+    val lineTotal: Double = 0.0
+)
+
+data class PurchaseInvoiceRecord(
+    val id: String,
+    val companyId: String? = null,
+    val supplierId: String,
+    val purchaseOrderId: String? = null,
+    val goodsReceiptId: String? = null,
+    val invoiceNumber: String,
+    val supplierInvoiceNumber: String? = null,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val status: String = "Draft",
+    val currency: String = "EUR",
+    val subtotal: Double = 0.0,
+    val discountTotal: Double = 0.0,
+    val taxTotal: Double = 0.0,
+    val shippingTotal: Double = 0.0,
+    val grandTotal: Double = 0.0,
+    val paidAmount: Double = 0.0,
+    val balanceDue: Double = 0.0,
+    val billingAddress: String? = null,
+    val notes: String? = null,
+    val items: List<PurchaseInvoiceItemRecord> = emptyList(),
+    val createdBy: String? = null,
+    val updatedBy: String? = null,
+    val postedBy: String? = null,
+    val postedAt: String? = null,
+    val cancelledBy: String? = null,
+    val cancelledAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class PurchaseInvoicesPage(
+    val data: List<PurchaseInvoiceRecord> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+
+// -----------------------------------------------------------------------------
+// Stage 6N - Supplier Payments
+// -----------------------------------------------------------------------------
+
+data class SupplierPaymentAllocationRequest(
+    val purchaseInvoiceId: String,
+    val allocatedAmount: Double
+)
+
+data class SaveSupplierPaymentRequest(
+    val supplierId: String,
+    val paymentDate: String,
+    val paymentMethod: String,
+    val amount: Double,
+    val currency: String = "EUR",
+    val referenceNumber: String? = null,
+    val bankAccountName: String? = null,
+    val chequeNumber: String? = null,
+    val chequeDate: String? = null,
+    val notes: String? = null,
+    val allocations: List<SupplierPaymentAllocationRequest>? = null
+)
+
+data class SupplierPaymentAllocationRecord(
+    val id: String,
+    val purchaseInvoiceId: String,
+    val allocatedAmount: Double = 0.0,
+    val invoiceBalanceBefore: Double = 0.0,
+    val invoiceBalanceAfter: Double = 0.0
+)
+
+data class SupplierPaymentRecord(
+    val id: String,
+    val companyId: String? = null,
+    val supplierId: String,
+    val paymentNumber: String,
+    val paymentDate: String,
+    val paymentMethod: String,
+    val status: String = "Draft",
+    val currency: String = "EUR",
+    val amount: Double = 0.0,
+    val allocatedAmount: Double = 0.0,
+    val unallocatedAmount: Double = 0.0,
+    val referenceNumber: String? = null,
+    val bankAccountName: String? = null,
+    val chequeNumber: String? = null,
+    val chequeDate: String? = null,
+    val notes: String? = null,
+    val allocations: List<SupplierPaymentAllocationRecord> = emptyList(),
+    val createdBy: String? = null,
+    val updatedBy: String? = null,
+    val postedBy: String? = null,
+    val postedAt: String? = null,
+    val cancelledBy: String? = null,
+    val cancelledAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class SupplierPaymentsPage(
+    val data: List<SupplierPaymentRecord> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+
+
+// -----------------------------------------------------------------------------
+// Stage 6Q - Sales Invoices
+// -----------------------------------------------------------------------------
+
+data class SalesInvoiceItemRequest(
+    val itemId: String,
+    val salesOrderItemId: String? = null,
+    val deliveryNoteItemId: String? = null,
+    val itemName: String? = null,
+    val sku: String? = null,
+    val unit: String? = null,
+    val description: String? = null,
+    val quantity: Double,
+    val unitPrice: Double,
+    val discountPercent: Double = 0.0,
+    val taxPercent: Double = 0.0
+)
+
+data class SaveSalesInvoiceRequest(
+    val customerId: String,
+    val salesOrderId: String? = null,
+    val deliveryNoteId: String? = null,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val currency: String = "EUR",
+    val shippingTotal: Double = 0.0,
+    val customerInvoiceReference: String? = null,
+    val billingAddress: String? = null,
+    val shippingAddress: String? = null,
+    val notes: String? = null,
+    val items: List<SalesInvoiceItemRequest>
+)
+
+data class SalesInvoiceItemRecord(
+    val id: String,
+    val itemId: String,
+    val salesOrderItemId: String? = null,
+    val deliveryNoteItemId: String? = null,
+    val itemName: String? = null,
+    val sku: String? = null,
+    val unit: String? = null,
+    val description: String? = null,
+    val quantity: Double = 0.0,
+    val unitPrice: Double = 0.0,
+    val discountPercent: Double = 0.0,
+    val taxPercent: Double = 0.0,
+    val lineSubtotal: Double = 0.0,
+    val discountAmount: Double = 0.0,
+    val taxAmount: Double = 0.0,
+    val lineTotal: Double = 0.0
+)
+
+data class SalesInvoiceRecord(
+    val id: String,
+    val companyId: String? = null,
+    val customerId: String,
+    val salesOrderId: String? = null,
+    val deliveryNoteId: String? = null,
+    val invoiceNumber: String,
+    val customerInvoiceReference: String? = null,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val status: String = "draft",
+    val currency: String = "EUR",
+    val subtotal: Double = 0.0,
+    val discountTotal: Double = 0.0,
+    val taxTotal: Double = 0.0,
+    val shippingTotal: Double = 0.0,
+    val grandTotal: Double = 0.0,
+    val paidAmount: Double = 0.0,
+    val balanceDue: Double = 0.0,
+    val billingAddress: String? = null,
+    val shippingAddress: String? = null,
+    val notes: String? = null,
+    val items: List<SalesInvoiceItemRecord> = emptyList(),
+    val createdBy: String? = null,
+    val updatedBy: String? = null,
+    val postedBy: String? = null,
+    val postedAt: String? = null,
+    val cancelledBy: String? = null,
+    val cancelledAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val deletedAt: String? = null
+)
+
+data class SalesInvoicesPage(
+    val data: List<SalesInvoiceRecord> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+
+// -----------------------------------------------------------------------------
+// Stage 6R - Customer Payments
+// -----------------------------------------------------------------------------
+
+data class CustomerPaymentAllocationRequest(
+    val salesInvoiceId: String,
+    val allocatedAmount: Double
+)
+
+data class SaveCustomerPaymentRequest(
+    val customerId: String,
+    val paymentDate: String,
+    val paymentMethod: String,
+    val currency: String = "EUR",
+    val amount: Double,
+    val referenceNumber: String? = null,
+    val bankAccountName: String? = null,
+    val chequeNumber: String? = null,
+    val chequeDate: String? = null,
+    val notes: String? = null,
+    val allocations: List<CustomerPaymentAllocationRequest>
+)
+
+data class ReverseCustomerPaymentRequest(
+    val reversalReason: String
+)
+
+data class CustomerPaymentAllocationRecord(
+    val id: String,
+    val salesInvoiceId: String,
+    val allocatedAmount: Double = 0.0,
+    val invoiceBalanceBefore: Double = 0.0,
+    val invoiceBalanceAfter: Double = 0.0
+)
+
+data class CustomerPaymentRecord(
+    val id: String,
+    val companyId: String? = null,
+    val customerId: String,
+    val paymentNumber: String,
+    val paymentDate: String,
+    val paymentMethod: String,
+    val status: String = "draft",
+    val currency: String = "EUR",
+    val amount: Double = 0.0,
+    val allocatedAmount: Double = 0.0,
+    val unallocatedAmount: Double = 0.0,
+    val referenceNumber: String? = null,
+    val bankAccountName: String? = null,
+    val chequeNumber: String? = null,
+    val chequeDate: String? = null,
+    val notes: String? = null,
+    val allocations: List<CustomerPaymentAllocationRecord> = emptyList(),
+    val postedBy: String? = null,
+    val postedAt: String? = null,
+    val reversedBy: String? = null,
+    val reversedAt: String? = null,
+    val reversalReason: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+
+data class CustomerPaymentsPage(
+    val data: List<CustomerPaymentRecord> = emptyList(),
+    val meta: Pagination = Pagination()
+)
+
+
+// Stage 6S - Accounting Reports
+
+data class AgingBuckets(
+    val notYetDue: Double = 0.0,
+    val days1To30: Double = 0.0,
+    val days31To60: Double = 0.0,
+    val days61To90: Double = 0.0,
+    val days91To120: Double = 0.0,
+    val over120Days: Double = 0.0,
+    val total: Double = 0.0
+)
+
+data class AgedReceivableInvoice(
+    val invoiceId: String,
+    val invoiceNumber: String,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val daysPastDue: Int = 0,
+    val originalAmount: Double = 0.0,
+    val paymentsApplied: Double = 0.0,
+    val salesReturnsApplied: Double = 0.0,
+    val outstandingAmount: Double = 0.0,
+    val bucket: String = ""
+)
+
+data class AgedReceivableCustomer(
+    val customerId: String,
+    val customerName: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val currency: String = "EUR",
+    val buckets: AgingBuckets = AgingBuckets(),
+    val invoices: List<AgedReceivableInvoice> = emptyList()
+)
+
+data class AgedReceivablesPagination(
+    val page: Int = 1,
+    val limit: Int = 50,
+    val totalCustomers: Int = 0,
+    val totalPages: Int = 0
+)
+
+data class AgedReceivablesReport(
+    val asOfDate: String = "",
+    val currency: String? = null,
+    val totals: AgingBuckets = AgingBuckets(),
+    val customers: List<AgedReceivableCustomer> = emptyList(),
+    val pagination: AgedReceivablesPagination = AgedReceivablesPagination()
+)
+
+data class AgedPayableInvoice(
+    val invoiceId: String,
+    val invoiceNumber: String,
+    val supplierInvoiceNumber: String? = null,
+    val invoiceDate: String,
+    val dueDate: String? = null,
+    val daysPastDue: Int = 0,
+    val originalAmount: Double = 0.0,
+    val paymentsApplied: Double = 0.0,
+    val purchaseReturnsApplied: Double = 0.0,
+    val outstandingAmount: Double = 0.0,
+    val bucket: String = ""
+)
+
+data class AgedPayableSupplier(
+    val supplierId: String,
+    val supplierCode: String = "",
+    val supplierName: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val currency: String = "EUR",
+    val buckets: AgingBuckets = AgingBuckets(),
+    val invoices: List<AgedPayableInvoice> = emptyList()
+)
+
+data class AgedPayablesPagination(
+    val page: Int = 1,
+    val limit: Int = 50,
+    val totalSuppliers: Int = 0,
+    val totalPages: Int = 0
+)
+
+data class AgedPayablesReport(
+    val asOfDate: String = "",
+    val currency: String? = null,
+    val totals: AgingBuckets = AgingBuckets(),
+    val suppliers: List<AgedPayableSupplier> = emptyList(),
+    val pagination: AgedPayablesPagination = AgedPayablesPagination()
+)
+
+data class StatementTransaction(
+    val id: String,
+    val type: String,
+    val date: String,
+    val documentNumber: String,
+    val reference: String? = null,
+    val description: String,
+    val debit: Double = 0.0,
+    val credit: Double = 0.0,
+    val runningBalance: Double = 0.0
+)
+
+data class StatementPagination(
+    val page: Int = 1,
+    val limit: Int = 100,
+    val totalTransactions: Int = 0,
+    val totalPages: Int = 0
+)
+
+data class CustomerStatementReport(
+    val customerId: String,
+    val customerName: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val currency: String = "EUR",
+    val dateFrom: String,
+    val dateTo: String,
+    val openingBalance: Double = 0.0,
+    val periodDebits: Double = 0.0,
+    val periodCredits: Double = 0.0,
+    val closingBalance: Double = 0.0,
+    val transactions: List<StatementTransaction> = emptyList(),
+    val pagination: StatementPagination = StatementPagination()
+)
+
+data class SupplierStatementReport(
+    val supplierId: String,
+    val supplierCode: String = "",
+    val supplierName: String,
+    val email: String? = null,
+    val phone: String? = null,
+    val currency: String = "EUR",
+    val dateFrom: String,
+    val dateTo: String,
+    val openingBalance: Double = 0.0,
+    val periodDebits: Double = 0.0,
+    val periodCredits: Double = 0.0,
+    val closingBalance: Double = 0.0,
+    val transactions: List<StatementTransaction> = emptyList(),
+    val pagination: StatementPagination = StatementPagination()
+)

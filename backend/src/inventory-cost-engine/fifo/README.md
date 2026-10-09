@@ -13,7 +13,7 @@ Register these two entities in the main TypeORM DataSource entity list:
 - `FifoCostLayerEntity`
 - `FifoCostAllocationEntity`
 
-Register the included migration in the project migration list and run it.
+The schema is created by `src/database/migrations/1788120000000-CreateInventoryCostEngine.ts` (run migrations).
 
 Import `FifoCostingModule` into each document module that posts inventory, or import it once into the existing Inventory Cost Engine module and re-export `FifoCostingService`.
 

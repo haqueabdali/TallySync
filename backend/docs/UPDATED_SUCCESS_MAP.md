@@ -1,43 +1,39 @@
 # Updated Success Map
 
-Latest verified results:
+Re-verified on a freshly migrated database (`npm run release:readiness`).
 
 ```text
 Build                                      ✅
-Manufacturing accounting readiness         ✅ BLOCKER=0 HIGH=0
-Manufacturing accounting E2E static gate   ✅
+Security audit (controllers, secrets)      ✅
+Entity ↔ DB schema (88 entities)           ✅
 Accounting source idempotency              ✅
-Entity ↔ DB schema                         ❌ 15 mismatches
-Lifecycle auto-post                        ❌ 9 errors / 5 warnings
-Accounting E2E runtime                     ❌ fixture not initialized
+Manufacturing fix analyzer                 ✅ BLOCKER=0 HIGH=0
+Manufacturing accounting readiness         ✅
+Lifecycle auto-post                        ✅ ERROR=0
+Unit tests                                 ✅ 312
+Sales-to-Cash E2E                          ✅
+Procure-to-Pay E2E                         ✅
+Manufacturing E2E (12 scenarios)           ✅
+Manufacturing accounting / core E2E        ✅
+Production dependency audit                ✅ critical=0 high=0 (2 moderate need breaking upgrades)
 ```
 
-Root-cause map:
+Defects found and fixed while closing the release gate:
 
 ```text
-Schema mismatch
-├─ 9 accounting_settings columns    migration not applied
-├─ 4 production_order cost columns migration not applied
-├─ 1 production_variance column    migration not applied
-└─ 1 production_order variance     accidental duplicate entity field
-
-E2E failure
-└─ beforeAll bootstrap still placeholder
-
-Auto-post
-└─ operational services not yet wired to Accounting Engine
+Cost engine had no migration         inventory_cost_balances / _transactions / fifo_* tables were missing
+                                     -> material consumption and finished-goods receipts failed.
+                                     Fixed: 1788120000000-CreateInventoryCostEngine.
+FOR UPDATE + LEFT JOIN               Postgres rejects it; material consumption, manual cost adjustment
+                                     posting and inventory revaluation posting could never run.
+Actual cost never rolled up          production_orders.actual_material_cost stayed 0, so the completion
+                                     journal could not post. Consumption now rolls cost into the order.
 ```
 
-Priority:
+Still not covered by the automated gate (run before a production release; see RELEASE-CHECKLIST.md):
 
 ```text
-P0  Remove ProductionOrderEntity.totalVariance
-P0  Run new manufacturing migrations on E2E DB
-P0  Get entity-schema GREEN
-P1  Fix 9 lifecycle auto-post ERROR findings
-P1  Build real manufacturing accounting fixture/bootstrap
-P2  Resolve remaining lifecycle warnings
-P2  Run final accounting reconciliation E2E
+Docker / container validation
+Backup + restore drill
+Capacity / failover verification
 ```
-
-Do not increase production-readiness percentage until P0/P1 are green.

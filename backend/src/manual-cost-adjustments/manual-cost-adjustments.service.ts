@@ -122,7 +122,7 @@ export class ManualCostAdjustmentsService {
       const adjustment = await repository
         .createQueryBuilder('adjustment')
         .leftJoinAndSelect('adjustment.lines', 'line')
-        .setLock('pessimistic_write')
+        .setLock('pessimistic_write', undefined, ['adjustment'])
         .where('adjustment.id = :id AND adjustment.companyId = :companyId', {
           id,
           companyId,
@@ -281,20 +281,16 @@ export class ManualCostAdjustmentsService {
       manager
         .getRepository(ItemEntity)
         .findOne({ where: { id: input.itemId, companyId } }),
-      manager
-        .getRepository(WarehouseEntity)
-        .findOne({
-          where: { id: input.warehouseId, companyId, isActive: true },
-        }),
-      manager
-        .getRepository(InventoryCostBalanceEntity)
-        .findOne({
-          where: {
-            companyId,
-            itemId: input.itemId,
-            warehouseId: input.warehouseId,
-          },
-        }),
+      manager.getRepository(WarehouseEntity).findOne({
+        where: { id: input.warehouseId, companyId, isActive: true },
+      }),
+      manager.getRepository(InventoryCostBalanceEntity).findOne({
+        where: {
+          companyId,
+          itemId: input.itemId,
+          warehouseId: input.warehouseId,
+        },
+      }),
     ]);
     if (!item)
       throw new NotFoundException(`Item ${input.itemId} was not found.`);

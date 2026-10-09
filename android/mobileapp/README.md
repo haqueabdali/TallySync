@@ -1,63 +1,48 @@
-# Android Client V1
+# TallySync Android app
 
-A small Jetpack Compose Android client for the NestJS mobile API.
+Jetpack Compose + Hilt + Room + WorkManager client for the TallySync NestJS backend.
+Sales reps can take orders offline, scan barcodes, and sync to Tally; managers can
+review purchasing, customers, suppliers, stock and reports.
 
-## Included screens
+## What's in the app
 
-- Dashboard
-- Sales Orders
-- Sales Order Details
-- Tally status
-- Sync one order
-- Retry failed order
-- Sync all pending orders
+| Area | Screens / features |
+|---|---|
+| Auth | Email/password login, refresh-token rotation (`TokenAuthenticator`); tokens are kept in app-private `SharedPreferences` (see Known gaps) |
+| Dashboard | Sales/orders KPIs, low-stock count, Tally connection, recent orders, quick actions |
+| Sales | Product catalogue, barcode scanner (CameraX + ML Kit), cart, customer selection, order review, order success, order details, invoice PDF + print |
+| Offline | Room-backed offline orders with `OrderSyncWorker` retrying in the background |
+| Customers | List, details, create/edit, activate/deactivate, push master to Tally |
+| Products | List, details, create/edit, activate/deactivate, push master to Tally |
+| Suppliers | List, details, create/edit, activate/deactivate, delete |
+| Purchasing | Purchase orders: list, create/edit, send, cancel, delete |
+| Reports | Summary reports with CSV export |
+| Settings | Account, server and sync status |
 
-## Important
+## Run it
 
-Set your backend URL in:
+1. Start the backend (`backend/`: `npm run migration:run && npm run seed && npm run seed:demo && npm run build && npm run start:prod`).
+   The company must have an **active licence** with the `mobile_app` module (plus `purchase` for suppliers and purchase orders), created in the admin web's Super Admin console.
+2. Set the server in `app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt`
+   (`10.0.2.2` for the Android emulator, or your computer's LAN IP for a phone on the same Wi-Fi).
+3. Open `android/mobileapp` in Android Studio (JDK 17+, compileSdk 37) and run the `app` configuration.
 
-```text
-app/src/main/java/com/example/tallymobile/data/network/ApiConfig.kt
+Debug builds allow cleartext HTTP for local development. **Use HTTPS and remove
+`usesCleartextTraffic` for any real deployment.**
+
+## Tests
+
+```bash
+./gradlew testDebugUnitTest
 ```
 
-For Android Emulator and a backend running on your computer:
+- `*ValidationTest` – form validation rules (customers, products, suppliers, purchase orders).
+- `ApiContractTest` – parses real backend responses (`app/src/test/resources/contract/*.json`,
+  captured from the demo data) with the app's own Gson models and fails if any non-null Kotlin
+  property would arrive as `null`. Re-capture the fixtures when a backend response changes.
 
-```kotlin
-const val BASE_URL = "http://10.0.2.2:3000/api/v1/"
-```
+## Known gaps
 
-For a real Android phone, replace `10.0.2.2` with your computer's local IP,
-for example:
-
-```kotlin
-const val BASE_URL = "http://192.168.1.20:3000/api/v1/"
-```
-
-The phone and computer must be connected to the same network.
-
-## Recommended project setup
-
-Create an Empty Activity project in Android Studio using:
-
-- Kotlin
-- Jetpack Compose
-- Minimum SDK 26
-
-Then replace/add the files from this package.
-
-## Required dependencies
-
-Copy the dependencies from `APP_DEPENDENCIES.gradle.kts.txt` into the
-`dependencies` block of your app module.
-
-Also add this permission to `AndroidManifest.xml`:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-```
-
-For development over plain HTTP, add this to the `<application>` element:
-
-```xml
-android:usesCleartextTraffic="true"
-```
+- Tokens are not encrypted at rest (plain app-private `SharedPreferences`); move them to Android Keystore-backed storage before a public release.
+- Release builds are not minified (`isMinifyEnabled = false`) and cleartext HTTP is enabled for local development.
+- This README's build/run steps and the Compose screens were not compiled in CI here: the Android SDK could not be installed in the authoring environment, so only the JVM unit tests (validation + API contract) were executed.

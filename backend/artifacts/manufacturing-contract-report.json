@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T21:07:28.486Z",
+  "generatedAt": "2026-10-08T21:53:22.383Z",
   "sourceRoots": [
     "src/bill-of-materials",
     "src/production-orders",
@@ -7763,6 +7763,17 @@
           "rowLockSignal": false,
           "completionSignal": false,
           "consumptionSignal": true,
+          "statusSignal": false
+        },
+        {
+          "name": "round2",
+          "async": false,
+          "transactionSignal": false,
+          "currentStockSignal": false,
+          "stockMutationSignal": false,
+          "rowLockSignal": false,
+          "completionSignal": false,
+          "consumptionSignal": false,
           "statusSignal": false
         },
         {

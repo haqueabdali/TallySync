@@ -27,6 +27,7 @@ type ProductRow = {
   barcode: string | null;
   sellingPrice: string | number | null;
   stock: string | number | null;
+  minimumStock: string | number | null;
   unit: string | null;
 };
 
@@ -207,9 +208,10 @@ export class MobileService {
       .select('item.id', 'id')
       .addSelect('item.name', 'name')
       .addSelect('item.sku', 'sku')
-      .addSelect('NULL', 'barcode')
+      .addSelect('item.barcode', 'barcode')
       .addSelect('item.salePrice', 'sellingPrice')
       .addSelect('item.stockQty', 'stock')
+      .addSelect('item.reorderLevel', 'minimumStock')
       .addSelect('item.unit', 'unit')
       .where('item.deletedAt IS NULL')
       .andWhere('item.companyId = :companyId', { companyId })
@@ -224,6 +226,9 @@ export class MobileService {
               search: `%${normalizedSearch}%`,
             })
             .orWhere('item.sku ILIKE :search', {
+              search: `%${normalizedSearch}%`,
+            })
+            .orWhere('item.barcode ILIKE :search', {
               search: `%${normalizedSearch}%`,
             });
         }),
@@ -242,6 +247,7 @@ export class MobileService {
         barcode: product.barcode,
         sellingPrice: Number(product.sellingPrice ?? 0),
         stock: Number(product.stock ?? 0),
+        minimumStock: Number(product.minimumStock ?? 0),
         unit: product.unit,
       })),
     };
@@ -306,7 +312,7 @@ export class MobileService {
   async getSalesOrder(id: string, companyId: string) {
     const order = await this.salesOrderRepository.findOne({
       where: { id, companyId },
-      relations: { customer: true, items: true },
+      relations: { customer: true, items: { item: true } },
     });
 
     if (!order || order.deletedAt) {
@@ -345,10 +351,11 @@ export class MobileService {
         items: order.items.map((item) => ({
           id: item.id,
           itemId: item.itemId,
-          itemName: item.itemName,
-          sku: item.sku,
+          // Lines created outside the mobile app may lack the name snapshot.
+          itemName: item.itemName ?? item.item?.name ?? 'Item',
+          sku: item.sku ?? item.item?.sku ?? null,
           quantity: item.quantity,
-          unit: item.unit,
+          unit: item.unit ?? item.item?.unit ?? null,
           unitPrice: item.unitPrice,
           discountPercent: item.discountPercent,
           taxPercent: item.taxPercent,

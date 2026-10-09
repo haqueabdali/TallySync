@@ -3,3 +3,13 @@ node_modules
 *.jks
 *.keystore
 build/
+releases/
+backups/
+*.apk
+*.aab
+*.zip
+*.jks
+*.keystore
+android-runtime-error.txt
+tallysync-runtime-full.txt
+yncowner

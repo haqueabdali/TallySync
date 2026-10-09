@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -559,8 +559,18 @@ export class TallyMasterPullService {
     `.trim();
   }
 
+  private requireTallyCompanyName(): string {
+    const name = this.configService.get<string>('TALLY_COMPANY_NAME');
+    if (name === undefined) {
+      throw new ServiceUnavailableException(
+        'Tally is not configured on the server: set TALLY_COMPANY_NAME in the backend environment.',
+      );
+    }
+    return name;
+  }
+
   private getTallyCompanyName(): string {
-    return this.configService.getOrThrow<string>('TALLY_COMPANY_NAME').trim();
+    return this.requireTallyCompanyName().trim();
   }
 
   private escapeXml(value: string): string {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T23:14:43.689Z",
+  "generatedAt": "2026-10-08T21:54:10.900Z",
   "database": "tallysync_e2e_test",
   "dockerDeferred": true,
   "steps": [
@@ -7,168 +7,168 @@
       "id": "build",
       "label": "TypeScript / Nest build",
       "group": "build",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 2,
-      "command": "npm.cmd run build",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 13759,
+      "command": "npm run build",
+      "outputTail": "> backend@0.0.1 build\n> nest build"
     },
     {
       "id": "security",
       "label": "Security audit",
       "group": "security",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:security",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 11538,
+      "command": "npm run audit:security",
+      "outputTail": "> backend@0.0.1 audit:security\n> ts-node -r tsconfig-paths/register scripts/audit/security-audit.ts\n==> Controller prefix audit\nController prefix audit passed.\n==> Controller security audit\nController security audit passed.\n==> Secret scan\nSecret scan passed.\n==> Circular dependency audit\nMadge found 33 total cycle(s).\n33 cycle(s) are entity-only ORM relationship cycles and are informational.\nCircular dependency audit passed: no non-entity architectural cycles found.\nSecurity/dependency audit passed."
     },
     {
       "id": "entity-schema",
       "label": "Entity ↔ DB schema audit",
       "group": "schema",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:entity-schema",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 10051,
+      "command": "npm run audit:entity-schema",
+      "outputTail": "> backend@0.0.1 audit:entity-schema\n> ts-node -r tsconfig-paths/register scripts/audit-entity-schema.ts\nquery: SELECT version()\nquery: SELECT * FROM current_schema()\nquery: CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"\nquery: \n        SELECT\n          table_name,\n          column_name,\n          is_nullable,\n          data_type,\n          udt_name\n        FROM information_schema.columns\n        WHERE table_schema = 'public'\n      \nEntity schema audit checked 88 entity metadata definitions.\nEntity schema audit passed: no blocking entity/database column mismatches found."
     },
     {
       "id": "accounting-idempotency",
       "label": "Accounting source idempotency",
       "group": "schema",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:accounting-idempotency",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 1783,
+      "command": "npm run audit:accounting-idempotency",
+      "outputTail": "> backend@0.0.1 audit:accounting-idempotency\n> ts-node -r tsconfig-paths/register scripts/audit-accounting-idempotency.ts\nAccounting idempotency audit passed: source journals are uniquely protected."
     },
     {
       "id": "manufacturing-fixes",
       "label": "Manufacturing fix analyzer",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 1,
-      "command": "npm.cmd run audit:manufacturing:fixes",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 1891,
+      "command": "npm run audit:manufacturing:fixes",
+      "outputTail": "> backend@0.0.1 audit:manufacturing:fixes\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-fix-analyzer.ts\nManufacturing fix analyzer scanned 114 source file(s).\nBLOCKER: 0\nHIGH: 0\nTOTAL findings: 0\nReports:\n- artifacts/manufacturing-fix-report.json\n- artifacts/manufacturing-fix-report.md"
     },
     {
       "id": "manufacturing-contract",
       "label": "Manufacturing contract report",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run audit:manufacturing:contract",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 10228,
+      "command": "npm run audit:manufacturing:contract",
+      "outputTail": "            ORDER BY ordinal_position\n           -- PARAMETERS: [\"work_centers\"]\nquery: \n        SELECT\n          table_name,\n          column_name,\n          is_nullable,\n          data_type,\n          udt_name,\n          column_default\n        FROM information_schema.columns\n        WHERE table_schema = 'public'\n          AND table_name = 'items'\n          AND (\n            column_name ILIKE '%stock%'\n            OR column_name ILIKE '%on_hand%'\n            OR column_name ILIKE '%quantity%'\n          )\n        ORDER BY ordinal_position\n      \nManufacturing contract report generated:\n- artifacts/manufacturing-contract-report.json\n- artifacts/manufacturing-contract-report.md\nRoutes: 57\nDTOs: 55\nEntities: 16\nEnums: 10\nServices: 9\nWarnings: 0\nBlocking errors: 0"
     },
     {
       "id": "unit-tests",
       "label": "Full unit test suite",
       "group": "unit",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd test -- --runInBand",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 27599,
+      "command": "npm test -- --runInBand",
+      "outputTail": "> backend@0.0.1 test\n> jest --runInBand\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Test Product\": <ENVELOPE />\u001b[39m\n\u001b[32m[Nest] 6823  - \u001b[39m10/08/2026, 9:53:57 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[TallyMasterService] \u001b[39m\u001b[32mTally Stock Item import result for \"Ignored Product\": <ENVELOPE />\u001b[39m\nTest Suites: 72 passed, 72 total\nTests:       312 passed, 312 total\nSnapshots:   0 total\nTime:        27.084 s, estimated 28 s\nRan all test suites."
     },
     {
       "id": "sales-to-cash",
       "label": "Sales-to-Cash E2E",
       "group": "commercial-e2e",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:business",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 4140,
+      "command": "npm run test:e2e:business",
+      "outputTail": "> backend@0.0.1 test:e2e:business\n> jest --config ./test/jest-e2e.json sales-to-cash.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.688 s, estimated 4 s\nRan all test suites matching sales-to-cash.e2e-spec.ts."
     },
     {
       "id": "procure-to-pay",
       "label": "Procure-to-Pay E2E",
       "group": "commercial-e2e",
-      "status": "failed",
+      "status": "passed",
       "required": true,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:procure",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 4126,
+      "command": "npm run test:e2e:procure",
+      "outputTail": "> backend@0.0.1 test:e2e:procure\n> jest --config ./test/jest-e2e.json procure-to-pay.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        3.653 s, estimated 4 s\nRan all test suites matching procure-to-pay.e2e-spec.ts."
     },
     {
       "id": "manufacturing-e2e",
       "label": "Manufacturing E2E",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": false,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run test:e2e:manufacturing",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 2832,
+      "command": "npm run test:e2e:manufacturing",
+      "outputTail": "> backend@0.0.1 test:e2e:manufacturing\n> jest --config ./test/jest-e2e.json manufacturing.e2e-spec.ts --runInBand\nTest Suites: 1 passed, 1 total\nTests:       12 passed, 12 total\nSnapshots:   0 total\nTime:        2.296 s, estimated 3 s\nRan all test suites matching manufacturing.e2e-spec.ts."
     },
     {
       "id": "manufacturing-release",
       "label": "Manufacturing release gate",
       "group": "manufacturing",
-      "status": "failed",
+      "status": "passed",
       "required": false,
-      "exitCode": null,
-      "durationMs": 0,
-      "command": "npm.cmd run audit:manufacturing:release",
-      "outputTail": "spawnSync npm.cmd EINVAL"
+      "exitCode": 0,
+      "durationMs": 1754,
+      "command": "npm run audit:manufacturing:release",
+      "outputTail": "> backend@0.0.1 audit:manufacturing:release\n> ts-node -r tsconfig-paths/register scripts/audit/manufacturing-release-gate.ts\nManufacturing release gate\nRoutes: 57\nDTOs: 55\nEntities: 16\nServices: 9\nBlocking contract errors: 0\nManufacturing contract/E2E gate passed."
     }
   ],
   "groups": {
     "build": {
-      "passed": 0,
-      "failed": 1,
+      "passed": 1,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "security": {
-      "passed": 0,
-      "failed": 1,
+      "passed": 1,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "schema": {
-      "passed": 0,
-      "failed": 2,
+      "passed": 2,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "manufacturing": {
-      "passed": 0,
-      "failed": 4,
+      "passed": 4,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "unit": {
-      "passed": 0,
-      "failed": 1,
+      "passed": 1,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     },
     "commercial-e2e": {
-      "passed": 0,
-      "failed": 2,
+      "passed": 2,
+      "failed": 0,
       "skipped": 0,
-      "score": 0
+      "score": 100
     }
   },
   "overall": {
-    "requiredPassed": 0,
-    "requiredFailed": 9,
-    "optionalPassed": 0,
-    "optionalFailed": 2,
-    "score": 0,
-    "productionReady": false
+    "requiredPassed": 9,
+    "requiredFailed": 0,
+    "optionalPassed": 2,
+    "optionalFailed": 0,
+    "score": 100,
+    "productionReady": true
   }
 }

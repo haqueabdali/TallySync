@@ -1,0 +1,53 @@
+name: Backend
+
+on:
+  push:
+    branches: [master, "claude/**"]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Trust auth, no password: unit tests assert DATABASE_PASSWORD is *unset* where required.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
+      DATABASE_USER: postgres
+      E2E_DATABASE_NAME: tallysync_e2e_test
+      NODE_ENV: test
+      JWT_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1
+      JWT_REFRESH_SECRET: ci-refresh-ci-refresh-ci-refresh-ci-2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npm test -- --ci
+      - name: Prepare e2e database and migrate
+        run: |
+          npm run e2e:prepare
+          DATABASE_NAME=tallysync_e2e_test npm run migration:run:safe
+      - name: Release readiness gate
+        run: npm run release:readiness

@@ -1,0 +1,228 @@
+[1mdiff --cc android/mobileapp/app/build.gradle.kts[m
+[1mindex 1360253,867e5b7..0000000[m
+[1m--- a/android/mobileapp/app/build.gradle.kts[m
+[1m+++ b/android/mobileapp/app/build.gradle.kts[m
+[36m@@@ -21,93 -30,29 +30,115 @@@[m [mandroid [m
+              "androidx.test.runner.AndroidJUnitRunner"[m
+      }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +    signingConfigs {[m
+[32m +        create("release") {[m
+[32m +            val keystoreFile =[m
+[32m +                System.getenv("TALLYSYNC_KEYSTORE_FILE")[m
+[32m +[m
+[32m +            val keystorePassword =[m
+[32m +                System.getenv("TALLYSYNC_KEYSTORE_PASSWORD")[m
+[32m +[m
+[32m +            val keyAliasValue =[m
+[32m +                System.getenv("TALLYSYNC_KEY_ALIAS")[m
+[32m +[m
+[32m +            val keyPasswordValue =[m
+[32m +                System.getenv("TALLYSYNC_KEY_PASSWORD")[m
+[32m +[m
+[32m +            if (!keystoreFile.isNullOrBlank()) {[m
+[32m +                storeFile = file(keystoreFile)[m
+[32m +            }[m
+[32m +[m
+[32m +            storePassword = keystorePassword[m
+[32m +            keyAlias = keyAliasValue[m
+[32m +            keyPassword = keyPasswordValue[m
+[32m++=======[m
+[32m+     // Upload-key signing. Values come from the environment (CI secrets) so no key is ever committed.[m
+[32m+     val releaseKeystore = System.getenv("TALLYSYNC_KEYSTORE_FILE")[m
+[32m+     if (!releaseKeystore.isNullOrBlank()) {[m
+[32m+         signingConfigs {[m
+[32m+             create("release") {[m
+[32m+                 storeFile = file(releaseKeystore)[m
+[32m+                 storePassword = System.getenv("TALLYSYNC_KEYSTORE_PASSWORD")[m
+[32m+                 keyAlias = System.getenv("TALLYSYNC_KEY_ALIAS")[m
+[32m+                 keyPassword = System.getenv("TALLYSYNC_KEY_PASSWORD")[m
+[32m+             }[m
+[32m++>>>>>>> master/master[m
+          }[m
+      }[m
+  [m
+      buildTypes {[m
+          debug {[m
+[32m++<<<<<<< HEAD[m
+[32m +            buildConfigField([m
+[32m +                "String",[m
+[32m +                "API_BASE_URL",[m
+[32m +                "\"http://10.0.2.2:3000/api/v1/\"",[m
+[32m +            )[m
+[32m +[m
+[32m +            manifestPlaceholders["usesCleartextTraffic"] = "true"[m
+[32m +        }[m
+[32m +[m
+[32m +        release {[m
+[32m +            signingConfig = signingConfigs.getByName("release")[m
+[32m +[m
+[32m++=======[m
+[32m+             manifestPlaceholders["usesCleartext"] = "true"[m
+[32m+         }[m
+[32m+         release {[m
+[32m+             // Release traffic must be HTTPS (Play policy / network security).[m
+[32m+             manifestPlaceholders["usesCleartext"] = "false"[m
+[32m+             signingConfigs.findByName("release")?.let { signingConfig = it }[m
+[32m++>>>>>>> master/master[m
+              isMinifyEnabled = false[m
+  [m
+[32m +            val releaseRequested =[m
+[32m +                gradle.startParameter.taskNames.any { taskName ->[m
+[32m +                    taskName.contains([m
+[32m +                        "release",[m
+[32m +                        ignoreCase = true,[m
+[32m +                    )[m
+[32m +                }[m
+[32m +[m
+[32m +            val releaseApiBaseUrl =[m
+[32m +                providers.gradleProperty("TALLYSYNC_API_BASE_URL")[m
+[32m +                    .orNull[m
+[32m +                    ?.trim()[m
+[32m +                    ?.trimEnd('/')[m
+[32m +[m
+[32m +            if ([m
+[32m +                releaseRequested &&[m
+[32m +                releaseApiBaseUrl.isNullOrBlank()[m
+[32m +            ) {[m
+[32m +                throw GradleException([m
+[32m +                    "Release build requires -PTALLYSYNC_API_BASE_URL=https://your-domain/api/v1",[m
+[32m +                )[m
+[32m +            }[m
+[32m +[m
+[32m +            if ([m
+[32m +                !releaseApiBaseUrl.isNullOrBlank() &&[m
+[32m +                !releaseApiBaseUrl.startsWith("https://")[m
+[32m +            ) {[m
+[32m +                throw GradleException([m
+[32m +                    "Release API URL must use HTTPS.",[m
+[32m +                )[m
+[32m +            }[m
+[32m +[m
+[32m +            val configuredReleaseApiBaseUrl =[m
+[32m +                if (releaseApiBaseUrl.isNullOrBlank()) {[m
+[32m +                    "https://release-api-not-configured.invalid/api/v1"[m
+[32m +                } else {[m
+[32m +                    releaseApiBaseUrl[m
+[32m +                }[m
+[32m +[m
+[32m +            buildConfigField([m
+[32m +                "String",[m
+[32m +                "API_BASE_URL",[m
+[32m +                "\"${configuredReleaseApiBaseUrl}/\"",[m
+[32m +            )[m
+[32m +[m
+[32m +            manifestPlaceholders["usesCleartextTraffic"] = "false"[m
+[32m +[m
+              proguardFiles([m
+                  getDefaultProguardFile([m
+                      "proguard-android-optimize.txt"[m
+[1mdiff --cc android/mobileapp/app/src/main/AndroidManifest.xml[m
+[1mindex 285d020,76bf0be..0000000[m
+[1m--- a/android/mobileapp/app/src/main/AndroidManifest.xml[m
+[1m+++ b/android/mobileapp/app/src/main/AndroidManifest.xml[m
+[36m@@@ -9,28 -8,9 +9,33 @@@[m
+          android:required="false" />[m
+      <application[m
+          android:name=".TallyMobileApplication"[m
+[32m++<<<<<<< HEAD[m
+[32m +        android:allowBackup="true"[m
+[32m +        android:usesCleartextTraffic="${usesCleartextTraffic}"[m
+[32m++=======[m
+[32m+         android:allowBackup="false"[m
+[32m+         android:usesCleartextTraffic="${usesCleartext}"[m
+[32m++>>>>>>> master/master[m
+          android:theme="@style/Theme.TallySyncApp">[m
+[32m +        <!--[m
+[32m +            Stage 6U:[m
+[32m +            Disable WorkManager's default App Startup initializer.[m
+[32m +[m
+[32m +            TallyMobileApplication implements Configuration.Provider and[m
+[32m +            supplies HiltWorkerFactory, which is required to construct[m
+[32m +            @HiltWorker OrderSyncWorker.[m
+[32m +        -->[m
+[32m +        <provider[m
+[32m +            android:name="androidx.startup.InitializationProvider"[m
+[32m +            android:authorities="${applicationId}.androidx-startup"[m
+[32m +            android:exported="false"[m
+[32m +            tools:node="merge">[m
+[32m +            <meta-data[m
+[32m +                android:name="androidx.work.WorkManagerInitializer"[m
+[32m +                android:value="androidx.startup"[m
+[32m +                tools:node="remove" />[m
+[32m +        </provider>[m
+[32m +[m
+          <provider[m
+              android:name="androidx.core.content.FileProvider"[m
+              android:authorities="${applicationId}.fileprovider"[m
+[1mdiff --cc android/mobileapp/app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt[m
+[1mindex 7307a7f,8a6271c..0000000[m
+[1m--- a/android/mobileapp/app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt[m
+[1m+++ b/android/mobileapp/app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt[m
+[36m@@@ -3,14 -3,14 +3,27 @@@[m [mpackage com.example.tallysyncapp.data.n[m
+  import com.example.tallysyncapp.BuildConfig[m
+  [m
+  object ApiConfig {[m
+[32m++<<<<<<< HEAD[m
+[32m +    /**[m
+[32m +     * Debug:[m
+[32m +     *   http://10.0.2.2:3000/api/v1/[m
+[32m++=======[m
+[32m+     /*[m
+[32m+      * Set at build time: ./gradlew assembleDebug -PapiBaseUrl=http://<host>:3000/api/v1/[m
+[32m+      *[m
+[32m+      * Emulator (default):                 http://10.0.2.2:3000/api/v1/[m
+[32m+      * Physical phone, same Wi-Fi:         http://<computer LAN IPv4>:3000/api/v1/[m
+[32m+      * USB with `adb reverse tcp:3000 tcp:3000`: http://127.0.0.1:3000/api/v1/[m
+[32m++>>>>>>> master/master[m
+       *[m
+[31m -     * Android host configuration does not change backend TALLY_URL.[m
+[32m +     * Release:[m
+[32m +     *   supplied through the Gradle property TALLYSYNC_API_BASE_URL.[m
+[32m +     *[m
+[32m +     * Production release builds require HTTPS.[m
+       */[m
+[32m++<<<<<<< HEAD[m
+[32m +    const val BASE_URL: String = BuildConfig.API_BASE_URL[m
+[32m++=======[m
+[32m+     val BASE_URL: String = BuildConfig.API_BASE_URL[m
+[32m++>>>>>>> master/master[m
+  }[m
+[1mdiff --cc backend/src/dashboard/dashboard.controller.ts[m
+[1mindex 3518dc0,9c39143..0000000[m
+[1m--- a/backend/src/dashboard/dashboard.controller.ts[m
+[1m+++ b/backend/src/dashboard/dashboard.controller.ts[m
+[36m@@@ -1,12 -1,25 +1,31 @@@[m
+[32m++<<<<<<< HEAD[m
+[32m +import { Controller, Get, UseGuards } from '@nestjs/common';[m
+[32m++=======[m
+[32m+ import {[m
+[32m+   Controller,[m
+[32m+   ForbiddenException,[m
+[32m+   Get,[m
+[32m+   Query,[m
+[32m+   Req,[m
+[32m+   UseGuards,[m
+[32m+ } from '@nestjs/common';[m
+[32m++>>>>>>> master/master[m
+  import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';[m
+[32m+ [m
+[32m+ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';[m
+[32m+ import { RequireLicenseFeature } from '../licensing/decorators/require-license-feature.decorator';[m
+[32m+ import { LicensedFeature } from '../licensing/enums/licensed-feature.enum';[m
+[32m+ import { LicenseFeatureGuard } from '../licensing/guards/license-feature.guard';[m
+[32m+ import type { AuthenticatedRequest } from '../management-dashboard/interfaces/authenticated-request.interface';[m
+  import { DashboardService } from './dashboard.service';[m
+[32m +import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';[m
+  [m
+  @ApiTags('Dashboard')[m
+  @ApiBearerAuth()[m
+[32m+ @UseGuards(JwtAuthGuard, LicenseFeatureGuard)[m
+[32m+ @RequireLicenseFeature(LicensedFeature.REPORTING)[m
+  @Controller('dashboard')[m
+[32m +@UseGuards(JwtAuthGuard)[m
+  export class DashboardController {[m
+    constructor(private readonly dashboardService: DashboardService) {}[m
+  [m
+* Unmerged path .idea/caches/deviceStreaming.xml

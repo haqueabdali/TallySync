@@ -1,4 +1,25 @@
-# TallySync Super Admin Web
+# TallySync Admin Web
+
+One site, two workspaces, chosen by who signs in (the backend still enforces every boundary):
+
+| Signs in as | Sees |
+|---|---|
+| Company administrator (`role = admin`, has a company) | **Business workspace**: dashboard (KPIs, sales vs purchases, order status, top customers/products, low stock, Tally sync health), sales orders, customers, products & stock, purchasing, Tally sync |
+| Platform owner (`role = admin`, `companyId = null`) | **Super Admin console** (below) |
+
+The business workspace reads `GET /dashboard/overview` (tenant-scoped, JWT + `reporting` licence feature) and the existing mobile/purchasing endpoints. Light/dark theme toggle; charts are dependency-free inline SVG, so the site is fully static.
+
+### Try it locally
+
+```bash
+cd backend && npm run migration:run && npm run seed && npm run seed:demo   # demo data
+npm run build && npm run start:prod
+cd ../admin-web && python3 -m http.server 8080                              # then open http://localhost:8080
+```
+
+Set `CORS_ORIGINS=http://localhost:8080` for the backend. The company needs an **active licence with the `reporting` module** (create one from the Super Admin console).
+
+# Super Admin console
 
 Owner-only control plane for TallySync commercial licensing.
 
@@ -24,7 +45,7 @@ Owner-only control plane for TallySync commercial licensing.
 
 The backend remains authoritative. The web app hides/controls features for convenience, but `JwtAuthGuard`, `PlatformAdminGuard`, license guards, signed certificates and session controls enforce authorization server-side.
 
-Super Admin must be a user with:
+The Super Admin console requires a user with:
 
 - `role = admin`
 - `companyId = null`

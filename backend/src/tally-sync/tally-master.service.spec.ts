@@ -9,7 +9,7 @@ describe('TallyMasterService', () => {
   let service: TallyMasterService;
 
   let configService: {
-    getOrThrow: jest.Mock;
+    get: jest.Mock;
   };
 
   let tallyHttpService: {
@@ -31,7 +31,7 @@ describe('TallyMasterService', () => {
 
   beforeEach(() => {
     configService = {
-      getOrThrow: jest.fn().mockReturnValue('Farhan Ltd Demo'),
+      get: jest.fn().mockReturnValue('Farhan Ltd Demo'),
     };
 
     tallyHttpService = {

@@ -15,6 +15,8 @@ const allow = new Set([
   'src/app.controller.ts',
   'src/health/health.controller.ts',
   'src/auth/auth.controller.ts',
+  // Authenticated by hashed activation token + installation id + fingerprint, not JWT.
+  'src/licensing/license-runtime.controller.ts',
 ]);
 
 const findings: string[] = [];

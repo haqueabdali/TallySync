@@ -9,8 +9,8 @@
         android:required="false" />
     <application
         android:name=".TallyMobileApplication"
-        android:allowBackup="true"
-        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="${usesCleartext}"
         android:theme="@style/Theme.TallySyncApp">
         <!--
             Stage 6U:

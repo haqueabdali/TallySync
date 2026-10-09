@@ -1,7 +1,11 @@
+import { initWorkspace, renderWorkspace, WORKSPACE_ROUTES } from './workspace.js';
+
 const CONFIG = window.TALLY_SYNC_ADMIN_CONFIG || {};
 const API_BASE = String(CONFIG.API_BASE_URL || 'http://localhost:3000/api/v1').replace(/\/$/, '');
 const APP_NAME = CONFIG.APP_NAME || 'TallySync Control';
 const STORAGE_KEY = 'tallysync.superadmin.session.v1';
+const THEME_KEY = 'tallysync.admin.theme';
+const PLATFORM_ROUTES = ['dashboard', 'companies', 'users', 'licenses', 'plans', 'notifications', 'audit', 'login'];
 
 const PLANS = ['starter', 'business', 'professional', 'manufacturing', 'enterprise', 'custom'];
 const FEATURES = [
@@ -26,6 +30,31 @@ const state = {
   route: '',
   planTemplates: [],
 };
+
+/** Platform owner (no company) or a company administrator. The backend enforces the real boundaries. */
+function isAllowedUser(user) {
+  return user?.role === 'admin';
+}
+
+function isPlatform() {
+  return state.session?.user?.companyId === null;
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem(THEME_KEY, theme); } catch { /* storage unavailable */ }
+}
+
+function toggleTheme() {
+  applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+}
+
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch { /* storage unavailable */ }
+  const preferred = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.dataset.theme = preferred;
+})();
 
 function readSession() {
   try {
@@ -108,7 +137,7 @@ async function refreshSession() {
   }
 
   const data = await response.json();
-  if (data.user?.role !== 'admin' || data.user?.companyId !== null) {
+  if (!isAllowedUser(data.user)) {
     saveSession(null);
     return false;
   }
@@ -143,8 +172,8 @@ async function login(email, password) {
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body?.message || 'Login failed');
-  if (body.user?.role !== 'admin' || body.user?.companyId !== null) {
-    throw new Error('This website is restricted to the TallySync platform administrator.');
+  if (!isAllowedUser(body.user)) {
+    throw new Error('This website is restricted to administrators. Ask your company administrator for access.');
   }
   saveSession(body);
 }
@@ -195,7 +224,7 @@ function shell(content, pageTitle) {
     </nav>
     <div class="sidebar-footer">
       <div class="user-mini"><strong>${e(user?.fullName || 'Platform Admin')}</strong><span>${e(user?.email || '')}</span></div>
-      <button class="btn secondary" style="width:100%" data-action="logout">Sign out</button>
+      <div class="foot-actions"><button class="btn secondary" data-action="toggle-theme" aria-label="Toggle light or dark theme">◐ Theme</button><button class="btn secondary" data-action="logout">Sign out</button></div>
     </div>
   </aside>
   <main class="main">
@@ -211,8 +240,10 @@ function navButton(name, icon, label, route) {
 function currentRoute() {
   const raw = (location.hash || '#/dashboard').replace(/^#\/?/, '');
   const [name = 'dashboard', id] = raw.split('/');
+  if (name === 'login') return { name };
+  if (!isPlatform() && state.session) return { name: WORKSPACE_ROUTES.includes(name) ? name : 'dashboard' };
   if (name === 'license' && id) return { name: 'license', id };
-  if (['dashboard', 'companies', 'users', 'licenses', 'plans', 'notifications', 'audit', 'login'].includes(name)) return { name };
+  if (PLATFORM_ROUTES.includes(name)) return { name };
   return { name: 'dashboard' };
 }
 
@@ -221,9 +252,9 @@ function renderLogin() {
   document.getElementById('app').innerHTML = `
   <div class="login-shell">
     <form class="login-card" id="login-form">
-      <div class="brand-row"><div class="brand-mark">TS</div><div><div class="brand-title">${e(APP_NAME)}</div><div class="brand-sub">Commercial administration</div></div></div>
-      <h1>Super Admin sign in</h1>
-      <p>Only a platform-level admin with no customer company assignment can access this control plane.</p>
+      <div class="brand-row"><div class="brand-mark">TS</div><div><div class="brand-title">${e(APP_NAME)}</div><div class="brand-sub">Administration</div></div></div>
+      <h1>Sign in</h1>
+      <p>Company administrators see their business dashboard. Platform owners manage companies and licences.</p>
       <div class="field"><label>Email</label><input class="input" name="email" type="email" autocomplete="username" required></div>
       <div class="field" style="margin-top:14px"><label>Password</label><input class="input" name="password" type="password" autocomplete="current-password" minlength="8" required></div>
       <button class="btn primary" style="width:100%;margin-top:20px" type="submit">Sign in</button>
@@ -876,6 +907,7 @@ async function render() {
     return;
   }
   if (route.name === 'login') { location.hash = '#/dashboard'; return; }
+  if (!isPlatform()) return renderWorkspace(route.name);
   if (route.name === 'dashboard') return renderDashboard();
   if (route.name === 'companies') return renderCompanies();
   if (route.name === 'users') return renderUsers();
@@ -919,6 +951,7 @@ document.addEventListener('click', async (event) => {
   const action = target.getAttribute('data-action');
   try {
     if (action === 'logout') return await logout();
+    if (action === 'toggle-theme') return toggleTheme();
     if (action === 'new-company') return await openNewCompanyModal();
     if (action === 'new-user') return await openNewUserModal();
     if (action === 'edit-user') return await openEditUserModal(target.dataset.userId);
@@ -1002,6 +1035,8 @@ document.addEventListener('input', (event) => {
 document.getElementById('modal-root').addEventListener('click', (event) => {
   if (event.target instanceof Element && event.target.classList.contains('modal-backdrop')) closeModal();
 });
+
+initWorkspace({ api, state, toast, appName: APP_NAME });
 
 window.addEventListener('hashchange', render);
 render();

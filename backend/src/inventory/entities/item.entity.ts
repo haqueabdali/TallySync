@@ -79,6 +79,13 @@ export class ItemEntity {
 
   @Column({
     type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  barcode!: string | null;
+
+  @Column({
+    type: 'varchar',
     length: 30,
     default: 'PCS',
   })

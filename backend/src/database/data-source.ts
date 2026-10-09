@@ -100,6 +100,10 @@ import { LicenseFeatureEntity } from '../licensing/entities/license-feature.enti
 import { LicenseActivationEntity } from '../licensing/entities/license-activation.entity';
 import { LicenseAuditLogEntity } from '../licensing/entities/license-audit-log.entity';
 import { LicenseSessionEntity } from '../licensing/entities/license-session.entity';
+import { InventoryCostBalanceEntity } from '../inventory-cost-engine/entities/inventory-cost-balance.entity';
+import { InventoryCostTransactionEntity } from '../inventory-cost-engine/entities/inventory-cost-transaction.entity';
+import { FifoCostLayerEntity } from '../inventory-cost-engine/fifo/entities/fifo-cost-layer.entity';
+import { FifoCostAllocationEntity } from '../inventory-cost-engine/fifo/entities/fifo-cost-allocation.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -114,6 +118,11 @@ export default new DataSource({
   logging: process.env.NODE_ENV === 'development',
 
   entities: [
+    InventoryCostBalanceEntity,
+    InventoryCostTransactionEntity,
+    FifoCostLayerEntity,
+    FifoCostAllocationEntity,
+
     RoleEntity,
     CompanyEntity,
     UserEntity,

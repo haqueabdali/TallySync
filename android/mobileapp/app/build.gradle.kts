@@ -17,6 +17,13 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // Backend URL baked into the APK. Override with: ./gradlew assembleDebug -PapiBaseUrl=http://192.168.1.20:3000/api/v1/
+        // Default targets the Android emulator's host loopback.
+        val apiBaseUrl = (project.findProperty("apiBaseUrl") as String? ?: "http://10.0.2.2:3000/api/v1/")
+            .trim()
+            .let { if (it.endsWith("/")) it else "$it/" }
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+
         testInstrumentationRunner =
             "androidx.test.runner.AndroidJUnitRunner"
     }

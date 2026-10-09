@@ -1,14 +1,16 @@
 package com.example.tallysyncapp.data.network
 
+import com.example.tallysyncapp.BuildConfig
+
 object ApiConfig {
     /*
-     * Emulator: HOST = "10.0.2.2"
-     * Physical phone, same Wi-Fi: HOST = Windows PC LAN IPv4
-     * USB with `adb reverse tcp:3000 tcp:3000`: HOST = "127.0.0.1"
+     * Set at build time: ./gradlew assembleDebug -PapiBaseUrl=http://<host>:3000/api/v1/
+     *
+     * Emulator (default):                 http://10.0.2.2:3000/api/v1/
+     * Physical phone, same Wi-Fi:         http://<computer LAN IPv4>:3000/api/v1/
+     * USB with `adb reverse tcp:3000 tcp:3000`: http://127.0.0.1:3000/api/v1/
      *
      * Android host configuration does not change backend TALLY_URL.
      */
-    private const val HOST = "10.0.2.2"
-    private const val PORT = 3000
-    const val BASE_URL = "http://$HOST:$PORT/api/v1/"
+    val BASE_URL: String = BuildConfig.API_BASE_URL
 }

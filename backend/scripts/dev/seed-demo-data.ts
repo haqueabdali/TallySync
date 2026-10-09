@@ -10,6 +10,8 @@ import 'dotenv/config';
 
 import { DataSource } from 'typeorm';
 
+import { ensureE2ECommercialLicense } from '../../test/helpers/ensure-e2e-commercial-license';
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { default: dataSource } = require('../../src/database/data-source') as {
   default: DataSource;
@@ -59,6 +61,18 @@ async function main(): Promise<void> {
     if (!company)
       throw new Error('Run "npm run seed" first (no company found).');
     const companyId = company.id;
+
+    // Dev convenience: an all-module active licence so the web and mobile app work immediately.
+    const admin = (
+      await q<{ id: string }>(
+        `SELECT id FROM users WHERE company_id=$1 AND deleted_at IS NULL ORDER BY created_at LIMIT 1`,
+        [companyId],
+      )
+    )[0];
+    if (admin) {
+      await ensureE2ECommercialLicense(dataSource, companyId, admin.id);
+      console.log('Active all-module demo licence ensured.');
+    }
 
     const existing = await q(
       `SELECT 1 FROM customers WHERE company_id=$1 AND name=$2 LIMIT 1`,

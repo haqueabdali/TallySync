@@ -23,12 +23,18 @@ review purchasing, customers, suppliers, stock and reports.
 
 1. Start the backend (`backend/`: `npm run migration:run && npm run seed && npm run seed:demo && npm run build && npm run start:prod`).
    The company must have an **active licence** with the `mobile_app` module (plus `purchase` for suppliers and purchase orders), created in the admin web's Super Admin console.
-2. Set the server in `app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt`
-   (`10.0.2.2` for the Android emulator, or your computer's LAN IP for a phone on the same Wi-Fi).
+2. Set the server at build time with `-PapiBaseUrl=http://<host>:3000/api/v1/`
+   (default `10.0.2.2` for the Android emulator; use your computer's LAN IP for a phone on the same Wi-Fi).
 3. Open `android/mobileapp` in Android Studio (JDK 17+, compileSdk 37) and run the `app` configuration.
 
-Debug builds allow cleartext HTTP for local development. **Use HTTPS and remove
-`usesCleartextTraffic` for any real deployment.**
+Debug builds allow cleartext HTTP for local development; release builds disable it (HTTPS only).
+
+## Play Store release
+
+Application id: `com.tallysync.mobile`. Run **Actions → Android Release → Run workflow** with your
+HTTPS backend URL, a `versionCode` that increases on every upload, and a `versionName`. It produces a signed
+`.aab` (upload this to Play Console) and a signed `.apk` (for sideload testing). Signing secrets are described
+at the top of `.github/workflows/android-release.yml`.
 
 ## Tests
 

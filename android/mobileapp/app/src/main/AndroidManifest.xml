@@ -8,8 +8,8 @@
         android:required="false" />
     <application
         android:name=".TallyMobileApplication"
-        android:allowBackup="true"
-        android:usesCleartextTraffic="true"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="${usesCleartext}"
         android:theme="@style/Theme.TallySyncApp">
         <provider
             android:name="androidx.core.content.FileProvider"

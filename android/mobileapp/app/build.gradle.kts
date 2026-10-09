@@ -10,12 +10,14 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.tallysyncapp"
+        // Play Store rejects com.example.*; the Kotlin namespace above is unrelated to this id.
+        applicationId = "com.tallysync.mobile"
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 1
-        versionName = "1.0"
+        // Bump per Play upload: -PversionCode=2 -PversionName=1.0.1
+        versionCode = (project.findProperty("versionCode") as String? ?: "1").toInt()
+        versionName = project.findProperty("versionName") as String? ?: "1.0"
 
         // Backend URL baked into the APK. Override with: ./gradlew assembleDebug -PapiBaseUrl=http://192.168.1.20:3000/api/v1/
         // Default targets the Android emulator's host loopback.
@@ -28,8 +30,27 @@ android {
             "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Upload-key signing. Values come from the environment (CI secrets) so no key is ever committed.
+    val releaseKeystore = System.getenv("TALLYSYNC_KEYSTORE_FILE")
+    if (!releaseKeystore.isNullOrBlank()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("TALLYSYNC_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("TALLYSYNC_KEY_ALIAS")
+                keyPassword = System.getenv("TALLYSYNC_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            manifestPlaceholders["usesCleartext"] = "true"
+        }
         release {
+            // Release traffic must be HTTPS (Play policy / network security).
+            manifestPlaceholders["usesCleartext"] = "false"
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             isMinifyEnabled = false
 
             proguardFiles(

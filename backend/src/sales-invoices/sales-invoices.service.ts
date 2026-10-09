@@ -149,11 +149,10 @@ export class SalesInvoicesService {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 20;
 
-    const query = this.salesInvoiceRepository
-      .createQueryBuilder('invoice')
-      .leftJoinAndSelect('invoice.items', 'items')
-      .where('invoice.company_id = :companyId', { companyId });
-
+   const query = this.salesInvoiceRepository
+  .createQueryBuilder('invoice')
+  .where('invoice.company_id = :companyId', { companyId });
+  
     if (filter.search?.trim()) {
       const search = `%${filter.search.trim()}%`;
 
@@ -228,18 +227,47 @@ export class SalesInvoicesService {
       updatedAt: 'invoice.updated_at',
     };
 
-    query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'invoice.created_at',
-        filter.sortOrder,
-      )
-      .addOrderBy('invoice.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+    const sortColumn =
+  sortColumns[filter.sortBy] ?? 'invoice.created_at';
 
-    const [invoices, total] = await query.getManyAndCount();
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+const sortOrder = filter.sortOrder ?? 'DESC';
+
+const total = await query.clone().getCount();
+
+const idRows = await query
+  .clone()
+  .select('invoice.id', 'id')
+  .orderBy(sortColumn, sortOrder)
+  .addOrderBy('invoice.id', 'DESC')
+  .offset((page - 1) * limit)
+  .limit(limit)
+  .getRawMany<{ id: string }>();
+
+const ids = idRows.map((row) => row.id);
+
+let invoices: SalesInvoiceEntity[] = [];
+
+if (ids.length > 0) {
+  const loadedInvoices = await this.salesInvoiceRepository
+    .createQueryBuilder('invoice')
+    .leftJoinAndSelect('invoice.items', 'items')
+    .where('invoice.company_id = :companyId', { companyId })
+    .andWhere('invoice.id IN (:...ids)', { ids })
+    .getMany();
+
+  const invoiceById = new Map(
+    loadedInvoices.map((invoice) => [invoice.id, invoice]),
+  );
+
+  invoices = ids
+    .map((id) => invoiceById.get(id))
+    .filter(
+      (invoice): invoice is SalesInvoiceEntity =>
+        invoice !== undefined,
+    );
+}
+
+const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
       data: invoices.map((invoice) => this.toResponse(invoice)),

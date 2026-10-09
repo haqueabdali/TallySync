@@ -316,6 +316,13 @@ interface MobileApi {
         @Path("id") id: String
     ): SalesInvoiceRecord
 
+    // Stage 6U - explicit Tally synchronization.
+    // Posting the invoice and synchronizing it to Tally are separate actions.
+    @POST("tally/sales-invoice/{id}")
+    suspend fun syncSalesInvoiceToTally(
+        @Path("id") id: String
+    ): SyncResult
+
     @POST("sales-invoices/{id}/cancel")
     suspend fun cancelSalesInvoice(
         @Path("id") id: String

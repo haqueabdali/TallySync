@@ -21,9 +21,92 @@ android {
             "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile =
+                System.getenv("TALLYSYNC_KEYSTORE_FILE")
+
+            val keystorePassword =
+                System.getenv("TALLYSYNC_KEYSTORE_PASSWORD")
+
+            val keyAliasValue =
+                System.getenv("TALLYSYNC_KEY_ALIAS")
+
+            val keyPasswordValue =
+                System.getenv("TALLYSYNC_KEY_PASSWORD")
+
+            if (!keystoreFile.isNullOrBlank()) {
+                storeFile = file(keystoreFile)
+            }
+
+            storePassword = keystorePassword
+            keyAlias = keyAliasValue
+            keyPassword = keyPasswordValue
+        }
+    }
+
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:3000/api/v1/\"",
+            )
+
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+        }
+
         release {
+            signingConfig = signingConfigs.getByName("release")
+
             isMinifyEnabled = false
+
+            val releaseRequested =
+                gradle.startParameter.taskNames.any { taskName ->
+                    taskName.contains(
+                        "release",
+                        ignoreCase = true,
+                    )
+                }
+
+            val releaseApiBaseUrl =
+                providers.gradleProperty("TALLYSYNC_API_BASE_URL")
+                    .orNull
+                    ?.trim()
+                    ?.trimEnd('/')
+
+            if (
+                releaseRequested &&
+                releaseApiBaseUrl.isNullOrBlank()
+            ) {
+                throw GradleException(
+                    "Release build requires -PTALLYSYNC_API_BASE_URL=https://your-domain/api/v1",
+                )
+            }
+
+            if (
+                !releaseApiBaseUrl.isNullOrBlank() &&
+                !releaseApiBaseUrl.startsWith("https://")
+            ) {
+                throw GradleException(
+                    "Release API URL must use HTTPS.",
+                )
+            }
+
+            val configuredReleaseApiBaseUrl =
+                if (releaseApiBaseUrl.isNullOrBlank()) {
+                    "https://release-api-not-configured.invalid/api/v1"
+                } else {
+                    releaseApiBaseUrl
+                }
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"${configuredReleaseApiBaseUrl}/\"",
+            )
+
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
 
             proguardFiles(
                 getDefaultProguardFile(

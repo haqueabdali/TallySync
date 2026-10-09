@@ -1,6 +1,7 @@
 package com.example.tallysyncapp.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -24,15 +25,30 @@ class OrderSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun doWork(): Result {
+        Log.i(TAG, "OrderSyncWorker started. attempt=$runAttemptCount")
+
         val orders = dao.getOrdersReadyForSync()
 
+        Log.i(
+            TAG,
+            "Ready offline orders=${orders.size}"
+        )
+
         if (orders.isEmpty()) {
+            Log.i(TAG, "No eligible offline orders. Worker completed.")
             return Result.success()
         }
 
         var retryRequired = false
 
         for (order in orders) {
+
+            Log.i(
+                TAG,
+                "Processing local order=${order.id}, " +
+                    "localNumber=${order.localOrderNumber}, " +
+                    "status=${order.status}"
+            )
 
             // Defensive protection:
             // a row that already owns a backend ID must never be created again.
@@ -84,6 +100,14 @@ class OrderSyncWorker @AssistedInject constructor(
                     backendOrderNumber = result.orderNumber
                 )
 
+                Log.i(
+                    TAG,
+                    "Offline order synchronized. " +
+                        "localId=${order.id}, " +
+                        "backendId=${result.id}, " +
+                        "backendNumber=${result.orderNumber}"
+                )
+
             } catch (error: IOException) {
 
                 dao.markFailed(
@@ -128,5 +152,6 @@ class OrderSyncWorker @AssistedInject constructor(
 
     companion object {
         const val UNIQUE_WORK_NAME = "offline-order-sync"
+        private const val TAG = "OrderSyncWorker"
     }
 }

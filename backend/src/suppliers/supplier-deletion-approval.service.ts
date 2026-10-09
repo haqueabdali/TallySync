@@ -17,7 +17,7 @@ export interface SupplierDeletionApprovalRow {
   supplierId: string | null;
   supplierSnapshot: Record<string, unknown>;
   reason: string | null;
-  requestedBy: string | null;
+  requestedBy: string;
   requestedAt: Date | string;
   adminApprovedBy: string | null;
   adminApprovedAt: Date | string | null;

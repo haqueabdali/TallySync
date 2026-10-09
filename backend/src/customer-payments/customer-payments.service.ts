@@ -129,9 +129,8 @@ export class CustomerPaymentsService {
     const limit = filter.limit ?? 20;
 
     const query = this.paymentRepository
-      .createQueryBuilder('payment')
-      .leftJoinAndSelect('payment.allocations', 'allocations')
-      .where('payment.company_id = :companyId', { companyId });
+  .createQueryBuilder('payment')
+  .where('payment.company_id = :companyId', { companyId });
 
     if (filter.search?.trim()) {
       const search = `%${filter.search.trim()}%`;
@@ -192,19 +191,47 @@ export class CustomerPaymentsService {
       updatedAt: 'payment.updated_at',
     };
 
-    query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'payment.created_at',
-        filter.sortOrder,
-      )
-      .addOrderBy('payment.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+    const sortColumn =
+  sortColumns[filter.sortBy] ?? 'payment.created_at';
 
-    const [payments, total] = await query.getManyAndCount();
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+const sortOrder = filter.sortOrder ?? 'DESC';
 
+const total = await query.clone().getCount();
+
+const idRows = await query
+  .clone()
+  .select('payment.id', 'id')
+  .orderBy(sortColumn, sortOrder)
+  .addOrderBy('payment.id', 'DESC')
+  .offset((page - 1) * limit)
+  .limit(limit)
+  .getRawMany<{ id: string }>();
+
+const ids = idRows.map((row) => row.id);
+
+let payments: CustomerPaymentEntity[] = [];
+
+if (ids.length > 0) {
+  const loadedPayments = await this.paymentRepository
+    .createQueryBuilder('payment')
+    .leftJoinAndSelect('payment.allocations', 'allocations')
+    .where('payment.company_id = :companyId', { companyId })
+    .andWhere('payment.id IN (:...ids)', { ids })
+    .getMany();
+
+  const paymentById = new Map(
+    loadedPayments.map((payment) => [payment.id, payment]),
+  );
+
+  payments = ids
+    .map((id) => paymentById.get(id))
+    .filter(
+      (payment): payment is CustomerPaymentEntity =>
+        payment !== undefined,
+    );
+}
+
+const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
     return {
       data: payments.map((payment) => this.toResponse(payment)),
       meta: {

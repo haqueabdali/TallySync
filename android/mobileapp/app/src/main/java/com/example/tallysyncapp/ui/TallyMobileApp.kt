@@ -1289,6 +1289,9 @@ onSyncWithTally = {
                     onPost = {
                         appViewModel.postSalesInvoice(invoiceId)
                     },
+                    onSyncToTally = {
+                        appViewModel.syncSalesInvoiceToTally(invoiceId)
+                    },
                     onCancel = {
                         appViewModel.cancelSalesInvoice(invoiceId)
                     },

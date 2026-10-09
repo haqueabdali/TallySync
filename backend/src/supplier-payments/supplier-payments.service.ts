@@ -154,7 +154,6 @@ export class SupplierPaymentsService {
 
     const query = this.paymentRepository
       .createQueryBuilder('payment')
-      .leftJoinAndSelect('payment.allocations', 'allocations')
       .where('payment.company_id = :companyId', { companyId });
 
     if (filter.search?.trim()) {
@@ -162,15 +161,9 @@ export class SupplierPaymentsService {
 
       query.andWhere(
         new Brackets((qb) => {
-          qb.where('payment.payment_number ILIKE :search', {
-            search,
-          })
-            .orWhere('payment.reference_number ILIKE :search', {
-              search,
-            })
-            .orWhere('payment.notes ILIKE :search', {
-              search,
-            });
+          qb.where('payment.payment_number ILIKE :search', { search })
+            .orWhere('payment.reference_number ILIKE :search', { search })
+            .orWhere('payment.notes ILIKE :search', { search });
         }),
       );
     }
@@ -222,10 +215,37 @@ export class SupplierPaymentsService {
       )
       .addOrderBy('payment.id', 'DESC')
       .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+      .take(limit);
 
     const [payments, total] = await query.getManyAndCount();
+
+    if (payments.length > 0) {
+      const allocations = await this.allocationRepository
+        .createQueryBuilder('allocation')
+        .where('allocation.supplier_payment_id IN (:...paymentIds)', {
+          paymentIds: payments.map((payment) => payment.id),
+        })
+        .getMany();
+
+      const allocationsByPaymentId = new Map<
+        string,
+        SupplierPaymentAllocation[]
+      >();
+
+      for (const allocation of allocations) {
+        const current =
+          allocationsByPaymentId.get(allocation.supplierPaymentId) ?? [];
+
+        current.push(allocation);
+
+        allocationsByPaymentId.set(allocation.supplierPaymentId, current);
+      }
+
+      for (const payment of payments) {
+        payment.allocations = allocationsByPaymentId.get(payment.id) ?? [];
+      }
+    }
+
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
@@ -240,7 +260,6 @@ export class SupplierPaymentsService {
       },
     };
   }
-
   async findOne(
     id: string,
     companyId: string,
@@ -463,30 +482,36 @@ export class SupplierPaymentsService {
           );
         }
 
-        const allocationAmount = Number(allocation.allocatedAmount);
+        const allocationAmount = this.round(Number(allocation.allocatedAmount));
 
-        const balanceDue = Number(invoice.balanceDue);
+        const balanceBefore = this.round(Number(invoice.balanceDue));
 
-        if (allocationAmount > balanceDue) {
+        if (allocationAmount > balanceBefore) {
           throw new BadRequestException(
             `Allocation exceeds balance due for invoice ${invoice.invoiceNumber}.`,
           );
         }
 
+        const balanceAfter = this.round(
+          Math.max(0, balanceBefore - allocationAmount),
+        );
+
         invoice.paidAmount = this.round(
           Number(invoice.paidAmount) + allocationAmount,
         );
 
-        invoice.balanceDue = this.round(
-          Number(invoice.grandTotal) - Number(invoice.paidAmount),
-        );
+        invoice.balanceDue = balanceAfter;
 
         invoice.status =
           invoice.balanceDue === 0
             ? PurchaseInvoiceStatus.Paid
             : PurchaseInvoiceStatus.Posted;
 
+        allocation.invoiceBalanceBefore = balanceBefore;
+        allocation.invoiceBalanceAfter = balanceAfter;
+
         await invoiceRepository.save(invoice);
+        await allocationRepository.save(allocation);
       }
 
       supplier.currentBalance = this.round(

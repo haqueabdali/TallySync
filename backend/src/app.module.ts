@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -94,6 +95,12 @@ import { createDatabaseOptions } from './database/config/database-options';
     ThrottlerModule.forRoot({
       throttlers: [
         {
+          name: 'default',
+          ttl: 60_000,
+          limit: 20,
+        },
+        {
+          name: 'auth',
           ttl: 60_000,
           limit: 20,
         },
@@ -173,6 +180,12 @@ import { createDatabaseOptions } from './database/config/database-options';
   ],
 
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -26,6 +26,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.tallysyncapp.data.network.SavePurchaseOrderRequest
 import android.util.Log
+import java.util.UUID
+import retrofit2.HttpException
+import java.io.IOException
 
 
 @HiltViewModel
@@ -47,6 +50,13 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    init {
+        // Stage 6U:
+        // Recover any persisted offline Sales Orders automatically.
+        // WorkManager itself waits for CONNECTED network.
+        offlineOrderRepository.enqueueSync()
+    }
+
     fun retryOfflineOrders() {
         offlineOrderRepository.enqueueSync()
         _uiState.value = _uiState.value.copy(
@@ -56,7 +66,15 @@ class AppViewModel @Inject constructor(
 
     fun loadDashboard() = launchRequest {
         val response = repository.getDashboard()
-        _uiState.value = _uiState.value.copy(dashboard = response.data, message = response.message)
+
+        _uiState.value = _uiState.value.copy(
+            dashboard = response.data,
+            message = response.message
+        )
+
+        // Stage 6U:
+        // Warm customer/product masters for offline Sales Order creation.
+        repository.refreshOfflineMasterCache()
     }
 
     fun loadCustomers(search: String = _uiState.value.customerSearch) {
@@ -254,12 +272,35 @@ fun deleteSupplier(
             )
 
             try {
-                repository.createProduct(request)
+                val created = repository.createProduct(request)
 
                 val response = repository.getProducts()
+                repository.ensureProductCached(created)
+
+                val createdListItem = ProductListItem(
+                    id = created.id,
+                    name = created.name,
+                    sku = created.sku,
+                    barcode = created.barcode,
+                    sellingPrice = created.sellingPrice,
+                    stock = created.currentStock,
+                    unit = created.unit
+                )
+
+                val refreshedProducts =
+                    if (
+                        created.isActive &&
+                        response.data.none { it.id == created.id }
+                    ) {
+                        (response.data + createdListItem)
+                            .distinctBy { it.id }
+                            .sortedBy { it.name.lowercase() }
+                    } else {
+                        response.data
+                    }
 
                 _uiState.value = _uiState.value.copy(
-                    products = response.data,
+                    products = refreshedProducts,
                     isSavingProduct = false,
                     message = "Product created successfully."
                 )
@@ -630,65 +671,125 @@ fun deleteSupplier(
     }
 
    fun submitSalesOrder(onSuccess: () -> Unit) {
-    val state = _uiState.value
+        val state = _uiState.value
 
-    val customer = state.selectedCustomer
-        ?: return setError("Please select a customer.")
+        val customer = state.selectedCustomer
+            ?: return setError("Please select a customer.")
 
-    if (state.cartItems.isEmpty()) {
-        return setError("Please add at least one product.")
-    }
+        if (state.cartItems.isEmpty()) {
+            return setError("Please add at least one product.")
+        }
 
-    val invalidPriceItem = state.cartItems.firstOrNull {
-        it.unitPrice <= 0.0
-    }
+        val invalidPriceItem = state.cartItems.firstOrNull {
+            it.unitPrice <= 0.0
+        }
 
-    if (invalidPriceItem != null) {
-        return setError(
-            "Please enter a selling price greater than €0.00 for ${invalidPriceItem.product.name}."
-        )
-    }
-
-    viewModelScope.launch {
-        _uiState.value = _uiState.value.copy(
-            isSubmittingOrder = true,
-            error = null
-        )
-
-        try {
-            val request = CreateSalesOrderRequest(
-                customerId = customer.id,
-                items = state.cartItems.map { item ->
-                    CreateSalesOrderItemRequest(
-                        productId = item.product.id,
-                        quantity = item.quantity,
-                        unitPrice = item.unitPrice
-                    )
-                },
-                notes = state.orderNotes
-                    .trim()
-                    .takeIf(String::isNotEmpty)
-            )
-
-            val response = repository.createSalesOrder(request)
-
-            _uiState.value = _uiState.value.copy(
-                isSubmittingOrder = false,
-                createdOrder = response.data,
-                message = response.message
-            )
-
-            onSuccess()
-        } catch (error: Exception) {
-            _uiState.value = _uiState.value.copy(
-                isSubmittingOrder = false,
-                error = error.message ?: "Unable to create order."
+        if (invalidPriceItem != null) {
+            return setError(
+                "Please enter a selling price greater than €0.00 for ${invalidPriceItem.product.name}."
             )
         }
-    }
-}
 
-    fun fulfillOrder(id: String) {
+        val request = CreateSalesOrderRequest(
+            customerId = customer.id,
+            items = state.cartItems.map { item ->
+                CreateSalesOrderItemRequest(
+                    productId = item.product.id,
+                    quantity = item.quantity,
+                    unitPrice = item.unitPrice
+                )
+            },
+            notes = state.orderNotes
+                .trim()
+                .takeIf(String::isNotEmpty),
+            clientRequestId = UUID.randomUUID().toString()
+        )
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSubmittingOrder = true,
+                error = null
+            )
+
+            try {
+                val response = repository.createSalesOrder(request)
+
+                _uiState.value = _uiState.value.copy(
+                    isSubmittingOrder = false,
+                    createdOrder = response.data,
+                    message = response.message
+                )
+
+                onSuccess()
+            } catch (error: IOException) {
+                val pendingOrder = offlineOrderRepository.save(request)
+
+                _uiState.value = _uiState.value.copy(
+                    isSubmittingOrder = false,
+                    error = null,
+                    message = "Order saved offline as ${pendingOrder.localOrderNumber}. It will sync automatically when internet is available."
+                )
+
+                onSuccess()
+            } catch (error: HttpException) {
+                if (error.code() >= 500) {
+                    val pendingOrder = offlineOrderRepository.save(request)
+
+                    _uiState.value = _uiState.value.copy(
+                        isSubmittingOrder = false,
+                        error = null,
+                        message = "Server unavailable. Order saved as ${pendingOrder.localOrderNumber} and will sync automatically."
+                    )
+
+                    onSuccess()
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isSubmittingOrder = false,
+                        error = "Unable to create order. Server returned HTTP ${error.code()}."
+                    )
+                }
+            } catch (error: Exception) {
+                /*
+                 * Stage 6U:
+                 *
+                 * Some networking/interceptor layers may wrap the original
+                 * IOException. Treat the request as offline only when an
+                 * IOException exists somewhere in the cause chain.
+                 *
+                 * Validation/authentication/application failures must NOT be
+                 * queued as offline orders.
+                 */
+                val networkFailure = generateSequence(
+                    error as Throwable?
+                ) { it.cause }
+                    .any { it is IOException }
+
+                if (networkFailure) {
+                    val pendingOrder =
+                        offlineOrderRepository.save(request)
+
+                    _uiState.value = _uiState.value.copy(
+                        isSubmittingOrder = false,
+                        error = null,
+                        message =
+                            "Order saved offline as " +
+                            "${pendingOrder.localOrderNumber}. " +
+                            "It will sync automatically when internet is available."
+                    )
+
+                    onSuccess()
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isSubmittingOrder = false,
+                        error = error.message
+                            ?: "Unable to create order."
+                    )
+                }
+            }
+        }
+    }
+
+fun fulfillOrder(id: String) {
         runOrderAction("Order fulfilled successfully.") {
             repository.fulfillSalesOrder(id)
             refreshOrderData(id)
@@ -2062,6 +2163,38 @@ fun clearSupplierRecord() {
             successMessage = "Sales invoice posted successfully."
         ) {
             repository.postSalesInvoice(id)
+        }
+    }
+
+    fun syncSalesInvoiceToTally(id: String) {
+        if (
+            id.isBlank() ||
+            _uiState.value.isChangingSalesInvoiceStatus
+        ) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isChangingSalesInvoiceStatus = true,
+                error = null
+            )
+
+            try {
+                repository.syncSalesInvoiceToTally(id)
+
+                val refreshed = repository.getSalesInvoice(id)
+
+                _uiState.value = _uiState.value.copy(
+                    salesInvoiceRecord = refreshed,
+                    isChangingSalesInvoiceStatus = false,
+                    message = "Sales invoice synchronized to Tally Prime successfully."
+                )
+            } catch (error: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isChangingSalesInvoiceStatus = false,
+                    error = error.message
+                        ?: "Unable to synchronize sales invoice to Tally Prime."
+                )
+            }
         }
     }
 

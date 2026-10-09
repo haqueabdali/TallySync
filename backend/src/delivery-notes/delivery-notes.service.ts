@@ -129,12 +129,10 @@ export class DeliveryNotesService {
     const limit = filter.limit ?? 20;
 
     const query = this.deliveryNoteRepository
-      .createQueryBuilder('deliveryNote')
-      .leftJoinAndSelect('deliveryNote.items', 'items')
-      .where('deliveryNote.company_id = :companyId', {
-        companyId,
-      });
-
+    .createQueryBuilder('deliveryNote')
+    .where('deliveryNote.company_id = :companyId', {
+    companyId,
+  });
     if (filter.search?.trim()) {
       const search = `%${filter.search.trim()}%`;
 
@@ -195,18 +193,49 @@ export class DeliveryNotesService {
       updatedAt: 'deliveryNote.updated_at',
     };
 
-    query
-      .orderBy(
-        sortColumns[filter.sortBy] ?? 'deliveryNote.created_at',
-        filter.sortOrder,
-      )
-      .addOrderBy('deliveryNote.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .distinct(true);
+    const sortColumn =
+  sortColumns[filter.sortBy] ?? 'deliveryNote.created_at';
 
-    const [notes, total] = await query.getManyAndCount();
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+const sortOrder = filter.sortOrder ?? 'DESC';
+
+const total = await query.clone().getCount();
+
+const idRows = await query
+  .clone()
+  .select('deliveryNote.id', 'id')
+  .orderBy(sortColumn, sortOrder)
+  .addOrderBy('deliveryNote.id', 'DESC')
+  .offset((page - 1) * limit)
+  .limit(limit)
+  .getRawMany<{ id: string }>();
+
+const ids = idRows.map((row) => row.id);
+
+let notes: DeliveryNoteEntity[] = [];
+
+if (ids.length > 0) {
+  const loadedNotes = await this.deliveryNoteRepository
+    .createQueryBuilder('deliveryNote')
+    .leftJoinAndSelect('deliveryNote.items', 'items')
+    .where('deliveryNote.company_id = :companyId', {
+      companyId,
+    })
+    .andWhere('deliveryNote.id IN (:...ids)', { ids })
+    .getMany();
+
+  const noteById = new Map(
+    loadedNotes.map((note) => [note.id, note]),
+  );
+
+  notes = ids
+    .map((id) => noteById.get(id))
+    .filter(
+      (note): note is DeliveryNoteEntity =>
+        note !== undefined,
+    );
+}
+
+const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     return {
       data: notes.map((note) => this.toResponse(note)),

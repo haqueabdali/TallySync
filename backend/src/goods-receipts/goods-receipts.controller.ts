@@ -113,7 +113,11 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<GoodsReceiptResponseDto> {
-    return this.goodsReceiptsService.post(id, request.user.companyId);
+    return this.goodsReceiptsService.post(
+      id,
+      request.user.companyId,
+      request.user.id,
+    );
   }
 
   @Post(':id/reverse')
@@ -124,6 +128,10 @@ export class GoodsReceiptsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
   ): Promise<GoodsReceiptResponseDto> {
-    return this.goodsReceiptsService.reverse(id, request.user.companyId);
+    return this.goodsReceiptsService.reverse(
+      id,
+      request.user.companyId,
+      request.user.id,
+    );
   }
 }

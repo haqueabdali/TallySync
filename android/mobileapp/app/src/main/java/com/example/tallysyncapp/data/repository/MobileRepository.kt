@@ -1,5 +1,10 @@
 package com.example.tallysyncapp.data.repository
 
+import com.example.tallysyncapp.data.local.dao.CachedCustomerDao
+import com.example.tallysyncapp.data.local.dao.CachedProductDao
+import com.example.tallysyncapp.data.local.entity.CachedCustomerEntity
+import com.example.tallysyncapp.data.local.entity.CachedProductEntity
+
 import com.example.tallysyncapp.data.network.CreateSalesOrderRequest
 import com.example.tallysyncapp.data.network.MobileApi
 import com.example.tallysyncapp.data.network.SaveCustomerRequest
@@ -12,10 +17,66 @@ import com.example.tallysyncapp.data.network.SavePurchaseOrderRequest
 
 @Singleton
 class MobileRepository @Inject constructor(
-    private val api: MobileApi
+    private val api: MobileApi,
+    private val cachedCustomerDao: CachedCustomerDao,
+    private val cachedProductDao: CachedProductDao
 ) {
     suspend fun getDashboard() = api.getDashboard()
-    suspend fun getCustomers(search: String? = null) = api.getCustomers(search)
+
+    /**
+     * Refresh the local customer/product master cache while online.
+     *
+     * This is intentionally separate from getDashboard() so a failure to
+     * refresh offline masters never prevents the dashboard from loading.
+     */
+    suspend fun refreshOfflineMasterCache() {
+        try {
+            val customers = api.getCustomers(null)
+
+            cachedCustomerDao.deleteAll()
+            cachedCustomerDao.insertAll(
+                customers.data.map(CachedCustomerEntity::fromNetwork)
+            )
+        } catch (_: Exception) {
+            // Keep the previous customer cache.
+        }
+
+        try {
+            val products = api.getProducts(null)
+
+            cachedProductDao.deleteAll()
+            cachedProductDao.insertAll(
+                products.data.map(CachedProductEntity::fromNetwork)
+            )
+        } catch (_: Exception) {
+            // Keep the previous product cache.
+        }
+    }
+    suspend fun getCustomers(search: String? = null) =
+        try {
+            val response = api.getCustomers(search)
+
+            if (search.isNullOrBlank()) {
+                cachedCustomerDao.deleteAll()
+                cachedCustomerDao.insertAll(
+                    response.data.map(CachedCustomerEntity::fromNetwork)
+                )
+            }
+
+            response
+        } catch (error: Exception) {
+            val cached = if (search.isNullOrBlank()) {
+                cachedCustomerDao.getAll()
+            } else {
+                cachedCustomerDao.search(search.trim())
+            }
+
+            com.example.tallysyncapp.data.network.ApiResponse(
+                success = true,
+                message = "Offline customer cache",
+                data = cached.map { it.toNetworkModel() }
+            )
+        }
     suspend fun createCustomer(request: SaveCustomerRequest) = api.createCustomer(request)
     suspend fun getCustomer(id: String) = api.getCustomer(id)
     suspend fun updateCustomer(id: String, request: SaveCustomerRequest) =
@@ -24,13 +85,79 @@ class MobileRepository @Inject constructor(
         api.updateCustomerStatus(id, UpdateActiveStatusRequest(isActive))
     suspend fun syncCustomerMaster(id: String) =
         api.syncCustomerMaster(id)
-    suspend fun getProducts(search: String? = null) = api.getProducts(search)
-    suspend fun createProduct(request: SaveProductRequest) = api.createProduct(request)
+    suspend fun getProducts(search: String? = null) =
+        try {
+            val response = api.getProducts(search)
+
+            if (search.isNullOrBlank()) {
+                cachedProductDao.deleteAll()
+                cachedProductDao.insertAll(
+                    response.data.map(CachedProductEntity::fromNetwork)
+                )
+            }
+
+            response
+        } catch (error: Exception) {
+            val cached = if (search.isNullOrBlank()) {
+                cachedProductDao.getAll()
+            } else {
+                cachedProductDao.search(search.trim())
+            }
+
+            com.example.tallysyncapp.data.network.ApiResponse(
+                success = true,
+                message = "Offline product cache",
+                data = cached.map { it.toNetworkModel() }
+            )
+        }
+    suspend fun createProduct(request: SaveProductRequest) =
+        api.createProduct(request).also { product ->
+            if (product.isActive) {
+                cachedProductDao.upsert(
+                    CachedProductEntity(
+                        id = product.id,
+                        name = product.name,
+                        sku = product.sku,
+                        barcode = product.barcode,
+                        sellingPrice = product.sellingPrice,
+                        stock = product.currentStock,
+                        unit = product.unit
+                    )
+                )
+            }
+        }
+    suspend fun ensureProductCached(product: com.example.tallysyncapp.data.network.ProductRecord) {
+        if (!product.isActive) return
+
+        cachedProductDao.upsert(
+            CachedProductEntity(
+                id = product.id,
+                name = product.name,
+                sku = product.sku,
+                barcode = product.barcode,
+                sellingPrice = product.sellingPrice,
+                stock = product.currentStock,
+                unit = product.unit
+            )
+        )
+    }
+
     suspend fun getProduct(id: String) = api.getProduct(id)
     suspend fun updateProduct(id: String, request: SaveProductRequest) =
         api.updateProduct(id, request)
-    suspend fun updateProductStatus(id: String, isActive: Boolean) =
-        api.updateProductStatus(id, UpdateActiveStatusRequest(isActive))
+    suspend fun updateProductStatus(
+        id: String,
+        isActive: Boolean
+    ) = api.updateProductStatus(
+        id,
+        UpdateActiveStatusRequest(isActive)
+    ).also { product ->
+        if (product.isActive) {
+            ensureProductCached(product)
+        } else {
+            cachedProductDao.deleteById(product.id)
+        }
+    }
     suspend fun syncProductMaster(id: String) =
         api.syncProductMaster(id)
     suspend fun getSalesOrders(syncStatus: String? = null, search: String? = null, page: Int = 1) =
@@ -241,6 +368,9 @@ class MobileRepository @Inject constructor(
 
     suspend fun postSalesInvoice(id: String) =
         api.postSalesInvoice(id)
+
+    suspend fun syncSalesInvoiceToTally(id: String) =
+        api.syncSalesInvoiceToTally(id)
 
     suspend fun cancelSalesInvoice(id: String) =
         api.cancelSalesInvoice(id)

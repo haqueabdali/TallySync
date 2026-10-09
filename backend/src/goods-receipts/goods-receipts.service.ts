@@ -6,6 +6,11 @@ import {
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, ILike, Repository } from 'typeorm';
 
+import {
+  InventoryCostEngineService,
+  InventoryCostSourceType,
+  InventoryCostTransactionType,
+} from '../inventory-cost-engine';
 import { ItemEntity } from '../items/entities/item.entity';
 import { PurchaseOrderItemEntity } from '../purchase-orders/entities/purchase-order-item.entity';
 import { PurchaseOrderEntity } from '../purchase-orders/entities/purchase-order.entity';
@@ -39,6 +44,8 @@ export class GoodsReceiptsService {
 
     @InjectRepository(WarehouseEntity)
     private readonly warehouseRepository: Repository<WarehouseEntity>,
+
+    private readonly inventoryCostEngineService: InventoryCostEngineService,
   ) {}
 
   private async generateGrnNumber(companyId: string): Promise<string> {
@@ -387,7 +394,11 @@ export class GoodsReceiptsService {
     await this.goodsReceiptRepository.softRemove(receipt);
   }
 
-  async post(id: string, companyId: string): Promise<GoodsReceiptResponseDto> {
+  async post(
+    id: string,
+    companyId: string,
+    userId: string,
+  ): Promise<GoodsReceiptResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const receipt = await manager.findOne(GoodsReceipt, {
         where: { id, companyId },
@@ -444,10 +455,31 @@ export class GoodsReceiptsService {
           throw new NotFoundException(`Item ${line.itemId} not found.`);
         }
 
-        if (item.trackInventory) {
+        if (item.trackInventory && Number(line.acceptedQty) > 0) {
           item.currentStock =
             Number(item.currentStock ?? 0) + Number(line.acceptedQty);
+
           await manager.save(ItemEntity, item);
+
+          await this.inventoryCostEngineService.record(
+            {
+              companyId,
+              itemId: line.itemId,
+              warehouseId: receipt.warehouseId,
+              transactionDate:
+                receipt.grnDate instanceof Date
+                  ? receipt.grnDate.toISOString().slice(0, 10)
+                  : String(receipt.grnDate),
+              transactionType: InventoryCostTransactionType.RECEIPT,
+              sourceType: InventoryCostSourceType.GOODS_RECEIPT,
+              sourceId: receipt.id,
+              sourceLineId: line.id,
+              quantity: Number(line.acceptedQty),
+              unitCost: Number(line.unitCost),
+              createdBy: userId,
+            },
+            { manager },
+          );
         }
 
         purchaseOrderItem.receivedQuantity =
@@ -481,6 +513,7 @@ export class GoodsReceiptsService {
   async reverse(
     id: string,
     companyId: string,
+    userId: string,
   ): Promise<GoodsReceiptResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const receipt = await manager.findOne(GoodsReceipt, {
@@ -525,9 +558,29 @@ export class GoodsReceiptsService {
           );
         }
 
-        if (item.trackInventory) {
+        if (item.trackInventory && acceptedQty > 0) {
           item.currentStock = currentStock - acceptedQty;
           await manager.save(ItemEntity, item);
+
+          await this.inventoryCostEngineService.record(
+            {
+              companyId,
+              itemId: line.itemId,
+              warehouseId: receipt.warehouseId,
+              transactionDate:
+                receipt.grnDate instanceof Date
+                  ? receipt.grnDate.toISOString().slice(0, 10)
+                  : String(receipt.grnDate),
+              transactionType: InventoryCostTransactionType.REVERSAL,
+              sourceType: InventoryCostSourceType.GOODS_RECEIPT,
+              sourceId: receipt.id,
+              sourceLineId: line.id,
+              quantity: acceptedQty,
+              unitCost: Number(line.unitCost),
+              createdBy: userId,
+            },
+            { manager },
+          );
         }
 
         const purchaseOrderItem = purchaseOrder.items.find(

@@ -156,6 +156,7 @@ fun SalesInvoiceDetailsScreen(
     invoiceId: String,
     onBack: () -> Unit,
     onPost: () -> Unit,
+    onSyncToTally: () -> Unit,
     onCancel: () -> Unit,
     onDelete: () -> Unit,
     onReceivePayment: () -> Unit
@@ -176,6 +177,7 @@ fun SalesInvoiceDetailsScreen(
 
     val status = invoice.status.lowercase()
     var confirmPost by remember { mutableStateOf(false) }
+    var confirmTallySync by remember { mutableStateOf(false) }
     var confirmCancel by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
 

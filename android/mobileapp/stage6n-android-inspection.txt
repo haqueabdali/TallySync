@@ -1,0 +1,579 @@
+===== NETWORK FILES =====
+app/src/main/java/com/example/tallysyncapp/data/network/ApiClient.kt
+app/src/main/java/com/example/tallysyncapp/data/network/ApiConfig.kt
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt
+app/src/main/java/com/example/tallysyncapp/data/network/ApiService.kt
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt
+app/src/main/java/com/example/tallysyncapp/data/network/NetworkMonitor.kt
+
+===== API SERVICE / PURCHASE METHODS =====
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:232:data class SupplierListItem(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:235:    val supplierCode: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:254:    val paymentTerms: Int = 0,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:262:data class SaveSupplierRequest(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:280:    val paymentTerms: Int = 0,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:311:data class PurchaseOrderItemRequest(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:323:data class SavePurchaseOrderRequest(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:324:    val supplierId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:337:    val items: List<PurchaseOrderItemRequest>
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:340:data class PurchaseOrderItemRecord(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:342:    val purchaseOrderId: String? = null,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:363:data class PurchaseOrderRecord(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:367:    val supplierId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:368:    val supplierName: String? = null,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:391:    val items: List<PurchaseOrderItemRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:396:data class PurchaseOrdersPage(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:397:    val data: List<PurchaseOrderRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:400:data class GoodsReceiptItemRequest(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:401:    val purchaseOrderItemId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:410:data class CreateGoodsReceiptRequest(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:411:    val purchaseOrderId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:415:    val items: List<GoodsReceiptItemRequest>
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:418:data class GoodsReceiptItemRecord(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:420:    val goodsReceiptId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:421:    val purchaseOrderItemId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:431:data class GoodsReceiptRecord(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:434:    val purchaseOrderId: String,
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:440:    val items: List<GoodsReceiptItemRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:448:data class GoodsReceiptsPage(
+app/src/main/java/com/example/tallysyncapp/data/network/ApiModels.kt:449:    val data: List<GoodsReceiptRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/data/network/ApiService.kt:3:interface ApiService {
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:11:interface MobileApi {
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:93:    @GET("suppliers")
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:94:    suspend fun getSuppliers(@Query("search") search: String? = null): ApiResponse<List<SupplierListItem>>
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:96:    @GET("suppliers/{id}")suspend fun getSupplier(@Path("id") id: String): SupplierListItem
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:98:    @POST("suppliers")
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:99:    suspend fun createSupplier(@Body request: SaveSupplierRequest): ApiResponse<SupplierListItem>
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:101:    @PATCH("suppliers/{id}")
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:102:    suspend fun updateSupplier(@Path("id") id: String, @Body request: SaveSupplierRequest): ApiResponse<SupplierListItem>
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:104:    @PATCH("suppliers/{id}/status")
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:105:    suspend fun updateSupplierStatus(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:108:    ): ApiResponse<SupplierListItem>
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:110:    @DELETE("suppliers/{id}")
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:111:    suspend fun deleteSupplier(@Path("id") id: String)
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:120:    suspend fun getPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:125:    ): PurchaseOrdersPage
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:128:    suspend fun getPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:130:    ): PurchaseOrderRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:133:    suspend fun createPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:134:        @Body request: SavePurchaseOrderRequest
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:135:    ): PurchaseOrderRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:138:    suspend fun updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:140:        @Body request: SavePurchaseOrderRequest
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:141:    ): PurchaseOrderRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:144:    suspend fun sendPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:146:    ): PurchaseOrderRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:149:    suspend fun cancelPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:151:    ): PurchaseOrderRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:154:    suspend fun deletePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:162:    suspend fun getGoodsReceipts(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:163:        @Query("purchaseOrderId") purchaseOrderId: String? = null,
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:168:    ): GoodsReceiptsPage
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:171:    suspend fun getGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:173:    ): GoodsReceiptRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:176:    suspend fun createGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:177:        @Body request: CreateGoodsReceiptRequest
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:178:    ): GoodsReceiptRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:181:    suspend fun postGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:183:    ): GoodsReceiptRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:186:    suspend fun reverseGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:188:    ): GoodsReceiptRecord
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:191:    suspend fun deleteGoodsReceipt(
+
+===== APP UI STATE =====
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt:19:data class AppUiState(
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-20-    val dashboard: DashboardData? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-21-    val customers: List<CustomerListItem> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-22-    val products: List<ProductListItem> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-23-    val orders: List<SalesOrderSummary> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-24-    val cartItems: List<CartItem> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-25-    val selectedCustomer: CustomerListItem? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-26-    val selectedOrder: SalesOrderDetails? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-27-    val createdOrder: CreateSalesOrderResult? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-28-    val viewedCustomer: CustomerListItem? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-29-    val customerRecord: CustomerRecord? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-30-    val productRecord: ProductRecord? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-31-    val customerOrders: List<SalesOrderSummary> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-32-    val customerSearch: String = "",
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-33-    val productSearch: String = "",
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-34-    val orderNotes: String = "",
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-35-    val selectedFilter: String? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-36-    val suppliers: List<SupplierListItem> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-37-    val selectedSupplier: SupplierListItem? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-38-    val supplierRecord: SupplierListItem? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-39-    val supplierSearch: String = "",
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-40-    val isSavingSupplier: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-41-    val isSavingCustomer: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-42-    val isSavingProduct: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-43-    val isSyncingTallyMaster: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-44-    val reportOrders: List<SalesOrderSummary> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-45-    val reportRange: ReportRange = ReportRange.LAST_30_DAYS,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-46-    val isOnline: Boolean = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-47-    val localPendingOrders: Int = 0,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-48-    val localPendingOrderItems: List<PendingOrderEntity> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-49-    val goodsReceipts: List<com.example.tallysyncapp.data.network.GoodsReceiptRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-50-    val goodsReceiptRecord: com.example.tallysyncapp.data.network.GoodsReceiptRecord? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-51-    val isSavingGoodsReceipt: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-52-    val isPostingGoodsReceipt: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-53-    val isReversingGoodsReceipt: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-54-
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-55-    val loading: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-56-    val isSubmittingOrder: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-57-    val error: String? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-58-    val message: String? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-59-    val warehouses: List<WarehouseListItem> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-60-    val purchaseOrders: List<PurchaseOrderRecord> = emptyList(),
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-61-    val purchaseOrderRecord: PurchaseOrderRecord? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-62-    val purchaseOrderSearch: String = "",
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-63-    val purchaseOrderStatusFilter: String? = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-64-    val isSavingPurchaseOrder: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-65-    val isChangingPurchaseOrderStatus: Boolean = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppUiState.kt-66-)
+
+===== APP ROUTE =====
+
+===== VIEWMODEL PURCHASE SECTION =====
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-854-        supplierRecord = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-855-    )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-856-}
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-857-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-858-            fun loadWarehouses() = launchRequest {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-859-        val response = repository.getWarehouses()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-860-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-861-        val warehouses = response.data
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-862-            .filter { it.isActive }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-863-            .sortedWith(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-864-                compareByDescending<com.example.tallysyncapp.data.network.WarehouseListItem> {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-865-                    it.isDefault
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-866-                }.thenBy { it.name.lowercase() }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-867-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-868-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-869-        _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-870-            warehouses = warehouses
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-871-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-872-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-873-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:874:    fun loadPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-875-        search: String = _uiState.value.purchaseOrderSearch,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-876-        status: String? = _uiState.value.purchaseOrderStatusFilter
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-877-    ) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-878-        _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-879-            purchaseOrderSearch = search,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-880-            purchaseOrderStatusFilter = status
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-881-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-882-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-883-        launchRequest {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-884-            val response = repository.getPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-885-                search = search.trim().takeIf(String::isNotEmpty),
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-886-                status = status?.takeIf { it.isNotBlank() }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-887-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-888-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-889-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-890-                purchaseOrders = response.data
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-891-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-892-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-893-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-894-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-895-    fun updatePurchaseOrderSearch(search: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-896-        _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-897-            purchaseOrderSearch = search
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-898-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-899-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-900-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-901-    fun updatePurchaseOrderStatusFilter(status: String?) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-902-        _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-903-            purchaseOrderStatusFilter = status
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-904-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-905-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-906-        loadPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-907-            search = _uiState.value.purchaseOrderSearch,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-908-            status = status
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-909-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-910-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-911-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-912-    fun loadPurchaseOrderRecord(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-913-        if (purchaseOrderId.isBlank()) return
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-914-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-915-        viewModelScope.launch {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-916-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-917-                loading = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-918-                error = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-919-                purchaseOrderRecord = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-920-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-921-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-922-            try {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-923-                val purchaseOrder =
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-924-                    repository.getPurchaseOrder(purchaseOrderId)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-925-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-926-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-927-                    purchaseOrderRecord = purchaseOrder,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-928-                    loading = false
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-929-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-930-            } catch (error: Exception) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-931-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-932-                    purchaseOrderRecord = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-933-                    loading = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-934-                    error = error.message
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-935-                        ?: "Unable to load purchase order."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-936-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-937-            }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-938-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-939-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-940-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-941-    fun preparePurchaseOrderForm() {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-942-        viewModelScope.launch {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-943-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-944-                loading = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-945-                error = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-946-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-947-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-948-            try {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-949-                val suppliersResponse = repository.getSuppliers()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-950-                val productsResponse = repository.getProducts()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-951-                val warehousesResponse = repository.getWarehouses()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-952-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-953-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-954-                    suppliers = suppliersResponse.data
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-955-                        .filter { it.isActive },
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-956-                    products = productsResponse.data,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-957-                    warehouses = warehousesResponse.data
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-958-                        .filter { it.isActive }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-959-                        .sortedWith(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-960-                            compareByDescending<com.example.tallysyncapp.data.network.WarehouseListItem> {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-961-                                it.isDefault
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-962-                            }.thenBy { it.name.lowercase() }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-963-                        ),
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-964-                    loading = false
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-965-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-966-            } catch (error: Exception) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-967-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-968-                    loading = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-969-                    error = error.message
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-970-                        ?: "Unable to prepare purchase order form."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-971-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-972-            }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-973-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-974-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-975-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-976-    fun createPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-977-    request: SavePurchaseOrderRequest,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-978-    onSuccess: (String) -> Unit
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-979-) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-980-    Log.d(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-981-        "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-982-        "VIEWMODEL_CREATE_ENTER " +
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-983-            "isSaving=${_uiState.value.isSavingPurchaseOrder}"
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-984-    )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-985-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-986-    if (_uiState.value.isSavingPurchaseOrder) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-987-        Log.d(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-988-            "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-989-            "VIEWMODEL_CREATE_BLOCKED_IS_SAVING"
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-990-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-991-        return
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-992-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-993-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-994-    viewModelScope.launch {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-995-        Log.d(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-996-            "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-997-            "VIEWMODEL_COROUTINE_STARTED"
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-998-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-999-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1000-        _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1001-            isSavingPurchaseOrder = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1002-            error = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1003-        )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1004-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1005-        try {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1006-            Log.d(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1007-                "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1008-                "REPOSITORY_CREATE_START"
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1009-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1010-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1011-            val created =
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1012-                repository.createPurchaseOrder(request)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1013-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1014-            Log.d(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1015-                "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1016-                "REPOSITORY_CREATE_SUCCESS"
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1017-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1018-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1019-            val list =
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1020-                repository.getPurchaseOrders()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1021-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1022-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1023-                purchaseOrderRecord = created,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1024-                purchaseOrders = list.data,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1025-                isSavingPurchaseOrder = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1026-                message = "Purchase order created successfully."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1027-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1028-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1029-            onSuccess(created.id)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1030-        } catch (error: Exception) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1031-            Log.e(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1032-                "PO_DEBUG",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1033-                "REPOSITORY_CREATE_FAILED: ${error.message}",
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1034-                error
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1035-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1036-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1037-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1038-                isSavingPurchaseOrder = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1039-                error = error.message
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1040-                    ?: "Unable to create purchase order."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1041-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1042-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1043-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1044-}
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1045-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1046-    fun updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1047-        purchaseOrderId: String,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1048-        request: SavePurchaseOrderRequest,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1049-        onSuccess: () -> Unit
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1050-    ) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1051-        if (
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1052-            purchaseOrderId.isBlank() ||
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1053-            _uiState.value.isSavingPurchaseOrder
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1054-        ) return
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1055-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1056-        viewModelScope.launch {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1057-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1058-                isSavingPurchaseOrder = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1059-                error = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1060-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1061-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1062-            try {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1063-                val updated =
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1064-                    repository.updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1065-                        purchaseOrderId,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1066-                        request
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1067-                    )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1068-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1069-                val list =
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1070-                    repository.getPurchaseOrders()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1071-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1072-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1073-                    purchaseOrderRecord = updated,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1074-                    purchaseOrders = list.data,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1075-                    isSavingPurchaseOrder = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1076-                    message = "Purchase order updated successfully."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1077-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1078-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1079-                onSuccess()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1080-            } catch (error: Exception) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1081-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1082-                    isSavingPurchaseOrder = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1083-                    error = error.message
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1084-                        ?: "Unable to update purchase order."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1085-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1086-            }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1087-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1088-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1089-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1090-    fun sendPurchaseOrder(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1091-        changePurchaseOrderLifecycle(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1092-            purchaseOrderId = purchaseOrderId,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1093-            successMessage = "Purchase order sent successfully."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1094-        ) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1095-            repository.sendPurchaseOrder(purchaseOrderId)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1096-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1097-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1098-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1099-    fun cancelPurchaseOrder(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1100-        changePurchaseOrderLifecycle(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1101-            purchaseOrderId = purchaseOrderId,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1102-            successMessage = "Purchase order cancelled successfully."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1103-        ) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1104-            repository.cancelPurchaseOrder(purchaseOrderId)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1105-        }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1106-    }
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1107-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1108-    fun deletePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1109-        purchaseOrderId: String,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1110-        onSuccess: () -> Unit
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1111-    ) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1112-        if (
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1113-            purchaseOrderId.isBlank() ||
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1114-            _uiState.value.isChangingPurchaseOrderStatus
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1115-        ) return
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1116-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1117-        viewModelScope.launch {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1118-            _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1119-                isChangingPurchaseOrderStatus = true,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1120-                error = null
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1121-            )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1122-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1123-            try {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1124-                repository.deletePurchaseOrder(purchaseOrderId)
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1125-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1126-                val list = repository.getPurchaseOrders()
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1127-
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1128-                _uiState.value = _uiState.value.copy(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1129-                    purchaseOrderRecord = null,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1130-                    purchaseOrders = list.data,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1131-                    isChangingPurchaseOrderStatus = false,
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1132-                    message = "Purchase order deleted successfully."
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1133-                )
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt-1134-
+
+===== REPOSITORY PURCHASE SECTION =====
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:120:    suspend fun getPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:128:    suspend fun getPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:133:    suspend fun createPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:138:    suspend fun updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:144:    suspend fun sendPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:149:    suspend fun cancelPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:154:    suspend fun deletePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:162:    suspend fun getGoodsReceipts(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:171:    suspend fun getGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:176:    suspend fun createGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:181:    suspend fun postGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:186:    suspend fun reverseGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/network/MobileApi.kt:191:    suspend fun deleteGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:57:    suspend fun getPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:68:    suspend fun getPurchaseOrder(id: String) =
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:71:    suspend fun createPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:76:    suspend fun updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:82:    suspend fun sendPurchaseOrder(id: String) =
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:85:    suspend fun cancelPurchaseOrder(id: String) =
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:88:    suspend fun deletePurchaseOrder(id: String) =
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:93:    suspend fun getGoodsReceipts(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:107:    suspend fun getGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:111:    suspend fun createGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:115:    suspend fun postGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:119:    suspend fun reverseGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/data/repository/MobileRepository.kt:123:    suspend fun deleteGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:874:    fun loadPurchaseOrders(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:895:    fun updatePurchaseOrderSearch(search: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:901:    fun updatePurchaseOrderStatusFilter(status: String?) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:912:    fun loadPurchaseOrderRecord(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:941:    fun preparePurchaseOrderForm() {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:976:    fun createPurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1046:    fun updatePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1090:    fun sendPurchaseOrder(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1099:    fun cancelPurchaseOrder(purchaseOrderId: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1108:    fun deletePurchaseOrder(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1146:    private fun changePurchaseOrderLifecycle(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1183:    fun clearPurchaseOrderRecord() {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1210:    fun loadGoodsReceipts(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1238:    fun loadGoodsReceiptRecord(id: String) {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1264:    fun clearGoodsReceiptRecord() {
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1270:    fun createGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1303:    fun postGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1340:    fun reverseGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/ui/AppViewModel.kt:1377:    fun deleteGoodsReceipt(
+app/src/main/java/com/example/tallysyncapp/ui/navigation/AppRoutes.kt:64:        fun createRoute(purchaseOrderId: String): String =
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:34:fun PurchaseOrderDetailsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:406:private fun PurchaseOrderDetailsSection(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:481:private fun PurchaseOrderLineCard(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:563:private fun PurchaseOrderConfirmationDialog(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderFormScreen.kt:50:fun PurchaseOrderFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderFormScreen.kt:783:private fun PurchaseOrderFormSection(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderFormScreen.kt:809:private fun PurchaseOrderEditableLine(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderFormScreen.kt:976:private fun PurchaseOrderProductPicker(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrdersScreen.kt:31:fun PurchaseOrdersScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrdersScreen.kt:172:private fun PurchaseOrderStatusChip(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrdersScreen.kt:190:private fun PurchaseOrderCard(
+
+===== CURRENT 6N TYPES =====
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:38:import com.example.tallysyncapp.data.network.PurchaseInvoiceItemRequest
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:39:import com.example.tallysyncapp.data.network.PurchaseInvoiceRecord
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:40:import com.example.tallysyncapp.data.network.SavePurchaseInvoiceRequest
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:41:import com.example.tallysyncapp.data.network.SaveSupplierPaymentRequest
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:43:import com.example.tallysyncapp.data.network.SupplierPaymentAllocationRequest
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:80:fun PurchaseInvoicesScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:85:    onOpen: (PurchaseInvoiceRecord) -> Unit,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:115:                value = state.purchaseInvoiceSearch,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:149:                            state.purchaseInvoiceStatusFilter == status,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:161:        if (state.purchaseInvoices.isEmpty() && !state.loading) {
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:168:            items = state.purchaseInvoices,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:222:fun PurchaseInvoiceDetailsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:232:        state.purchaseInvoiceRecord
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:424:                        !state.isChangingPurchaseInvoiceStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:435:                        !state.isChangingPurchaseInvoiceStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:469:                        !state.isChangingPurchaseInvoiceStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:531:private data class PurchaseInvoiceLineDraft(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:541:fun PurchaseInvoiceFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:545:    onSave: (SavePurchaseInvoiceRequest) -> Unit,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:582:            PurchaseInvoiceLineDraft(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:592:    fun buildRequest(): SavePurchaseInvoiceRequest? {
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:686:                PurchaseInvoiceItemRequest(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:705:        return SavePurchaseInvoiceRequest(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:979:                        PurchaseInvoiceLineDraft(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1042:fun SupplierPaymentsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1068:                value = state.supplierPaymentSearch,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1092:            state.supplierPayments.isEmpty() &&
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1101:            items = state.supplierPayments,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1152:fun SupplierPaymentDetailsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1161:        state.supplierPaymentRecord
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1245:                        "Invoice: ${allocation.purchaseInvoiceId}"
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1283:                        !state.isChangingSupplierPaymentStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1292:                        !state.isChangingSupplierPaymentStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1306:                        !state.isChangingSupplierPaymentStatus,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1321:fun SupplierPaymentFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1323:    invoices: List<PurchaseInvoiceRecord>,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1326:    onSave: (SaveSupplierPaymentRequest) -> Unit,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1591:                            SaveSupplierPaymentRequest(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1614:                                        SupplierPaymentAllocationRequest(
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseAccountingScreens.kt:1615:                                            purchaseInvoiceId =
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:42:    onOpenPurchaseInvoices: () -> Unit = {},
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:43:    onOpenSupplierPayments: () -> Unit = {}
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:290:                    onClick = onOpenPurchaseInvoices,
+app/src/main/java/com/example/tallysyncapp/ui/PurchaseOrderDetailsScreen.kt:297:                    onClick = onOpenSupplierPayments,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:552:        onOpenPurchaseInvoices = {
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:554:                AppRoute.PurchaseInvoices.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:557:        onOpenSupplierPayments = {
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:559:                AppRoute.SupplierPayments.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1199:                route = AppRoute.PurchaseInvoices.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1204:                    appViewModel.loadPurchaseInvoices()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1207:                PurchaseInvoicesScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1210:                        appViewModel::updatePurchaseInvoiceSearch,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1212:                        appViewModel.loadPurchaseInvoices()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1215:                        appViewModel::updatePurchaseInvoiceStatusFilter,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1218:                            AppRoute.PurchaseInvoiceDetails
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1224:                            AppRoute.PurchaseInvoiceForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1232:                            AppRoute.SupplierPayments.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1239:                route = AppRoute.PurchaseInvoiceForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1246:                PurchaseInvoiceFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1253:                        state.isSavingPurchaseInvoice,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1255:                        appViewModel.createPurchaseInvoice(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1259:                                AppRoute.PurchaseInvoiceDetails
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1263:                                    AppRoute.PurchaseInvoiceForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1277:                route = AppRoute.PurchaseInvoiceDetails.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1287:                        appViewModel.loadPurchaseInvoiceRecord(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1293:                PurchaseInvoiceDetailsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1297:                        appViewModel.clearPurchaseInvoiceRecord()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1301:                        appViewModel.postPurchaseInvoice(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1306:                        appViewModel.cancelPurchaseInvoice(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1311:                        appViewModel.deletePurchaseInvoice(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1319:                            AppRoute.SupplierPaymentForInvoice
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1330:                route = AppRoute.SupplierPayments.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1334:                    appViewModel.loadSupplierPayments()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1335:                    appViewModel.loadPurchaseInvoices()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1338:                SupplierPaymentsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1341:                        appViewModel::updateSupplierPaymentSearch,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1343:                        appViewModel.loadSupplierPayments()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1347:                            AppRoute.SupplierPaymentDetails
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1353:                            AppRoute.SupplierPaymentForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1363:                route = AppRoute.SupplierPaymentForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1367:                    appViewModel.loadPurchaseInvoices()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1370:                SupplierPaymentFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1372:                    invoices = state.purchaseInvoices,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1374:                        state.isSavingSupplierPayment,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1376:                        appViewModel.createSupplierPayment(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1380:                                AppRoute.SupplierPaymentDetails
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1384:                                    AppRoute.SupplierPaymentForm.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1398:                route = AppRoute.SupplierPaymentForInvoice.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1408:                    appViewModel.loadPurchaseInvoices()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1411:                SupplierPaymentFormScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1413:                    invoices = state.purchaseInvoices,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1416:                        state.isSavingSupplierPayment,
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1418:                        appViewModel.createSupplierPayment(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1422:                                AppRoute.SupplierPaymentDetails
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1426:                                    AppRoute.SupplierPaymentForInvoice.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1440:                route = AppRoute.SupplierPaymentDetails.route
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1450:                        appViewModel.loadSupplierPaymentRecord(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1456:                SupplierPaymentDetailsScreen(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1460:                        appViewModel.clearSupplierPaymentRecord()
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1464:                        appViewModel.postSupplierPayment(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1469:                        appViewModel.cancelSupplierPayment(
+app/src/main/java/com/example/tallysyncapp/ui/TallyMobileApp.kt:1474:                        appViewModel.deleteSupplierPayment(

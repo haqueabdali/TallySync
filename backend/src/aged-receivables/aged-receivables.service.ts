@@ -212,11 +212,34 @@ export class AgedReceivablesService {
     return 'over120Days';
   }
 
-  private daysBetween(fromDate: string, toDate: string): number {
-    const from = Date.parse(`${fromDate}T00:00:00.000Z`);
-    const to = Date.parse(`${toDate}T00:00:00.000Z`);
+  private daysBetween(
+    fromDate: string | Date,
+    toDate: string | Date,
+  ): number {
+    const from = this.parseUtcDate(fromDate);
+    const to = this.parseUtcDate(toDate);
+
     return Math.floor((to - from) / 86_400_000);
   }
+
+  private parseUtcDate(value: string | Date): number {
+    let dateOnly: string;
+
+    if (value instanceof Date) {
+      dateOnly = value.toISOString().slice(0, 10);
+    } else {
+      dateOnly = String(value).slice(0, 10);
+    }
+
+    const timestamp = Date.parse(`${dateOnly}T00:00:00.000Z`);
+
+    if (Number.isNaN(timestamp)) {
+      throw new Error(`Invalid date value "${String(value)}".`);
+    }
+
+    return timestamp;
+  }
+
 
   private createEmptyBuckets(): ReceivableAgingBucketsDto {
     return {

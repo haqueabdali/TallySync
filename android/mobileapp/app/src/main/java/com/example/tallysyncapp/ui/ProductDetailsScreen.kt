@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +25,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,6 +44,9 @@ fun ProductDetailsScreen(
     onSyncWithTally: () -> Unit
 ) {
     val product = state.productRecord
+    var showRemoveConfirmation by remember {
+        mutableStateOf(false)
+    }
 
     Scaffold(
         topBar = {
@@ -124,7 +132,7 @@ fun ProductDetailsScreen(
                         DetailLine(
                             "Selling price",
                             String.format(
-                                Locale.getDefault(),
+                                Locale.ITALY,
                                 "€%.2f",
                                 product.sellingPrice
                             )
@@ -133,7 +141,7 @@ fun ProductDetailsScreen(
                         DetailLine(
                             "Purchase price",
                             String.format(
-                                Locale.getDefault(),
+                                Locale.ITALY,
                                 "€%.2f",
                                 product.purchasePrice
                             )
@@ -307,14 +315,18 @@ fun ProductDetailsScreen(
             item {
                 OutlinedButton(
                     onClick = {
-                        onStatusChange(!product.isActive)
+                        if (product.isActive) {
+                            showRemoveConfirmation = true
+                        } else {
+                            onStatusChange(true)
+                        }
                     },
                     enabled = !state.isSavingProduct,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         if (product.isActive) {
-                            "Deactivate product"
+                            "Remove product"
                         } else {
                             "Activate product"
                         }
@@ -322,6 +334,44 @@ fun ProductDetailsScreen(
                 }
             }
         }
+    }
+
+    if (showRemoveConfirmation && product != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showRemoveConfirmation = false
+            },
+            title = {
+                Text("Remove product?")
+            },
+            text = {
+                Text(
+                    "This product will no longer be available for new " +
+                        "transactions. Existing orders, invoices and " +
+                        "accounting history will be preserved."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRemoveConfirmation = false
+                        onStatusChange(false)
+                    },
+                    enabled = !state.isSavingProduct
+                ) {
+                    Text("Remove")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showRemoveConfirmation = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

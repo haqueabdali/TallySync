@@ -169,6 +169,171 @@ export class TallyXmlService {
     };
   }
 
+  buildVoucherLookup(voucherType: string, voucherNumber: string): string {
+    const company = this.escapeXml(this.getTallyCompanyName());
+    const type = this.escapeXml(voucherType.trim());
+    const number = this.escapeXml(voucherNumber.trim());
+
+    return `
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>TallySyncVoucherLookup</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVCURRENTCOMPANY>${company}</SVCURRENTCOMPANY>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="TallySyncVoucherLookup">
+            <TYPE>Voucher</TYPE>
+            <FETCH>VoucherNumber,VoucherTypeName,MasterID,GUID,Date,Reference</FETCH>
+            <FILTER>TallySyncVoucherFilter</FILTER>
+          </COLLECTION>
+          <SYSTEM TYPE="Formulae" NAME="TallySyncVoucherFilter">
+            $VoucherNumber = "${number}" AND $VoucherTypeName = "${type}"
+          </SYSTEM>
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>`.trim();
+  }
+
+  buildPurchaseVoucher(input: {
+    voucherNumber: string;
+    voucherDate: string;
+    supplierLedgerName: string;
+    purchaseLedgerName: string;
+    items: Array<{
+      stockItemName: string;
+      quantity: number;
+      rate: number;
+      unit: string;
+      godownName: string;
+    }>;
+  }): TallySalesVoucherPreview {
+    if (!input.items.length) {
+      throw new BadRequestException('At least one purchase voucher item is required');
+    }
+
+    const date = this.formatTallyDate(input.voucherDate);
+    const company = this.escapeXml(this.getTallyCompanyName());
+    const voucherNumber = this.escapeXml(input.voucherNumber);
+    const supplier = this.escapeXml(input.supplierLedgerName);
+    const purchaseLedger = this.escapeXml(input.purchaseLedgerName);
+    let totalAmount = 0;
+
+    const inventoryEntries = input.items.map((item) => {
+      const qty = Number(item.quantity);
+      const rate = Number(item.rate);
+      const amountValue = qty * rate;
+      if (!item.stockItemName?.trim() || !item.unit?.trim() || qty <= 0 || rate < 0) {
+        throw new BadRequestException('Invalid purchase voucher item');
+      }
+      totalAmount += amountValue;
+      const amount = this.formatMoney(amountValue);
+      return `
+<ALLINVENTORYENTRIES.LIST>
+  <STOCKITEMNAME>${this.escapeXml(item.stockItemName)}</STOCKITEMNAME>
+  <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+  <RATE>${this.formatMoney(rate)}/${this.escapeXml(item.unit)}</RATE>
+  <AMOUNT>-${amount}</AMOUNT>
+  <ACTUALQTY>${this.formatNumber(qty)} ${this.escapeXml(item.unit)}</ACTUALQTY>
+  <BILLEDQTY>${this.formatNumber(qty)} ${this.escapeXml(item.unit)}</BILLEDQTY>
+  <BATCHALLOCATIONS.LIST>
+    <GODOWNNAME>${this.escapeXml(item.godownName)}</GODOWNNAME>
+    <BATCHNAME>Primary Batch</BATCHNAME>
+    <AMOUNT>-${amount}</AMOUNT>
+    <ACTUALQTY>${this.formatNumber(qty)} ${this.escapeXml(item.unit)}</ACTUALQTY>
+    <BILLEDQTY>${this.formatNumber(qty)} ${this.escapeXml(item.unit)}</BILLEDQTY>
+  </BATCHALLOCATIONS.LIST>
+  <ACCOUNTINGALLOCATIONS.LIST>
+    <LEDGERNAME>${purchaseLedger}</LEDGERNAME>
+    <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+    <AMOUNT>-${amount}</AMOUNT>
+  </ACCOUNTINGALLOCATIONS.LIST>
+</ALLINVENTORYENTRIES.LIST>`.trim();
+    }).join('\n');
+
+    const total = this.formatMoney(totalAmount);
+    const xml = `
+<ENVELOPE>
+  <HEADER><VERSION>1</VERSION><TALLYREQUEST>Import</TALLYREQUEST><TYPE>Data</TYPE><ID>Vouchers</ID></HEADER>
+  <BODY>
+    <DESC><STATICVARIABLES><SVCURRENTCOMPANY>${company}</SVCURRENTCOMPANY><IMPORTDUPS>@@DUPCOMBINE</IMPORTDUPS></STATICVARIABLES></DESC>
+    <DATA><TALLYMESSAGE xmlns:UDF="TallyUDF">
+      <VOUCHER VCHTYPE="Purchase" ACTION="Create" OBJVIEW="Invoice Voucher View">
+        <DATE>${date}</DATE><EFFECTIVEDATE>${date}</EFFECTIVEDATE>
+        <VOUCHERTYPENAME>Purchase</VOUCHERTYPENAME><VOUCHERNUMBER>${voucherNumber}</VOUCHERNUMBER>
+        <REFERENCE>${voucherNumber}</REFERENCE><PARTYLEDGERNAME>${supplier}</PARTYLEDGERNAME>
+        <PERSISTEDVIEW>Invoice Voucher View</PERSISTEDVIEW><OBJVIEW>Invoice Voucher View</OBJVIEW><ISINVOICE>Yes</ISINVOICE>
+        <LEDGERENTRIES.LIST>
+          <LEDGERNAME>${supplier}</LEDGERNAME><ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE><ISPARTYLEDGER>Yes</ISPARTYLEDGER>
+          <AMOUNT>${total}</AMOUNT>
+          <BILLALLOCATIONS.LIST><NAME>${voucherNumber}</NAME><BILLTYPE>New Ref</BILLTYPE><AMOUNT>${total}</AMOUNT></BILLALLOCATIONS.LIST>
+        </LEDGERENTRIES.LIST>
+        ${inventoryEntries}
+      </VOUCHER>
+    </TALLYMESSAGE></DATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+    return { voucherNumber: input.voucherNumber, voucherDate: date, totalAmount, itemCount: input.items.length, xml };
+  }
+
+  buildLedgerPaymentVoucher(input: {
+    voucherType: 'Receipt' | 'Payment';
+    voucherNumber: string;
+    voucherDate: string;
+    partyLedgerName: string;
+    moneyLedgerName: string;
+    amount: number;
+    billReferences: Array<{ name: string; amount: number }>;
+  }): TallySalesVoucherPreview {
+    const amountValue = Number(input.amount);
+    if (!Number.isFinite(amountValue) || amountValue <= 0) {
+      throw new BadRequestException('Payment voucher amount must be greater than zero');
+    }
+    const company = this.escapeXml(this.getTallyCompanyName());
+    const date = this.formatTallyDate(input.voucherDate);
+    const number = this.escapeXml(input.voucherNumber);
+    const party = this.escapeXml(input.partyLedgerName);
+    const money = this.escapeXml(input.moneyLedgerName);
+    const total = this.formatMoney(amountValue);
+    const isReceipt = input.voucherType === 'Receipt';
+    const partyAmount = isReceipt ? total : `-${total}`;
+    const moneyAmount = isReceipt ? `-${total}` : total;
+    const partyPositive = isReceipt ? 'No' : 'Yes';
+    const moneyPositive = isReceipt ? 'Yes' : 'No';
+    const bills = input.billReferences.map((ref) => {
+      const allocation = this.formatMoney(Number(ref.amount));
+      const signed = isReceipt ? allocation : `-${allocation}`;
+      return `<BILLALLOCATIONS.LIST><NAME>${this.escapeXml(ref.name)}</NAME><BILLTYPE>Agst Ref</BILLTYPE><AMOUNT>${signed}</AMOUNT></BILLALLOCATIONS.LIST>`;
+    }).join('');
+
+    const xml = `
+<ENVELOPE>
+  <HEADER><VERSION>1</VERSION><TALLYREQUEST>Import</TALLYREQUEST><TYPE>Data</TYPE><ID>Vouchers</ID></HEADER>
+  <BODY><DESC><STATICVARIABLES><SVCURRENTCOMPANY>${company}</SVCURRENTCOMPANY><IMPORTDUPS>@@DUPCOMBINE</IMPORTDUPS></STATICVARIABLES></DESC>
+    <DATA><TALLYMESSAGE xmlns:UDF="TallyUDF">
+      <VOUCHER VCHTYPE="${input.voucherType}" ACTION="Create">
+        <DATE>${date}</DATE><EFFECTIVEDATE>${date}</EFFECTIVEDATE><VOUCHERTYPENAME>${input.voucherType}</VOUCHERTYPENAME>
+        <VOUCHERNUMBER>${number}</VOUCHERNUMBER><REFERENCE>${number}</REFERENCE>
+        <ALLLEDGERENTRIES.LIST><LEDGERNAME>${party}</LEDGERNAME><ISDEEMEDPOSITIVE>${partyPositive}</ISDEEMEDPOSITIVE><ISPARTYLEDGER>Yes</ISPARTYLEDGER><AMOUNT>${partyAmount}</AMOUNT>${bills}</ALLLEDGERENTRIES.LIST>
+        <ALLLEDGERENTRIES.LIST><LEDGERNAME>${money}</LEDGERNAME><ISDEEMEDPOSITIVE>${moneyPositive}</ISDEEMEDPOSITIVE><AMOUNT>${moneyAmount}</AMOUNT></ALLLEDGERENTRIES.LIST>
+      </VOUCHER>
+    </TALLYMESSAGE></DATA>
+  </BODY>
+</ENVELOPE>`.trim();
+
+    return { voucherNumber: input.voucherNumber, voucherDate: date, totalAmount: amountValue, itemCount: input.billReferences.length, xml };
+  }
+
   private validateVoucherDto(dto: PreviewSalesVoucherDto): void {
     if (!dto.voucherNumber?.trim()) {
       throw new BadRequestException('Voucher number is required');

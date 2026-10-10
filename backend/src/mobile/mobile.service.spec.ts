@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 
 import { ItemEntity } from '../inventory/entities/item.entity';
 import { CustomerEntity } from '../sales-orders/entities/customer.entity';
@@ -23,6 +23,10 @@ describe('MobileService', () => {
     save: jest.fn(),
     count: jest.fn(),
     createQueryBuilder: jest.fn(),
+  };
+
+  const rootSalesOrderRepository = {
+    findOne: jest.fn(),
   };
 
   const salesOrderItemRepository = {
@@ -96,7 +100,7 @@ describe('MobileService', () => {
         MobileService,
         {
           provide: getRepositoryToken(SalesOrderEntity),
-          useValue: {},
+          useValue: rootSalesOrderRepository,
         },
         {
           provide: getRepositoryToken(SalesOrderItemEntity),
@@ -239,7 +243,9 @@ describe('MobileService', () => {
 
     salesOrderItemRepository.create.mockImplementation((value) => value);
 
-    salesOrderItemRepository.save.mockImplementation(async (value) => value);
+    salesOrderItemRepository.save.mockImplementation((value) =>
+      Promise.resolve(value),
+    );
 
     const result = await service.createSalesOrder(
       {
@@ -302,5 +308,93 @@ describe('MobileService', () => {
         }),
       }),
     );
+  });
+
+  function arrangeValidOrder() {
+    customerRepository.findOne.mockResolvedValue({ id: 'customer-1' });
+    warehouseRepository.findOne.mockResolvedValue({ id: 'warehouse-1' });
+    itemRepository.find.mockResolvedValue([
+      { id: 'product-1', name: 'Product', sku: null, unit: 'PCS' },
+    ]);
+    salesOrderRepository.create.mockImplementation((value) => value);
+    salesOrderItemRepository.create.mockImplementation((value) => value);
+    salesOrderItemRepository.save.mockImplementation((value) =>
+      Promise.resolve(value),
+    );
+  }
+
+  const orderDto = {
+    customerId: 'customer-1',
+    items: [{ productId: 'product-1', quantity: 1, unitPrice: 10 }],
+  };
+
+  it('should generate distinct order numbers for orders created in the same second', async () => {
+    arrangeValidOrder();
+    salesOrderRepository.save.mockImplementation((value) =>
+      Promise.resolve({
+        ...value,
+        id: 'order-1',
+      }),
+    );
+
+    const numbers = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      const result = await service.createSalesOrder(
+        orderDto,
+        'company-1',
+        'user-1',
+      );
+      numbers.add(result.data.orderNumber);
+    }
+
+    expect(numbers.size).toBe(20);
+    for (const value of numbers) {
+      expect(value.length).toBeLessThanOrEqual(50);
+    }
+  });
+
+  it('should return the existing order when a concurrent retry wins the clientRequestId race', async () => {
+    arrangeValidOrder();
+    const uniqueViolation = new QueryFailedError('INSERT', [], {
+      code: '23505',
+      constraint: 'UQ_sales_orders_company_client_request',
+    } as unknown as Error);
+    salesOrderRepository.save.mockRejectedValue(uniqueViolation);
+
+    rootSalesOrderRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'order-1',
+        orderNumber: 'SO-1',
+        grandTotal: 10,
+        syncStatus: SalesOrderSyncStatus.PENDING,
+      });
+
+    const result = await service.createSalesOrder(
+      { ...orderDto, clientRequestId: 'req-1' },
+      'company-1',
+      'user-1',
+    );
+
+    expect(result.data.id).toBe('order-1');
+    expect(result.message).toBe('Sales order already exists');
+  });
+
+  it('should rethrow unrelated unique violations', async () => {
+    arrangeValidOrder();
+    const uniqueViolation = new QueryFailedError('INSERT', [], {
+      code: '23505',
+      constraint: 'UQ_sales_orders_company_number',
+    } as unknown as Error);
+    salesOrderRepository.save.mockRejectedValue(uniqueViolation);
+    rootSalesOrderRepository.findOne.mockResolvedValue(null);
+
+    await expect(
+      service.createSalesOrder(
+        { ...orderDto, clientRequestId: 'req-1' },
+        'company-1',
+        'user-1',
+      ),
+    ).rejects.toBe(uniqueViolation);
   });
 });

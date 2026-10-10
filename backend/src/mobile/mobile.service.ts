@@ -4,7 +4,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, ILike, In, IsNull, Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
+import {
+  Brackets,
+  DataSource,
+  ILike,
+  In,
+  IsNull,
+  QueryFailedError,
+  Repository,
+} from 'typeorm';
 import { WarehouseEntity } from '../warehouses/entities/warehouse.entity';
 
 import { ItemEntity } from '../inventory/entities/item.entity';
@@ -373,28 +382,14 @@ export class MobileService {
     companyId: string,
     userId: string,
   ) {
-        if (dto.clientRequestId) {
-      const existingOrder = await this.salesOrderRepository.findOne({
-        where: {
-          companyId,
-          clientRequestId: dto.clientRequestId,
-          deletedAt: IsNull(),
-        },
-      });
-
-      if (existingOrder) {
-        return {
-          success: true,
-          message: 'Sales order already exists',
-          data: {
-            id: existingOrder.id,
-            orderNumber: existingOrder.orderNumber,
-            totalAmount: existingOrder.grandTotal,
-            syncStatus: existingOrder.syncStatus,
-          },
-        };
-      }
+    if (dto.clientRequestId) {
+      const existing = await this.findExistingClientOrder(
+        companyId,
+        dto.clientRequestId,
+      );
+      if (existing) return existing;
     }
+
     const customer = await this.customerRepository.findOne({
       where: {
         id: dto.customerId,
@@ -479,6 +474,74 @@ export class MobileService {
       preparedItems.reduce((sum, item) => sum + item.lineSubtotal, 0),
     );
 
+    try {
+      return await this.insertSalesOrder(
+        dto,
+        companyId,
+        userId,
+        customer,
+        warehouse,
+        preparedItems,
+        subtotal,
+      );
+    } catch (error) {
+      // A concurrent retry with the same clientRequestId won the insert race.
+      const driverError =
+        error instanceof QueryFailedError
+          ? (error.driverError as { code?: string; constraint?: string })
+          : undefined;
+      if (
+        dto.clientRequestId &&
+        driverError?.code === '23505' &&
+        driverError.constraint === 'UQ_sales_orders_company_client_request'
+      ) {
+        const existing = await this.findExistingClientOrder(
+          companyId,
+          dto.clientRequestId,
+        );
+        if (existing) return existing;
+      }
+      throw error;
+    }
+  }
+
+  private async findExistingClientOrder(
+    companyId: string,
+    clientRequestId: string,
+  ) {
+    const existingOrder = await this.salesOrderRepository.findOne({
+      where: { companyId, clientRequestId, deletedAt: IsNull() },
+    });
+
+    if (!existingOrder) return null;
+
+    return {
+      success: true,
+      message: 'Sales order already exists',
+      data: {
+        id: existingOrder.id,
+        orderNumber: existingOrder.orderNumber,
+        totalAmount: existingOrder.grandTotal,
+        syncStatus: existingOrder.syncStatus,
+      },
+    };
+  }
+
+  private insertSalesOrder(
+    dto: CreateMobileSalesOrderDto,
+    companyId: string,
+    userId: string,
+    customer: CustomerEntity,
+    warehouse: WarehouseEntity,
+    preparedItems: {
+      product: ItemEntity;
+      productData: ItemEntity & { sku?: string | null; unit?: string | null };
+      quantity: number;
+      unitPrice: number;
+      lineSubtotal: number;
+    }[],
+    subtotal: number,
+  ) {
     return this.dataSource.transaction(async (manager) => {
       const salesOrderRepository = manager.getRepository(SalesOrderEntity);
 
@@ -653,8 +716,11 @@ export class MobileService {
   private createOrderNumber(): string {
     const now = new Date();
     const date = now.toISOString().slice(0, 10).replaceAll('-', '');
-    const time = now.toISOString().slice(11, 19).replaceAll(':', '');
-    return `SO-${date}-${time}`;
+    const time = now.toISOString().slice(11, 23).replace(/[:.]/g, '');
+    // Seconds alone collide when an offline backlog uploads in a burst
+    // (UQ_sales_orders_company_number), so add ms plus a random suffix.
+    const suffix = randomBytes(2).toString('hex').toUpperCase();
+    return `SO-${date}-${time}-${suffix}`;
   }
 
   private roundMoney(value: number): number {

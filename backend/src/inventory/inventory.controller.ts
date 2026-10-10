@@ -44,7 +44,7 @@ import type { AuditContext } from '../users/interfaces/audit-context.interface';
 
 @RequireLicenseFeature(LicensedFeature.INVENTORY)
 @Controller('inventory')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard, RolesGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 

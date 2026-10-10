@@ -16,7 +16,7 @@ interface PendingOrderDao {
     @Query(
         """
         SELECT * FROM pending_orders
-        WHERE status IN ('PENDING', 'FAILED')
+        WHERE status IN ('PENDING', 'FAILED', 'SYNCING')
           AND backendOrderId IS NULL
         ORDER BY createdAt ASC
         """

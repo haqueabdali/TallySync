@@ -45,7 +45,7 @@ import { CustomerRequestContext } from './interfaces/customer-request-context.in
 @ApiBearerAuth()
 @RequireLicenseFeature(LicensedFeature.SALES)
 @Controller('customers')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, LicenseFeatureGuard, RolesGuard)
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 

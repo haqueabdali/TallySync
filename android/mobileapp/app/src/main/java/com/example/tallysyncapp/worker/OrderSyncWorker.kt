@@ -12,6 +12,7 @@ import com.example.tallysyncapp.data.repository.MobileRepository
 import com.google.gson.Gson
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -133,6 +134,12 @@ class OrderSyncWorker @AssistedInject constructor(
                     retryRequired = true
                     break
                 }
+
+            } catch (error: CancellationException) {
+
+                // Worker stopped mid-upload; the row stays SYNCING and is retried
+                // next run (clientRequestId makes the re-send idempotent).
+                throw error
 
             } catch (error: Exception) {
 

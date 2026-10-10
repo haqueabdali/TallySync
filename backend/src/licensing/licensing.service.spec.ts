@@ -273,7 +273,7 @@ describe('LicensingService', () => {
 
     expect(licenseRepository.save).toHaveBeenCalled();
     expect(license.expiresAt).toEqual(renewedExpiry);
-    expect(license.certificateSignature).toBeNull();
+    expect((license as { certificateSignature?: unknown }).certificateSignature).toBeNull();
     expect(result).toBe(license);
     expect(auditRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({

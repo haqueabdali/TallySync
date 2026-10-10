@@ -35,7 +35,7 @@ describe('DashboardService.getOverview', () => {
     const overview = await service.getOverview('company-1', 6);
 
     expect(query).toHaveBeenCalled();
-    for (const call of query.mock.calls as Array<[string, unknown[]]>) {
+    for (const call of query.mock.calls as unknown as Array<[string, unknown[]]>) {
       expect(call[1][0]).toBe('company-1');
       expect(call[0]).toContain('company_id=$1');
     }

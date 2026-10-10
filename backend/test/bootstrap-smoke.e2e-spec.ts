@@ -86,7 +86,7 @@ describe('Platform owner authentication flow', () => {
     role: { id: 'admin-role', name: 'admin' },
     company: null,
     refreshTokens: [],
-  } as UserEntity;
+  } as unknown as UserEntity;
   const customerAdmin = {
     ...platformOwner,
     id: '00000000-0000-4000-8000-000000000002',

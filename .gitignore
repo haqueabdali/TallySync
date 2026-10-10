@@ -3,3 +3,11 @@ node_modules
 *.jks
 *.keystore
 build/
+
+# local artifacts
+backend/artifacts/
+backups/
+releases/
+*.log
+*.db
+.env.multi-instance

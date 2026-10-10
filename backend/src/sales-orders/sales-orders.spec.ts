@@ -112,7 +112,7 @@ describe('SalesOrdersService', () => {
         createdAt: new Date('2026-08-29T00:00:00.000Z'),
         updatedAt: new Date('2026-08-29T00:00:00.000Z'),
         deletedAt: null,
-      }) as SalesOrderEntity;
+      }) as unknown as SalesOrderEntity;
 
     it.each([
       SalesOrderStatus.Submitted,
@@ -124,7 +124,7 @@ describe('SalesOrdersService', () => {
         const order = makeOrder(initialStatus);
 
         salesOrderRepository.findOne.mockResolvedValue(order);
-        salesOrderRepository.save.mockImplementation(async (entity) => entity);
+        salesOrderRepository.save.mockImplementation(async (entity) => entity as never);
 
         const result = await service.fulfill(orderId, companyId, userId);
 

@@ -44,7 +44,7 @@ const makeUser = (overrides: Partial<UserEntity> = {}): UserEntity => ({
   deletedAt: null,
   role: makeRole(),
   ...overrides,
-});
+} as UserEntity);
 
 const makeAuditLog = (
   overrides: Partial<AuditLogEntity> = {},
@@ -60,7 +60,6 @@ const makeAuditLog = (
   ipAddress: null,
   userAgent: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
-  actor: null,
   ...overrides,
 });
 

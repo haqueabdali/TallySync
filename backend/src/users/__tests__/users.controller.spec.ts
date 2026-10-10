@@ -106,7 +106,7 @@ describe('UsersController', () => {
       };
       usersService.listUsers.mockResolvedValue(paginatedResponse);
 
-      const query: ListUsersQueryDto = { page: 1, limit: 20 };
+      const query: ListUsersQueryDto = { page: 1, limit: 20 } as ListUsersQueryDto;
       const result = await controller.listUsers(query, mockAuthenticatedUser);
 
       expect(usersService.listUsers).toHaveBeenCalledWith(

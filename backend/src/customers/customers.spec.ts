@@ -27,7 +27,7 @@ const customer = {
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   deletedAt: null,
   salesOrders: [],
-} as CustomerEntity;
+} as unknown as CustomerEntity;
 
 function createQueryBuilderMock() {
   const qb = {
@@ -174,7 +174,7 @@ describe('CustomersService', () => {
 
   it('rejects a request without company context', async () => {
     await expect(
-      service.findAll({}, { actorId: 'user-id', companyId: null }),
+      service.findAll({} as never, { actorId: 'user-id', companyId: null }),
     ).rejects.toThrow(BadRequestException);
   });
 });

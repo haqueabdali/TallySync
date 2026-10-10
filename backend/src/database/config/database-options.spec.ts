@@ -40,7 +40,7 @@ describe('createDatabaseOptions', () => {
 
     const options = createDatabaseOptions(config);
 
-    expect(options.ssl).toEqual({
+    expect((options as { ssl?: unknown }).ssl).toEqual({
       rejectUnauthorized: true,
     });
   });
@@ -58,7 +58,7 @@ describe('createDatabaseOptions', () => {
 
     const options = createDatabaseOptions(config);
 
-    expect(options.ssl).toEqual({
+    expect((options as { ssl?: unknown }).ssl).toEqual({
       rejectUnauthorized: false,
     });
   });

@@ -49,7 +49,7 @@ describe('AgedReceivablesService', () => {
       'orderBy',
       'addOrderBy',
     ] as const) {
-      queryBuilder[method].mockReturnValue(queryBuilder);
+      queryBuilder[method].mockReturnValue(queryBuilder as never);
     }
 
     repository = {

@@ -83,7 +83,7 @@ function buildService(user: UserEntity | null = customerUser()) {
 describe('PlatformUsersService', () => {
   it('lists only customer-company users and maps company/role context', async () => {
     const { service, qb } = buildService();
-    await expect(service.list({ page: 1, limit: 50 })).resolves.toEqual({
+    await expect(service.list({ page: 1, limit: 50 } as never)).resolves.toEqual({
       data: [
         expect.objectContaining({
           id: 'user-1',
